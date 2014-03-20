@@ -6,6 +6,7 @@ notification architectures.
 
 
 
+--------------------------------------------------------------------------------
 
 ### Channels and queues
 
@@ -23,6 +24,16 @@ from multiple channels.
 A subscriber can "catch up" event if it hasn't pulled events for a while
 (events get buffered in queues).
 
+
+--------------------------------------------------------------------------------
+
+### Installing & Configuring
+
+
+
+
+
+--------------------------------------------------------------------------------
 
 ### API
 
@@ -51,7 +62,7 @@ Caveat: only one client can push events to a channel.
 `:name` is limited to 32 characters (lowercase letters and the underscore
 character).
 
-`<type>` is one of `created`, `updated, or `deleted`.
+`<type>` is one of `created`, `updated`, or `deleted`.
 
 `<url>` is the authoritative URL for the entity corresponding to the event
 (maximum 1024 characters).
@@ -109,9 +120,11 @@ Otherwise, they will be resent at the next interval.
     >> POST <callback>
     >>
     >> [
-    <<   { channel: <name>, event: <type>, url: <url> },
+    <<   { channel: <name>, event: <type>, url: <url>, t: <t> },
     <<   ...
     << ]
+
+`<t>` is the timestamp at which the event was originally received.
 
 Possible response statuses:
 
@@ -119,6 +132,8 @@ Possible response statuses:
 - Anything else: failure, batch to be sent again later.
 
 
+--------------------------------------------------------------------------------
 
-#### Monitoring
+### Monitoring
 
+TODO.
