@@ -111,7 +111,7 @@ Possible statuses:
 
 #### Pulling
 
-Clients receive an HTTPS request for new batches of events, they don't have the
+Clients receive an HTTPS request for new batches of events, they don't have to
 query for them.
 If the request completes successfully, the events will be deleted from the
 queue.
