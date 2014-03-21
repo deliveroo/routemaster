@@ -80,16 +80,22 @@ A subscriber can "catch up" event if it hasn't pulled events for a while
 
 #### Authentication, security.
 
-HTTP Basic. Username is ignored, password is a per-client UUID.
-
 All requests over non-SSL connections will be met with a 308 Permanent Redirect.
+
+HTTP Basic is required for all requests. The username is ignored, the password
+should be a per-client UUID.
+
+The list of allowed clients is part of the configuration, and is passed as a
+comma-separated list to the `ROUTEMASTER_CLIENTS` environment variable.
 
 
 #### Publication (creating channels)
 
-Implicit when pushing the first event.
+There is no need co explicitely create channels; they will be when pushing the
+first event to the bus.
 
-Caveat: only one client can push events to a channel.
+**Only one client** can push events to a channel: all but the first client to
+push to a given channel will see their requests met with errors.
 
 
 #### Pushing 
