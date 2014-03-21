@@ -38,6 +38,15 @@ Future versions of Routemaster may support (backwards-compatible) long-polling
 HTTP sessions to cancel out the latency cost.
 
 
+#### Persistence
+
+The web is a harsh place. Subscribers may die, or be unreachable in many ways
+for various amounts of time.
+
+Routermaster will keep buffering, and keep trying to push events to subscribers
+until they become reachable again.
+
+
 --------------------------------------------------------------------------------
 
 ### Channels and queues
@@ -165,7 +174,7 @@ Otherwise, they will be resent at the next interval.
 
 Possible response statuses:
 
-- 200, 204: Event batch is ackownledged
+- 200, 204: Event batch is ackownledged, and will be deleted from the queue.
 - Anything else: failure, batch to be sent again later.
 
 
