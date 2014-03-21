@@ -9,8 +9,9 @@ practical upper limit on throughput.
 
 Routemaster is designed on purpose to _not_ support RPC-style architectures, for
 instance by severely limiting payload contents: much like it's all too easy to
-add non-RESTful routes to a web application, it's all to easy to start datage a
-microservice architecture by building function across services.
+add non-RESTful routes to a web application, it's all too easy to damage a
+microservice architecture by building function across services, thus coupling
+them too tightly.
 
 
 --------------------------------------------------------------------------------
