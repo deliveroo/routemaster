@@ -3,15 +3,39 @@
 **Routemaster** is an opinionated event bus over HTTP, supporting event-driven /
 representational state notification architectures.
 
-Routemaster aims to dispatch events with a median latency not exceding 10ms
-(plus the round-trip time to publisher and subscriber services), with no
-practical upper limit on throughput.
+Routemaster aims to dispatch events with a median latency in the 50-100ms range,
+with no practical upper limit on throughput.
+
+
+#### RPC as an antipattern
 
 Routemaster is designed on purpose to _not_ support RPC-style architectures, for
-instance by severely limiting payload contents: much like it's all too easy to
-add non-RESTful routes to a web application, it's all too easy to damage a
-microservice architecture by building function across services, thus coupling
-them too tightly.
+instance by severely limiting payload contents.
+
+The rationale is that, much like it's all too easy to add non-RESTful routes to
+a web application, it's all too easy to damage a microservice architecture by
+building function across services, thus coupling them too tightly.
+
+
+#### Don't call us, we'll call you
+
+In web environments, the one type of server that scales well and can scale
+automatically is an HTTP server. As such, Routemaster heavily relies on HTTP.
+
+Inbound events are delivered over HTTP so that the bus itself can scale to
+easily process a higher (or lower) throughput of events with consistent latency.
+
+Outbound events are delivered over HTTP so that subscribers can scale their
+processing of events as easily.
+
+We believe the cost in latency in doing so (as compared to lower-level messaging
+systems such as the excellent
+[RabbitMQ](https://www.rabbitmq.com/protocols.html)) is offset by easier
+maintenance, more sound architecture (standards-only, JSON over HTTP), and
+better scalability.
+
+Future versions of Routemaster may support (backwards-compatible) long-polling
+HTTP sessions to cancel out the latency cost.
 
 
 --------------------------------------------------------------------------------
