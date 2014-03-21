@@ -1,9 +1,16 @@
 ## Routemaster
 
-An event bus over HTTP, supporting event-driven / representational state
-notification architectures.
+**Routemaster** is an opinionated event bus over HTTP, supporting event-driven /
+representational state notification architectures.
 
+Routemaster aims to dispatch events with a median latency not exceding 10ms
+(plus the round-trip time to publisher and subscriber services), with no
+practical upper limit on throughput.
 
+Routemaster designed on purpose to _not_ support RPC-style architectures, for instance
+by severely limiting payload contents: much like it's all too easy to add
+non-RESTful routes to a web application, it's all to easy to start datage a
+microservice architecture by building function across services.
 
 
 --------------------------------------------------------------------------------
