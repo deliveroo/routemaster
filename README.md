@@ -79,7 +79,7 @@ authentication-related):
 
 #### Subscription
 
-Subscription implicitely creates a queue for the client, which starts
+Subscription implicitly creates a queue for the client, which starts
 accumulating events.
 
 From the client's perspective, the queue is a singleton resource.
@@ -120,9 +120,14 @@ Otherwise, they will be resent at the next interval.
     >> POST <callback>
     >>
     >> [
-    <<   { channel: <name>, event: <type>, url: <url>, t: <t> },
-    <<   ...
-    << ]
+    >>   { 
+    >>     channel: <name>,
+    >>     event:   <type>, 
+    >>     url:     <url>, 
+    >>     t:       <t> 
+    >>   },
+    >>   ...
+    >> ]
 
 `<t>` is the timestamp at which the event was originally received.
 
