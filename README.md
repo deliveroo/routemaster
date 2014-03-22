@@ -259,8 +259,9 @@ Monitoring:
 ### Sources of inspiration
 
 - [RestMQ](http://restmq.com/)
-- RabbitMQ
-- ActiveSupport::Notification
-- Pusher
+- [Apache Kafka](https://kafka.apache.org/documentation.html#introduction)
+- [RabbitMQ](https://www.rabbitmq.com/)
+- [ActiveSupport::Notification](http://api.rubyonrails.org/classes/ActiveSupport/Notifications.html)
+- [Pusher](https://app.pusher.com/)
 
 
