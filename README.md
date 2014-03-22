@@ -235,6 +235,11 @@ complexify its codebase too much (it's a separate concern, really).
 
 ### Post-MVP Roadmap
 
+Client library:
+
+- `routemaster-client` gem to wrap publication is a Ruby API and provide a
+  mountable (Rack?) app to receive inbound events.
+
 Latency improvements:
 
 - Option to push events to subscribers over routermaster-initiated long-polling requests
