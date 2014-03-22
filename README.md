@@ -43,7 +43,7 @@ HTTP sessions to cancel out the latency cost.
 The web is a harsh place. Subscribers may die, or be unreachable in many ways
 for various amounts of time.
 
-Routermaster will keep buffering, and keep trying to push events to subscribers
+Routemaster will keep buffering, and keep trying to push events to subscribers
 until they become reachable again.
 
 
