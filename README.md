@@ -20,7 +20,8 @@ building function across services, thus coupling them too tightly.
 #### Don't call us, we'll call you
 
 In web environments, the one type of server that scales well and can scale
-automatically is an HTTP server. As such, Routemaster heavily relies on HTTP.
+automatically with little effort is an HTTP server. As such, Routemaster heavily
+relies on HTTP.
 
 Inbound events are delivered over HTTP so that the bus itself can scale to
 easily process a higher (or lower) throughput of events with consistent latency.
