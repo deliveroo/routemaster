@@ -7,7 +7,7 @@ Routemaster aims to dispatch events with a median latency in the 50-100ms range,
 with no practical upper limit on throughput.
 
 
-#### RPC as an antipattern
+#### Remote procedure call as an antipattern
 
 Routemaster is designed on purpose to _not_ support RPC-style architectures, for
 instance by severely limiting payload contents.
