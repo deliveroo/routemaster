@@ -113,7 +113,10 @@ push to a given channel will see their requests met with errors.
 `:name` is limited to 32 characters (lowercase letters and the underscore
 character).
 
-`<type>` is one of `created`, `updated`, or `deleted`.
+`<type>` is one of `created`, `updated`, `deleted`, or `noop`.
+
+The use case `noop` is to broadcast information about all entities of a concept,
+e.g. to newly created/connected subscribers.
 
 `<url>` is the authoritative URL for the entity corresponding to the event
 (maximum 1024 characters).
