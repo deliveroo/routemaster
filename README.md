@@ -17,12 +17,13 @@ a web application, it's all too easy to damage a microservice architecture by
 building function across services, thus coupling them too tightly.
 
 
-#### Don't call us, we'll call you
+#### Leverage HTTP to scale
 
 In web environments, the one type of server that scales well and can scale
 automatically with little effort is an HTTP server. As such, Routemaster heavily
 relies on HTTP.
 
+*Don't call us, we'll call you*:
 Inbound events are delivered over HTTP so that the bus itself can scale to
 easily process a higher (or lower) throughput of events with consistent latency.
 
