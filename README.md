@@ -249,6 +249,10 @@ Latency improvements:
 - Option to push events to subscribers over routermaster-initiated long-polling requests
 - Option to push events to subscribers over client-initiated long-polling requests
 
+Reliability improvements:
+
+- Ability for subscribers to specify retention period and/or max events retained.
+
 Monitoring:
 
 - Separate monitoring application, with a UI, consuming the monitoring API and
