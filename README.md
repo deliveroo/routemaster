@@ -71,7 +71,10 @@ A subscriber can "catch up" event if it hasn't pulled events for a while
 ### Installing & Configuring
 
 
+Environment variables:
 
+- `ROUTEMASTER_CLIENTS`
+- `ROUTEMASTER_MONITORS`
 
 
 --------------------------------------------------------------------------------
@@ -82,8 +85,8 @@ A subscriber can "catch up" event if it hasn't pulled events for a while
 
 All requests over non-SSL connections will be met with a 308 Permanent Redirect.
 
-HTTP Basic is required for all requests. The username is ignored, the password
-should be a per-client UUID.
+HTTP Basic is required for all requests. The username is stored as a
+humab-readable name (but not checked); the password should be a per-client UUID.
 
 The list of allowed clients is part of the configuration, and is passed as a
 comma-separated list to the `ROUTEMASTER_CLIENTS` environment variable.
@@ -100,7 +103,7 @@ push to a given channel will see their requests met with errors.
 
 #### Pushing 
 
-    >> POST /channel/:name
+    >> POST /channels/:name
     >> {
     >>   event: <type>,
     >>   url: <url>
@@ -188,4 +191,67 @@ Possible response statuses:
 
 ### Monitoring
 
-TODO.
+Routermaster provides monitoring endpoints:
+
+    >> GET /channels
+    << [
+    <<   {
+    <<     name:      <channel>,
+    <<     publisher: <username>,
+    <<     events:    <count>
+    <<   }, ...
+    << ]
+
+`<count>` is the total number of events ever sent on a given channel.
+
+    >> GET /queues
+    << [
+    <<   {
+    <<     subscriber: <username>,
+    <<     callback:   <url>,
+    <<     channels:   [<name>, ...],
+    <<     events: {
+    <<       sent:       <sent_count>,
+    <<       queued:     <queue_size>,
+    <<       oldest:     <staleness>,
+    <<     }
+    <<   }, ...
+    << ]
+
+- `<name>`: the names of all channels routed into this queue.
+- `<sent_count>`: total number of events ever sent on this channel.
+- `<queue_size>`: current number of events in the queue.
+- `<oldest>`: timestamp (seconds since epoch) of the oldest pending event.
+
+
+Monitoring resources can be queries by clients with a UUID included in `ROUTEMASTER_MONITORS`.
+
+Routemaster does not, and will not include an UI for monitoring, as that would
+complexify its codebase too much (it's a separate concern, really).
+
+
+--------------------------------------------------------------------------------
+
+### Post-MVP Roadmap
+
+Latency improvements:
+
+- Option to push events to subscribers over routermaster-initiated long-polling requests
+- Option to push events to subscribers over client-initiated long-polling requests
+
+Monitoring:
+
+- Separate monitoring application, with a UI, consuming the monitoring API and
+  pushing to Statsd.
+
+
+--------------------------------------------------------------------------------
+
+### Sources of inspiration
+
+- [RestMQ](http://restmq.com/)
+- RabbitMQ
+- ActiveSupport::Notification
+- Pusher
+
+
