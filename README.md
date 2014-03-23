@@ -88,7 +88,7 @@ Environment variables:
 All requests over non-SSL connections will be met with a 308 Permanent Redirect.
 
 HTTP Basic is required for all requests. The username is stored as a
-humab-readable name (but not checked); the password should be a per-client UUID.
+human-readable name (but not checked); the password should be a per-client UUID.
 
 The list of allowed clients is part of the configuration, and is passed as a
 comma-separated list to the `ROUTEMASTER_CLIENTS` environment variable.
@@ -96,7 +96,7 @@ comma-separated list to the `ROUTEMASTER_CLIENTS` environment variable.
 
 #### Publication (creating channels)
 
-There is no need co explicitely create channels; they will be when pushing the
+There is no need to explicitely create channels; they will be when pushing the
 first event to the bus.
 
 **Only one client** can push events to a channel: all but the first client to
