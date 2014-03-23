@@ -117,7 +117,11 @@ character).
 `<type>` is one of `created`, `updated`, `deleted`, or `noop`.
 
 The use case `noop` is to broadcast information about all entities of a concept,
-e.g. to newly created/connected subscribers.
+e.g. to newly created/connected subscribers. For instance, when connecting a new
+service for the first time, a typical use case is to perform an "initial sync".
+Given create, update, delete are only sent on changes in the lifecycle of the
+entity, this extra event can be sent for all currently existing entities.
+
 
 `<url>` is the authoritative URL for the entity corresponding to the event
 (maximum 1024 characters).
