@@ -32,7 +32,7 @@ describe Routemaster::Models::Event do
 
     it 'adds timestamps' do
       t = subject.timestamp.to_i(16) / 1_000
-      expect(t).to be_close(Time.now.utc.to_i, 10)
+      expect(t).to be_within(10).of(Time.now.utc.to_i)
     end
   end
 end
