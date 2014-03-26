@@ -1,7 +1,5 @@
 require 'routemaster'
 
-module Routemaster
-  module Controllers
-  end
+module Routemaster::Controllers
 end
 
