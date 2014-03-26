@@ -1,5 +1,5 @@
 require 'routemaster/models'
-require 'URI'
+require 'uri'
 
 class Routemaster::Models::Event
   VALID_TYPES = %w(create update delete noop)
@@ -14,11 +14,17 @@ class Routemaster::Models::Event
     raise ArgumentError.new('entity URL has query string') unless parsed_url.query.nil?
     @type = type
     @url = url
-    @timestamp ||= current_timestamp
+    @timestamp = timestamp || current_timestamp
   end
 
   def dump
     "#{@type},#{@timestamp},#{@url}"
+  end
+
+  def ==(other)
+    other.type == type &&
+    other.timestamp == timestamp &&
+    other.url == url
   end
 
   def self.load(string)

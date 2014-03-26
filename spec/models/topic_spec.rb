@@ -66,13 +66,24 @@ describe Routemaster::Models::Topic do
       expect(event.type).to eq('create')
       expect(event.url).to  eq('https://example.com/widgets/123')
     end
-
-    it 'adds timestamps'  # should be an Event spec
   end
 
 
   describe '#pop' do
-    it 'discards the oldest event for the topic'
+    let(:event1) { Routemaster::Models::Event.new(type: 'create', url: 'https://a.com/1') }
+    let(:event2) { Routemaster::Models::Event.new(type: 'create', url: 'https://a.com/2') }
+
+    it 'returns nothing when the topic is empty' do
+      expect(subject.pop).to be_nil
+    end
+
+
+    it 'discards the oldest event for the topic' do
+      subject.push(event1)
+      subject.push(event2)
+      expect(subject.pop).to eq(event1)
+      expect(subject.pop).to eq(event2)
+    end
   end
 
 

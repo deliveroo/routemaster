@@ -32,6 +32,12 @@ module Routemaster::Models
       Event.load(raw_event)
     end
 
+    def pop
+      raw_event = conn.lpop(_key_events)
+      return if raw_event.nil?
+      Event.load(raw_event)
+    end
+
     private
 
     def _key
