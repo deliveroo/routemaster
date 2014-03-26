@@ -8,7 +8,8 @@ gem 'sinatra'
 gem 'hiredis'
 gem 'redis', require: %w(redis redis/connection/hiredis)
 
-
+# configuration through environement
+gem 'dotenv'
 
 group :development do 
   # SSL support for local development

@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'spec/support/models.rb'
 require 'routemaster/models/topic'
 
 describe Routemaster::Models::Topic do

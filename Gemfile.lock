@@ -8,6 +8,7 @@ GEM
       nio4r (>= 0.5.0)
     coderay (1.1.0)
     diff-lcs (1.2.5)
+    dotenv (0.10.0)
     eventmachine (1.0.3)
     ffi (1.9.3)
     formatador (0.2.4)
@@ -65,6 +66,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  dotenv
   guard-rspec
   hiredis
   rack-test
