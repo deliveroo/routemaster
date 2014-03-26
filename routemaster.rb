@@ -1,0 +1,3 @@
+module Routemaster
+end
+
