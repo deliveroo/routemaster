@@ -41,7 +41,7 @@ module Routemaster::Models
     private
 
     def _key
-      @_key ||= 'channels/#{@name}'
+      @_key ||= 'topic/#{@name}'
     end
 
     def _key_events
