@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'spec/support/models.rb'
+require 'spec/support/persistence'
 require 'routemaster/models/topic'
 
 describe Routemaster::Models::Topic do
@@ -22,7 +22,7 @@ describe Routemaster::Models::Topic do
       described_class.new(name: 'widgets', publisher: 'bob')
       expect {
         described_class.new(name: 'widgets', publisher: 'alice')
-      }.to raise_error(Routemaster::Errors::TopicClaimed)
+      }.to raise_error(described_class::TopicClaimedError)
     end
   end
 
@@ -42,29 +42,15 @@ describe Routemaster::Models::Topic do
   end
 
 
+  let(:event) {
+    Routemaster::Models::Event.new(
+      type: 'create', 
+      url: 'https://example.com/widgets/123')
+  }
+
   describe '#push' do
     it 'succeeds with correct parameters' do
-      expect {
-        subject.push(event: 'create', url: 'https://example.com/widgets/123')
-      }.not_to raise_error
-    end
-
-    it 'fails with incorrect event types' do
-      expect {
-        subject.push(event: 'whatever', url: 'https://example.com/widgets/123')
-      }.to raise_error(ArgumentError)
-    end
-
-    it 'fails with a non-HTTPS URL' do
-      expect {
-        subject.push(event: 'create', url: 'http://example.com/widgets/123')
-      }.to raise_error(ArgumentError)
-    end
-
-    it 'fails if the URL has a query string' do
-      expect {
-        subject.push(event: 'create', url: 'https://example.com/widgets/123?wut')
-      }.to raise_error(ArgumentError)
+      expect { subject.push(event) }.not_to raise_error
     end
   end
 
@@ -75,7 +61,7 @@ describe Routemaster::Models::Topic do
     end
 
     it 'returns the oldest event for the topic' do
-      subject.push(event: 'create', url: 'https://example.com/widgets/123')
+      subject.push(event)
       event = subject.peek
       expect(event.type).to eq('create')
       expect(event.url).to  eq('https://example.com/widgets/123')
