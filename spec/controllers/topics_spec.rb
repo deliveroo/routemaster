@@ -22,7 +22,7 @@ describe Routemaster::Controllers::Topics do
 
     it 'pushes the event' do
       perform
-      last_event = topic.fifo.peek
+      last_event = topic.peek
       expect(last_event).not_to be_nil
       expect(last_event.type).to eq('create')
       expect(last_event.url).to  eq('https://example.com/widgets/123')

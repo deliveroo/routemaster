@@ -29,6 +29,9 @@ module Routemaster::Models
       @_subscribers ||= Subscribers.new(self)
     end
 
+    extend Forwardable
+    delegate %i(push peek pop) => :fifo
+
     def fifo
       @_fifo ||= Fifo.new("topic-#{name}")
     end
