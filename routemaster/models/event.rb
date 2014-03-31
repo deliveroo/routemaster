@@ -1,15 +1,18 @@
 require 'routemaster/models'
 require 'routemaster/models/callback_url'
+require 'routemaster/mixins/assert'
 
 module Routemaster::Models
   class Event
+    include Routemaster::Mixins::Assert
+
     VALID_TYPES = %w(create update delete noop)
     LOAD_REGEXP = Regexp.new("^(?<type>#{VALID_TYPES.join('|')}),(?<t>[0-9a-f]{12}),(?<url>.*)$")
 
     attr_reader :type, :url, :timestamp
 
     def initialize(type:, url:, timestamp: nil)
-      raise ArgumentError.new('bad event type') unless VALID_TYPES.include?(type)
+      _assert VALID_TYPES.include?(type), 'bad event type'
       @type = type
       @url = CallbackURL.new(url)
       @timestamp = timestamp || current_timestamp
