@@ -13,7 +13,11 @@ module Routemaster::Models
 
       conn.hsetnx(_key, 'publisher', publisher)
       conn.sadd('topics', name)
-      raise TopicClaimedError unless conn.hget(_key, 'publisher') == @publisher
+
+      current_publisher = conn.hget(_key, 'publisher')
+      unless conn.hget(_key, 'publisher') == @publisher
+        raise TopicClaimedError.new("topic claimed by #{current_publisher}")
+      end
     end
 
     def subscribers
