@@ -1,6 +1,5 @@
 require 'routemaster/models/base'
 require 'routemaster/models/event'
-require 'routemaster/errors'
 
 module Routemaster::Models
   class Topic < Routemaster::Models::Base
