@@ -34,6 +34,8 @@ GEM
       coderay (~> 1.0)
       method_source (~> 0.8)
       slop (~> 3.4)
+    pry-nav (0.2.3)
+      pry (~> 0.9.10)
     rack (1.5.2)
     rack-protection (1.5.2)
       rack
@@ -69,6 +71,8 @@ DEPENDENCIES
   dotenv
   guard-rspec
   hiredis
+  pry
+  pry-nav
   rack-test
   redis
   rspec

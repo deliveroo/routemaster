@@ -20,4 +20,7 @@ group :development do
   gem 'rack-test',      require: false
   # running tests automatically
   gem 'guard-rspec',    require: false
+  # better REPL
+  gem 'pry'
+  gem 'pry-nav'
 end
