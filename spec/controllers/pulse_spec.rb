@@ -19,7 +19,12 @@ describe Routemaster::Controllers::Pulse do
     end
   end
 
-  context 'when Redis is down' do
-    xit 'returns 500'
+  context 'when the pulse serivce fails' do
+    before { Routemaster::Services::Pulse.any_instance.stub(run: false) }
+
+    it 'returns 500' do
+      perform
+      expect(last_response).to be_server_error
+    end
   end
 end
