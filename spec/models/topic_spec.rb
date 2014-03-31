@@ -37,7 +37,7 @@ describe Routemaster::Models::Topic do
 
   describe '#subscribers' do
     it 'returns the list of channel subscribers' do
-      expect(subject.subscribers).to eq([])
+      expect(subject.subscribers.to_a).to eq([])
     end
   end
 

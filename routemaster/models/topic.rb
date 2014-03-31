@@ -1,6 +1,7 @@
 require 'routemaster/models/base'
 require 'routemaster/models/event'
 require 'routemaster/models/user'
+require 'routemaster/models/subscribers'
 
 module Routemaster::Models
   class Topic < Routemaster::Models::Base
@@ -22,7 +23,7 @@ module Routemaster::Models
     end
 
     def subscribers
-      conn.smembers("#{_key}/subscribers")
+      @_subscribers ||= Subscribers.new(self)
     end
 
     def push(event)
