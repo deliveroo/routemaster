@@ -7,7 +7,11 @@ class Routemaster::Models::Base
 
   protected
 
-  def conn
-    @@_connection ||= Redis.new(url: ENV['ROUTEMASTER_REDIS_URL'])
+  module Connection
+    def conn
+      @@_connection ||= Redis.new(url: ENV['ROUTEMASTER_REDIS_URL'])
+    end
   end
+  include Connection
+  extend Connection
 end

@@ -87,5 +87,17 @@ describe Routemaster::Models::Topic do
   end
 
 
-  describe '#events'
+  describe '.all' do
+    it 'is empty in a blank state' do
+      expect(described_class.all).to be_empty
+    end
+
+    it 'lists all topics' do
+      topic1 = described_class.new(name: 'widgets', publisher: 'john')
+      topic2 = described_class.new(name: 'koalas',  publisher: 'john')
+
+      expect(described_class.all).to include(topic1)
+      expect(described_class.all).to include(topic2)
+    end
+  end
 end

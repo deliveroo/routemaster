@@ -6,16 +6,15 @@ module Routemaster::Models
   class Topic < Routemaster::Models::Base
     TopicClaimedError = Class.new(Exception)
 
+    attr_reader :name, :publisher
+
     def initialize(name:, publisher:)
       @name = Name.new(name)
       @publisher = Publisher.new(publisher)
 
-      return if conn.hsetnx(_key, 'publisher', publisher)
+      conn.hsetnx(_key, 'publisher', publisher)
+      conn.sadd('topics', name)
       raise TopicClaimedError unless conn.hget(_key, 'publisher') == @publisher
-    end
-
-    def publisher
-      @publisher
     end
 
     def subscribers
@@ -37,6 +36,18 @@ module Routemaster::Models
       raw_event = conn.lpop(_key_events)
       return if raw_event.nil?
       Event.load(raw_event)
+    end
+
+    def ==(other)
+      name == other.name &&
+      publisher == other.publisher
+    end
+
+    def self.all
+      conn.smembers('topics').map do |n|
+        p = conn.hget("topic/#{n}", 'publisher')
+        new(name: n, publisher: p)
+      end
     end
 
     private
