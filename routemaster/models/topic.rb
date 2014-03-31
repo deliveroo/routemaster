@@ -1,5 +1,6 @@
 require 'routemaster/models/base'
 require 'routemaster/models/event'
+require 'routemaster/models/user'
 
 module Routemaster::Models
   class Topic < Routemaster::Models::Base
@@ -75,12 +76,6 @@ module Routemaster::Models
       end
     end
 
-    class Publisher < String
-      def initialize(str)
-        raise ArgumentError unless str.kind_of?(String)
-        raise ArgumentError unless str =~ /[a-z0-9:_-]{1,64}/
-        super
-      end
-    end
+    Publisher = Class.new(User)
   end
 end
