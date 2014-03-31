@@ -25,6 +25,10 @@ module Routemaster::Models
       Event.load(raw_event)
     end
 
+    def length
+      conn.llen(_key_events)
+    end
+
     private
 
     def _key

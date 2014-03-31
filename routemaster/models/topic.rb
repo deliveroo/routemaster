@@ -29,13 +29,6 @@ module Routemaster::Models
       @_subscribers ||= Subscribers.new(self)
     end
 
-    extend Forwardable
-    delegate %i(push peek pop) => :fifo
-
-    def fifo
-      @_fifo ||= Fifo.new("topic-#{name}")
-    end
-
     def ==(other)
       name == other.name
     end
@@ -51,7 +44,14 @@ module Routemaster::Models
       new(name: name, publisher: nil)
     end
 
+    extend Forwardable
+    delegate %i(push peek pop length) => :_fifo
+
     private
+
+    def _fifo
+      @_fifo ||= Fifo.new("topic-#{@name}")
+    end
 
     def _key
       @_key ||= "topic/#{@name}"

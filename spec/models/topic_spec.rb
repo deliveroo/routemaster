@@ -42,13 +42,6 @@ describe Routemaster::Models::Topic do
   end
 
   
-  describe '#fifo' do
-    it 'returns a fifo' do
-      expect(subject.fifo).to be_a_kind_of(Routemaster::Models::Fifo)
-    end
-  end
-
-
   describe '.all' do
     it 'is empty in a blank state' do
       expect(described_class.all).to be_empty
