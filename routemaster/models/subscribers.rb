@@ -6,18 +6,22 @@ module Routemaster::Models
   class Subscribers
     include Routemaster::Mixins::Connection
     include Routemaster::Mixins::Assert
+    include Enumerable
 
     def initialize(topic)
       @topic = topic
     end
 
-    def add(user)
-      _assert user.kind_of?(User)
-      conn.sadd(_key, user)
+    def add(queue)
+      _assert queue.kind_of?(Queue)
+      conn.sadd(_key, queue.subscriber)
     end
 
-    def to_a
-      conn.smembers(_key)
+    # yields Queues
+    def each
+      conn.smembers(_key).each do |name|
+        yield Queue.new(subscriber: name)
+      end
     end
 
     private
