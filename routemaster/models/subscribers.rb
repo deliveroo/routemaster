@@ -1,8 +1,11 @@
 require 'routemaster/models'
+require 'routemaster/mixins/connection'
+require 'routemaster/mixins/assert'
 
 module Routemaster::Models
   class Subscribers
     include Routemaster::Mixins::Connection
+    include Routemaster::Mixins::Assert
 
     def initialize(topic)
       @topic = topic
