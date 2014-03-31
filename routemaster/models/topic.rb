@@ -11,10 +11,12 @@ module Routemaster::Models
 
     def initialize(name:, publisher:)
       @name = Name.new(name)
-      @publisher = Publisher.new(publisher)
-
-      conn.hsetnx(_key, 'publisher', publisher)
       conn.sadd('topics', name)
+
+      return if publisher.nil?
+
+      @publisher = Publisher.new(publisher) if publisher
+      conn.hsetnx(_key, 'publisher', publisher)
 
       current_publisher = conn.hget(_key, 'publisher')
       unless conn.hget(_key, 'publisher') == @publisher
@@ -44,8 +46,7 @@ module Routemaster::Models
     end
 
     def ==(other)
-      name == other.name &&
-      publisher == other.publisher
+      name == other.name
     end
 
     def self.all
@@ -53,6 +54,10 @@ module Routemaster::Models
         p = conn.hget("topic/#{n}", 'publisher')
         new(name: n, publisher: p)
       end
+    end
+
+    def self.find(name)
+      new(name: name, publisher: nil)
     end
 
     private

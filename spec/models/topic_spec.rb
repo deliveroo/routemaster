@@ -100,4 +100,25 @@ describe Routemaster::Models::Topic do
       expect(described_class.all).to include(topic2)
     end
   end
+
+  describe '.find' do
+    let(:result) { described_class.find('widgets') }
+    let(:publish) { described_class.new(name: 'widgets', publisher: 'alice') }
+
+    it 'returns an instance' do
+      expect(result).to be_a_kind_of(described_class)
+    end
+
+    it 'lets the topic be published after' do
+      result
+      expect { publish }.not_to raise_error
+    end
+
+    context 'when the topic exists' do
+      before { publish }
+      it 'returns an instance' do
+        expect(result).to be_a_kind_of(described_class)
+      end
+    end
+  end
 end
