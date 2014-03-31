@@ -29,7 +29,7 @@ class Routemaster::Controllers::Topics < Sinatra::Base
       halt 400, 'bad event'
     end
 
-    topic.push(event)
+    topic.fifo.push(event)
     
     halt :ok
   end

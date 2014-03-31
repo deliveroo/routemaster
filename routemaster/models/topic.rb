@@ -2,6 +2,7 @@ require 'routemaster/models/base'
 require 'routemaster/models/event'
 require 'routemaster/models/user'
 require 'routemaster/models/subscribers'
+require 'routemaster/models/fifo'
 
 module Routemaster::Models
   class Topic < Routemaster::Models::Base
@@ -28,21 +29,8 @@ module Routemaster::Models
       @_subscribers ||= Subscribers.new(self)
     end
 
-    def push(event)
-      conn.rpush(_key_events, event.dump)
-      conn.publish(_key_channel, 'ping')
-    end
-
-    def peek
-      raw_event = conn.lindex(_key_events, 0)
-      return if raw_event.nil?
-      Event.load(raw_event)
-    end
-
-    def pop
-      raw_event = conn.lpop(_key_events)
-      return if raw_event.nil?
-      Event.load(raw_event)
+    def fifo
+      @_fifo ||= Fifo.new("topic-#{name}")
     end
 
     def ==(other)
@@ -64,14 +52,6 @@ module Routemaster::Models
 
     def _key
       @_key ||= "topic/#{@name}"
-    end
-
-    def _key_events
-      @_key_events ||= "#{_key}/events"
-    end
-
-    def _key_channel
-      @_key_channel ||= "#{_key}/pubsub"
     end
 
     class Name < String
