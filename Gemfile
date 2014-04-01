@@ -8,6 +8,10 @@ gem 'sinatra'
 gem 'hiredis'
 gem 'redis', require: %w(redis redis/connection/hiredis)
 
+# talkin' sweet HTTP
+gem 'faraday'
+gem 'faraday_middleware'
+
 # configuration through environement
 gem 'dotenv'
 

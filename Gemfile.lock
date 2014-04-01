@@ -1,5 +1,5 @@
 GEM
-  remote: http://yarp.dev/
+  remote: https://rubygems.org/
   specs:
     celluloid (0.15.2)
       timers (~> 1.1.0)
@@ -10,6 +10,10 @@ GEM
     diff-lcs (1.2.5)
     dotenv (0.10.0)
     eventmachine (1.0.3)
+    faraday (0.8.9)
+      multipart-post (~> 1.2.0)
+    faraday_middleware (0.9.0)
+      faraday (>= 0.7.4, < 0.9)
     ffi (1.9.3)
     formatador (0.2.4)
     guard (2.6.0)
@@ -21,7 +25,7 @@ GEM
     guard-rspec (4.2.8)
       guard (~> 2.1)
       rspec (>= 2.14, < 4.0)
-    hiredis (0.4.5)
+    hiredis (0.5.0)
     listen (2.7.1)
       celluloid (>= 0.15.2)
       celluloid-io (>= 0.15.0)
@@ -29,6 +33,7 @@ GEM
       rb-inotify (>= 0.9)
     lumberjack (1.0.5)
     method_source (0.8.2)
+    multipart-post (1.2.0)
     nio4r (1.0.0)
     pry (0.9.12.6)
       coderay (~> 1.0)
@@ -69,6 +74,8 @@ PLATFORMS
 
 DEPENDENCIES
   dotenv
+  faraday
+  faraday_middleware
   guard-rspec
   hiredis
   pry
