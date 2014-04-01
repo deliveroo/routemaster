@@ -28,7 +28,9 @@ module Routemaster::Models
     end
 
     def timeout
-      conn.hget(_key, 'timeout')
+      raw = conn.hget(_key, 'timeout')
+      return if raw.nil?
+      raw.to_i
     end
 
     def max_events=(value)

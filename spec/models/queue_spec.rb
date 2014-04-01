@@ -12,13 +12,28 @@ describe Routemaster::Models::Queue do
   end
 
   describe '#timeout=' do
-    it 'accepts integers'
-    it 'rejects strings'
-    it 'rejects negatives'
+    it 'accepts integers' do
+      expect { subject.timeout = 123 }.not_to raise_error
+    end
+
+    it 'rejects strings' do
+      expect { subject.timeout = '123' }.to raise_error
+    end
+
+    it 'rejects negatives' do
+      expect { subject.timeout = -123 }.to raise_error
+    end
+
   end
 
   describe '#timeout' do
-    it 'returns nil if unset'
-    it 'returns an integer'
+    it 'returns nil if unset' do
+      expect(subject.timeout).to be_nil
+    end
+
+    it 'returns an integer' do
+      subject.timeout = 123
+      expect(subject.timeout).to eq(123)
+    end
   end
 end
