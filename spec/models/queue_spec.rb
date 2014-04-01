@@ -11,13 +11,14 @@ describe Routemaster::Models::Queue do
     end
   end
 
-  describe '#listen_to' do
-    it 'passes'
+  describe '#timeout=' do
+    it 'accepts integers'
+    it 'rejects strings'
+    it 'rejects negatives'
+  end
 
-    context 'when the topic already exists' do
-      it 'passes'
-    end
-
-    it 'gets listed as a subscriber'
+  describe '#timeout' do
+    it 'returns nil if unset'
+    it 'returns an integer'
   end
 end
