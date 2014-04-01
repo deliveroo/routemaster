@@ -8,8 +8,8 @@ describe Routemaster::Services::Fanout do
   let(:topic)   { Routemaster::Models::Topic.new(name: 'widgets', publisher: 'alice') }
   let(:queue)   { Routemaster::Models::Queue.new(subscriber: 'bob') }
   let(:queue2)  { Routemaster::Models::Queue.new(subscriber: 'charlie') }
-  let(:event)   { Routemaster::Models::Event.new(type: 'noop', url: 'https://example.com/widgets/1') }
-  let(:event2)  { Routemaster::Models::Event.new(type: 'noop', url: 'https://example.com/widgets/2') }
+  let(:event)   { Routemaster::Models::Event.new(topic: 'widgets', type: 'noop', url: 'https://example.com/widgets/1') }
+  let(:event2)  { Routemaster::Models::Event.new(topic: 'widgets', type: 'noop', url: 'https://example.com/widgets/2') }
 
   subject { described_class.new(topic) }
 

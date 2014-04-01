@@ -14,8 +14,9 @@ describe Routemaster::Models::Fifo do
 
   let(:event) {
     Routemaster::Models::Event.new(
-      type: 'create', 
-      url: 'https://example.com/widgets/123')
+      topic: 'widgets',
+      type:  'create', 
+      url:   'https://example.com/widgets/123')
   }
 
   describe '#push' do
@@ -40,8 +41,8 @@ describe Routemaster::Models::Fifo do
 
 
   describe '#pop' do
-    let(:event1) { Routemaster::Models::Event.new(type: 'create', url: 'https://a.com/1') }
-    let(:event2) { Routemaster::Models::Event.new(type: 'create', url: 'https://a.com/2') }
+    let(:event1) { Routemaster::Models::Event.new(topic: 'widgets', type: 'create', url: 'https://a.com/1') }
+    let(:event2) { Routemaster::Models::Event.new(topic: 'widgets', type: 'create', url: 'https://a.com/2') }
 
     it 'returns nothing when the topic is empty' do
       expect(subject.pop).to be_nil

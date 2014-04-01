@@ -7,36 +7,36 @@ module Routemaster::Models
     include Routemaster::Mixins::Assert
 
     VALID_TYPES = %w(create update delete noop)
-    LOAD_REGEXP = Regexp.new("^(?<type>#{VALID_TYPES.join('|')}),(?<t>[0-9a-f]{12}),(?<url>.*)$")
+    LOAD_REGEXP = Regexp.new("^(?<topic>[a-z_]+),(?<type>#{VALID_TYPES.join('|')}),(?<t>[0-9a-f]{11}),(?<url>.*)$")
 
-    attr_reader :type, :url, :timestamp
+    attr_reader :topic, :type, :url, :timestamp
 
-    def initialize(type:, url:, timestamp: nil)
+    def initialize(topic:, type:, url:, timestamp: nil)
       _assert VALID_TYPES.include?(type), 'bad event type'
-      @type = type
-      @url = CallbackURL.new(url)
-      @timestamp = timestamp || current_timestamp
+      @topic     = topic
+      @type      = type
+      @url       = CallbackURL.new(url)
+      @timestamp = timestamp || Routemaster.now
     end
 
     def dump
-      "#{@type},#{@timestamp},#{@url}"
+      "#{@topic},#{@type},#{@timestamp.to_s(16)},#{@url}"
     end
 
     def ==(other)
-      other.type == type &&
+      other.topic     == topic
+      other.type      == type &&
       other.timestamp == timestamp &&
-      other.url == url
+      other.url       == url
     end
 
     def self.load(string)
       return unless match = LOAD_REGEXP.match(string)
-      new(type: match['type'], url: match['url'], timestamp: match['t'])
-    end
-
-    private
-
-    def current_timestamp
-      "%012x" % (Time.now.utc.to_f * 1e3)
+      new(
+        topic:     match['topic'],
+        type:      match['type'],
+        url:       match['url'],
+        timestamp: match['t'].to_i(16))
     end
   end
 end

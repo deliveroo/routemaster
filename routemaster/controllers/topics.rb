@@ -22,8 +22,9 @@ class Routemaster::Controllers::Topics < Sinatra::Base
 
     begin
       event = Routemaster::Models::Event.new(
-        type: event_data['type'],
-        url:  event_data['url']
+        topic: params['name'],
+        type:  event_data['type'],
+        url:   event_data['url']
       )
     rescue ArgumentError
       halt 400, 'bad event'

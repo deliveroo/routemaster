@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'routemaster/models/event'
 
 describe Routemaster::Models::Event do
-  let(:options) {{ type: 'create', url: 'https://example.com/widgets/123' }}
+  let(:options) {{ topic: 'widgets', type: 'create', url: 'https://example.com/widgets/123' }}
   subject { described_class.new(**options) }
 
   describe '#initialize' do
@@ -31,7 +31,7 @@ describe Routemaster::Models::Event do
     end
 
     it 'adds timestamps' do
-      t = subject.timestamp.to_i(16) / 1_000
+      t = subject.timestamp / 1_000
       expect(t).to be_within(10).of(Time.now.utc.to_i)
     end
   end
