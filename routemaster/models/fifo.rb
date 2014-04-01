@@ -29,6 +29,10 @@ module Routemaster::Models
       conn.llen(_key_events)
     end
 
+    def empty?
+      length == 0
+    end
+
     private
 
     def _key
