@@ -24,6 +24,8 @@ group :development do
   gem 'rack-test',      require: false
   # running tests automatically
   gem 'guard-rspec',    require: false
+  # testing outbound HTTP
+  gem 'webmock',        require: false
   # better REPL
   gem 'pry'
   gem 'pry-nav'
