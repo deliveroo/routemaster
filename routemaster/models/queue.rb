@@ -5,6 +5,8 @@ require 'routemaster/models/user'
 module Routemaster::Models
   class Queue < Routemaster::Models::Base
     TIMEOUT_RANGE = 0..3_600_000
+    DEFAULT_TIMEOUT = 500
+    DEFAULT_MAX_EVENTS = 100
     
     attr_reader :subscriber
 
@@ -29,7 +31,7 @@ module Routemaster::Models
 
     def timeout
       raw = conn.hget(_key, 'timeout')
-      return if raw.nil?
+      return DEFAULT_TIMEOUT if raw.nil?
       raw.to_i
     end
 
@@ -40,7 +42,9 @@ module Routemaster::Models
     end
 
     def max_events
-      conn.hget(_key, 'max_events')
+      raw = conn.hget(_key, 'max_events')
+      return DEFAULT_MAX_EVENTS if raw.nil?
+      raw.to_i
     end
 
     def uuid=(value)
@@ -50,6 +54,10 @@ module Routemaster::Models
 
     def uuid
       conn.hget(_key, 'uuid')
+    end
+
+    def buffer
+      @_buffer = Fifo.new("buffer-#{@subscriber}")
     end
 
     extend Forwardable

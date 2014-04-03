@@ -27,8 +27,8 @@ describe Routemaster::Models::Queue do
   end
 
   describe '#timeout' do
-    it 'returns nil if unset' do
-      expect(subject.timeout).to be_nil
+    it 'returns a default value if unset' do
+      expect(subject.timeout).to eq(described_class::DEFAULT_TIMEOUT)
     end
 
     it 'returns an integer' do
