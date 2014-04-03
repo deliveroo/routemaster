@@ -10,7 +10,6 @@ module Routemaster::Models
 
     def push(event)
       conn.rpush(_key_events, event.dump)
-      conn.publish(_key_channel, 'ping')
     end
 
     def peek
@@ -29,10 +28,6 @@ module Routemaster::Models
       conn.llen(_key_events)
     end
 
-    def empty?
-      length == 0
-    end
-
     private
 
     def _key
@@ -41,10 +36,6 @@ module Routemaster::Models
 
     def _key_events
       @_key_events ||= "#{_key}/events"
-    end
-
-    def _key_channel
-      @_key_channel ||= "#{_key}/pubsub"
     end
   end
 end
