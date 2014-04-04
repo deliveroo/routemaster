@@ -3,6 +3,7 @@ require 'routemaster/services/fanout'
 require 'routemaster/models/topic'
 require 'routemaster/models/subscription'
 require 'spec/support/persistence'
+require 'spec/support/notifications'
 
 describe Routemaster::Services::Fanout do
   let(:topic)   { Routemaster::Models::Topic.new(name: 'widgets', publisher: 'alice') }
@@ -54,8 +55,13 @@ describe Routemaster::Services::Fanout do
         topic.push event
         topic.push event2
         2.times { subject.run }
-        expect(subscription.pop.url).to end_with('1')
-        expect(subscription.pop.url).to end_with('2')
+        expect(subscription.pop.url).to end_with('/1')
+        expect(subscription.pop.url).to end_with('/2')
+      end
+
+      it 'sends notifications' do
+        2.times { topic.push event }
+        expect { subject.run }.to change { notifications.length }.by(1)
       end
     end
 
@@ -63,14 +69,18 @@ describe Routemaster::Services::Fanout do
       before do
         topic.subscribers.add subscription
         topic.subscribers.add subscription2
+        topic.push event
       end
 
       it 'fans out' do
-        topic.push event
         subject.run
         expect(topic.pop).to be_nil
         expect(subscription.pop).not_to  be_nil
         expect(subscription2.pop).not_to be_nil
+      end
+
+      it 'sends notifications' do
+        expect { subject.run }.to change { notifications.length }.by(2)
       end
     end
   end

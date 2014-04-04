@@ -1,4 +1,5 @@
 require 'routemaster/services'
+require 'routemaster/notify'
 require 'routemaster/models/fifo'
 
 # Manage delivery buffer per subscription
@@ -18,7 +19,7 @@ class Routemaster::Services::Buffer
     end
     
     # ping for delivery if buffer full or time elapsed 
+    Routemaster.notify('buffer', @subscription)
   end
-
 end
 

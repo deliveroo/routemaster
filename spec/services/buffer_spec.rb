@@ -3,6 +3,7 @@ require 'routemaster/services/buffer'
 require 'routemaster/models/subscription'
 require 'spec/support/persistence'
 require 'spec/support/events'
+require 'spec/support/notifications'
 
 describe Routemaster::Services::Buffer do
   let(:subscription) { Routemaster::Models::Subscription.new(subscriber: 'alice') } 
@@ -53,6 +54,10 @@ describe Routemaster::Services::Buffer do
           while buffer.pop ; end
           perform
           expect(buffer.peek.url).to end_with('/1')
+        end
+        
+        it 'sends notifications' do
+          expect { perform }.to change { notifications.length }.by(1)
         end
       end
 

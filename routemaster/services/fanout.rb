@@ -1,4 +1,5 @@
 require 'routemaster/services'
+require 'routemaster/notify'
 
 class Routemaster::Services::Fanout
   def initialize(topic)
@@ -13,6 +14,7 @@ class Routemaster::Services::Fanout
 
     @topic.subscribers.each do |subscription|
       subscription.push(event)
+      Routemaster.notify('subscription', subscription)
     end
   end
 end
