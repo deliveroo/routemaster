@@ -51,21 +51,21 @@ until they become reachable again.
 
 --------------------------------------------------------------------------------
 
-### Channels and queues
+### Topics and Subscriptions
 
-*Channels* are where the inbound events are sent. There should be one channel
+*Topics* are where the inbound events are sent. There should be one topic
 per domain concept, e.g. `properties`, `bookings`, `users`.
 
-Only one client may publish/push to a channel (and it should be the
+Only one client may publish/push to a topic (and it should be the
 authoritative service for the concept).
 
-Each channel fans out to multiple *queues* which are where the outbound events
-pile in.
-Each pulling client (subscriber) has exactly one queue which aggregates events
-from multiple channels.
+Each topic fans out to multiple *subscriptionss* which are where the outbound
+events pile in.
+Each pulling client (subscriber) has exactly one subscription queue which
+aggregates events from multiple topics.
 
 A subscriber can "catch up" event if it hasn't pulled events for a while
-(events get buffered in queues).
+(events get buffered in subscription queues).
 
 
 --------------------------------------------------------------------------------
@@ -94,18 +94,18 @@ The list of allowed clients is part of the configuration, and is passed as a
 comma-separated list to the `ROUTEMASTER_CLIENTS` environment variable.
 
 
-#### Publication (creating channels)
+#### Publication (creating topics)
 
-There is no need to explicitely create channels; they will be when pushing the
+There is no need to explicitely create topics; they will be when pushing the
 first event to the bus.
 
-**Only one client** can push events to a channel: all but the first client to
-push to a given channel will see their requests met with errors.
+**Only one client** can push events to a topic: all but the first client to
+push to a given topic will see their requests met with errors.
 
 
 #### Pushing 
 
-    >> POST /channels/:name
+    >> POST /topics/:name
     >> {
     >>   event: <type>,
     >>   url: <url>
@@ -130,10 +130,10 @@ The response is always empty (no body). Possible statuses (besides
 authentication-related):
 
 - 204: Successfully pushed event
-- 400: Bad channel name, event type, invalid URL, or extra fields in the
+- 400: Bad topic name, event type, invalid URL, or extra fields in the
   payload.
 - 403: Bad credentials, possibly another client is the publisher for this
-  channel.
+  topic.
 
 
 #### Subscription
@@ -141,19 +141,19 @@ authentication-related):
 Subscription implicitly creates a queue for the client, which starts
 accumulating events.
 
-From the client's perspective, the queue is a singleton resource.
-A client can therefore only pull from their own queue.
+From the client's perspective, the subscription is a singleton resource.
+A client can therefore only obtain events from their own subscription.
 
-    >> POST /queue
+    >> POST /subscription
     >> {
-    >>   channels: [<name>, ...],
+    >>   topics: [<name>, ...],
     >>   callback: <url>,
     >>   uuid:     <uuid>,
     >>   timeout:  <t>,
     >>   max:      <n>
     >> ]
 
-Subscribes the client to receive events from the named channels. When events are
+Subscribes the client to receive events from the named topics. When events are
 ready, they will be POSTed to the `<url>` (see below), at most every `<t>`
 milliseconds (default 500). At most `<n>` events will be sent in each batch
 (default 100).
@@ -163,9 +163,9 @@ authentication.
 The response is always empty. No side effect if already subscribed.
 Possible statuses:
 
-- 204: Successfully subscribed to listed channels
-- 400: Bad callback, unknown channels, etc.
-- 404: No such channel
+- 204: Successfully subscribed to listed topics
+- 400: Bad callback, unknown topics, etc.
+- 404: No such topic
 
 
 #### Pulling
@@ -173,14 +173,14 @@ Possible statuses:
 Clients receive an HTTPS request for new batches of events, they don't have to
 query for them.
 If the request completes successfully, the events will be deleted from the
-queue.
+subscription queue.
 Otherwise, they will be resent at the next interval.
 
     >> POST <callback>
     >>
     >> [
     >>   { 
-    >>     channel: <name>,
+    >>     topic: <name>,
     >>     event:   <type>, 
     >>     url:     <url>, 
     >>     t:       <t> 
@@ -192,7 +192,8 @@ Otherwise, they will be resent at the next interval.
 
 Possible response statuses:
 
-- 200, 204: Event batch is ackownledged, and will be deleted from the queue.
+- 200, 204: Event batch is ackownledged, and will be deleted from the
+  subscription queue.
 - Anything else: failure, batch to be sent again later.
 
 
@@ -202,23 +203,23 @@ Possible response statuses:
 
 Routermaster provides monitoring endpoints:
 
-    >> GET /channels
+    >> GET /topics
     << [
     <<   {
-    <<     name:      <channel>,
+    <<     name:      <topic>,
     <<     publisher: <username>,
     <<     events:    <count>
     <<   }, ...
     << ]
 
-`<count>` is the total number of events ever sent on a given channel.
+`<count>` is the total number of events ever sent on a given topic.
 
-    >> GET /queues
+    >> GET /subscriptions
     << [
     <<   {
     <<     subscriber: <username>,
     <<     callback:   <url>,
-    <<     channels:   [<name>, ...],
+    <<     topics:   [<name>, ...],
     <<     events: {
     <<       sent:       <sent_count>,
     <<       queued:     <queue_size>,
@@ -227,9 +228,9 @@ Routermaster provides monitoring endpoints:
     <<   }, ...
     << ]
 
-- `<name>`: the names of all channels routed into this queue.
-- `<sent_count>`: total number of events ever sent on this channel.
-- `<queue_size>`: current number of events in the queue.
+- `<name>`: the names of all topics routed into this subscriptions queue.
+- `<sent_count>`: total number of events ever sent on this topic.
+- `<queue_size>`: current number of events in the subscription queue.
 - `<oldest>`: timestamp (seconds since epoch) of the oldest pending event.
 
 
