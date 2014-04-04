@@ -4,6 +4,7 @@ require 'routemaster/models/event'
 module Routemaster::Models
   # A first-in, first-out list of marshalled Ruby objects
   class Fifo < Routemaster::Models::Base
+    BLOCK_TIMEOUT_SECONDS = 1
 
     def initialize(name)
       @name = name
@@ -23,6 +24,13 @@ module Routemaster::Models
       raw = conn.lpop(_key_events)
       return if raw.nil?
       Marshal.load(raw)
+    end
+
+    def block_pop
+      raw = conn.blpop(_key_events, BLOCK_TIMEOUT_SECONDS)
+      return if raw.nil?
+      _assert(raw[0] == _key_events)
+      Marshal.load(raw[1])
     end
 
     def length
