@@ -5,14 +5,14 @@ class Routemaster::Services::Fanout
     @topic = topic
   end
 
-  # dump implementation: pop from the topic, push to each queue
+  # dump implementation: pop from the topic, push to each subscription
   # TODO: do this atomically with a Lua script
   def run
     event = @topic.pop
     return if event.nil?
 
-    @topic.subscribers.each do |queue|
-      queue.push(event)
+    @topic.subscribers.each do |subscription|
+      subscription.push(event)
     end
   end
 end

@@ -12,15 +12,15 @@ module Routemaster::Models
       @topic = topic
     end
 
-    def add(queue)
-      _assert queue.kind_of?(Queue)
-      conn.sadd(_key, queue.subscriber)
+    def add(subscription)
+      _assert subscription.kind_of?(Subscription)
+      conn.sadd(_key, subscription.subscriber)
     end
 
-    # yields Queues
+    # yields Subscriptions
     def each
       conn.smembers(_key).each do |name|
-        yield Queue.new(subscriber: name)
+        yield Subscription.new(subscriber: name)
       end
     end
 

@@ -1,8 +1,8 @@
 require 'spec_helper'
 require 'spec/support/persistence'
-require 'routemaster/models/queue'
+require 'routemaster/models/subscription'
 
-describe Routemaster::Models::Queue do
+describe Routemaster::Models::Subscription do
   subject { described_class.new(subscriber: 'bob') }
 
   describe '#initialize' do

@@ -1,20 +1,20 @@
 require 'spec_helper'
 require 'routemaster/services/deliver'
-require 'routemaster/models/queue'
+require 'routemaster/models/subscription'
 require 'spec/support/persistence'
 require 'spec/support/events'
 require 'webmock/rspec'
 
 
 describe Routemaster::Services::Deliver do
-  let(:buffer) { queue.buffer }
-  let(:queue) { Routemaster::Models::Queue.new(subscriber: 'alice') }
+  let(:buffer) { subscription.buffer }
+  let(:subscription) { Routemaster::Models::Subscription.new(subscriber: 'alice') }
   let(:callback) { 'https://alice.com/widgets' }
 
-  subject { described_class.new(queue) }
+  subject { described_class.new(subscription) }
 
   before do
-    queue.callback = callback 
+    subscription.callback = callback 
   end
 
   describe '#run' do
@@ -34,7 +34,7 @@ describe Routemaster::Services::Deliver do
     context 'when there are a few sendable events' do
       before do
         3.times { buffer.push make_event }
-        queue.timeout = 0
+        subscription.timeout = 0
         stub_request(:post, callback).to_return(status: 204, body: '')
       end
       
@@ -84,8 +84,8 @@ describe Routemaster::Services::Deliver do
 
     context 'when there are recent events but less than the buffer size' do
       before do
-        queue.timeout = 500
-        queue.max_events = 100
+        subscription.timeout = 500
+        subscription.max_events = 100
         3.times { buffer.push make_event }
       end
 
@@ -97,8 +97,8 @@ describe Routemaster::Services::Deliver do
 
     context 'when there are many recent events' do
       before do
-        queue.timeout = 500
-        queue.max_events = 3
+        subscription.timeout = 500
+        subscription.max_events = 3
         3.times { buffer.push make_event }
         stub_request(:post, callback).to_return(status: 204, body: '')
       end

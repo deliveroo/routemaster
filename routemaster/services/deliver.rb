@@ -5,9 +5,9 @@ require 'faraday_middleware'
 
 # Manage delivery buffer and emitting the HTTP delivery
 class Routemaster::Services::Deliver
-  def initialize(queue)
-    @queue  = queue
-    @buffer = queue.buffer
+  def initialize(subscription)
+    @subscription  = subscription
+    @buffer = subscription.buffer
   end
 
   def run
@@ -44,14 +44,14 @@ class Routemaster::Services::Deliver
 
   def _should_deliver?
     return false if @buffer.length == 0
-    return true  if @buffer.length >= @queue.max_events
-    return true  if @buffer.peek.timestamp + @queue.timeout < Routemaster.now
+    return true  if @buffer.length >= @subscription.max_events
+    return true  if @buffer.peek.timestamp + @subscription.timeout < Routemaster.now
     false
   end
 
   def conn
     @_conn ||= begin
-      Faraday.new(@queue.callback) do |f|
+      Faraday.new(@subscription.callback) do |f|
         f.request :json
         f.adapter Faraday.default_adapter
       end

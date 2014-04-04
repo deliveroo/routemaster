@@ -3,7 +3,7 @@ require 'routemaster/models/callback_url'
 require 'routemaster/models/user'
 
 module Routemaster::Models
-  class Queue < Routemaster::Models::Base
+  class Subscription < Routemaster::Models::Base
     TIMEOUT_RANGE = 0..3_600_000
     DEFAULT_TIMEOUT = 500
     DEFAULT_MAX_EVENTS = 100
@@ -12,7 +12,7 @@ module Routemaster::Models
 
     def initialize(subscriber:)
       @subscriber = User.new(subscriber)
-      conn.sadd('queues', @subscriber)
+      conn.sadd('subscriptions', @subscriber)
     end
 
     def callback=(value)
@@ -66,11 +66,11 @@ module Routemaster::Models
     private
 
     def _fifo
-      @_fifo ||= Fifo.new("queue-#{@subscriber}")
+      @_fifo ||= Fifo.new("subscription-#{@subscriber}")
     end
 
     def _key
-      @_key ||= "queue/#{@subscriber}"
+      @_key ||= "subscription/#{@subscriber}"
     end
   end
 end

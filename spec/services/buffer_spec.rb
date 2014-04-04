@@ -1,16 +1,16 @@
 require 'spec_helper'
 require 'routemaster/services/buffer'
-require 'routemaster/models/queue'
+require 'routemaster/models/subscription'
 require 'spec/support/persistence'
 require 'spec/support/events'
 
 describe Routemaster::Services::Buffer do
-  let(:queue) { Routemaster::Models::Queue.new(subscriber: 'alice') } 
-  let(:buffer) { queue.buffer }
+  let(:subscription) { Routemaster::Models::Subscription.new(subscriber: 'alice') } 
+  let(:buffer) { subscription.buffer }
   
-  subject { described_class.new(queue) }
+  subject { described_class.new(subscription) }
 
-  before { queue.max_events = 3 }
+  before { subscription.max_events = 3 }
 
   describe '#run' do
     let(:perform) { subject.run }
@@ -25,18 +25,18 @@ describe Routemaster::Services::Buffer do
         expect { perform }.not_to change { buffer.length }
       end
 
-      it 'does not change the queue' do
+      it 'does not change the subscription' do
         buffer.push make_event
-        expect { perform }.not_to change { queue.length }
+        expect { perform }.not_to change { subscription.length }
       end
     end
 
-    context 'when the queue is empty' do
+    context 'when the subscription is empty' do
       include_examples 'doing nothing'
     end
 
-    context 'when the queue has an event' do
-      before { 2.times { queue.push make_event } }
+    context 'when the subscription has an event' do
+      before { 2.times { subscription.push make_event } }
 
       context 'and the buffer is not full' do
         before { buffer.push make_event }
@@ -45,8 +45,8 @@ describe Routemaster::Services::Buffer do
           expect { perform }.to change { buffer.length }.by(2)
         end
 
-        it 'removes from the queue' do
-          expect { perform }.to change { queue.length }.by(-2)
+        it 'removes from the subscription' do
+          expect { perform }.to change { subscription.length }.by(-2)
         end
 
         it 'buffers in order' do

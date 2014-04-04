@@ -1,10 +1,10 @@
 require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/models/subscribers'
-require 'routemaster/models/queue'
+require 'routemaster/models/subscription'
 
 describe Routemaster::Models::Subscribers do
-  Queue = Routemaster::Models::Queue
+  Subscription = Routemaster::Models::Subscription
 
   let(:topic) { double 'Topic', name: 'widgets' }
   subject { described_class.new(topic) }
@@ -22,19 +22,19 @@ describe Routemaster::Models::Subscribers do
   end
 
   describe '#each' do
-    xit 'yields queues'
+    xit 'yields subscriptions'
   end
 
   describe '#add' do
     it 'adds the subscriber' do
-      subject.add Queue.new(subscriber: 'bob')
+      subject.add Subscription.new(subscriber: 'bob')
       expect(subject.first.subscriber).to eq('bob')
     end
 
     it 'behaves like a set' do
-      subject.add Queue.new(subscriber: 'alice')
-      subject.add Queue.new(subscriber: 'bob')
-      subject.add Queue.new(subscriber: 'alice')
+      subject.add Subscription.new(subscriber: 'alice')
+      subject.add Subscription.new(subscriber: 'bob')
+      subject.add Subscription.new(subscriber: 'alice')
       expect(subject.count).to eq(2)
     end
   end
