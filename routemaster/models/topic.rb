@@ -48,10 +48,6 @@ module Routemaster::Models
       initialize(name: argv[0], publisher: argv[1])
     end
 
-    def self.find(name)
-      new(name: name, publisher: nil)
-    end
-
     extend Forwardable
     delegate %i(push peek pop length) => :_fifo
 
