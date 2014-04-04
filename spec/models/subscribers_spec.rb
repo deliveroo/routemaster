@@ -22,7 +22,10 @@ describe Routemaster::Models::Subscribers do
   end
 
   describe '#each' do
-    xit 'yields subscriptions'
+    it 'yields subscriptions' do
+      subject.add Subscription.new(subscriber: 'bob')
+      expect { |b| subject.each(&b) }.to yield_with_args(Subscription)
+    end
   end
 
   describe '#add' do

@@ -62,7 +62,10 @@ describe Routemaster::Models::Fifo do
         expect(subject.block_pop).not_to be_nil
       end
 
-      it 'removes the item'
+      it 'removes the item' do
+        subject.block_pop
+        expect(subject.length).to eq(0)
+      end
     end
   end
 end
