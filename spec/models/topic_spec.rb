@@ -27,6 +27,16 @@ describe Routemaster::Models::Topic do
   end
 
 
+  describe 'marshalling' do
+    let(:result) { Marshal.load(Marshal.dump(subject)) }
+
+    it 'can be marshalled/unmarshalled' do
+      expect(result.name).to eq('widgets')
+      expect(result.publisher).to eq('bob')
+    end
+  end
+
+
   describe '#publisher' do
     it 'returns the channel publisher' do
       expect(subject.publisher).to eq('bob')

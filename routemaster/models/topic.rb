@@ -12,11 +12,11 @@ module Routemaster::Models
 
     def initialize(name:, publisher:)
       @name = Name.new(name)
+      @publisher = Publisher.new(publisher) if publisher
       conn.sadd('topics', name)
 
       return if publisher.nil?
 
-      @publisher = Publisher.new(publisher) if publisher
       conn.hsetnx(_key, 'publisher', publisher)
 
       current_publisher = conn.hget(_key, 'publisher')
@@ -38,6 +38,14 @@ module Routemaster::Models
         p = conn.hget("topic/#{n}", 'publisher')
         new(name: n, publisher: p)
       end
+    end
+
+    def marshal_dump
+      [@name, @publisher]
+    end
+
+    def marshal_load(argv)
+      initialize(name: argv[0], publisher: argv[1])
     end
 
     def self.find(name)
