@@ -7,7 +7,6 @@ module Routemaster::Models
     include Routemaster::Mixins::Assert
 
     VALID_TYPES = %w(create update delete noop)
-    LOAD_REGEXP = Regexp.new("^(?<topic>[a-z_]+),(?<type>#{VALID_TYPES.join('|')}),(?<t>[0-9a-f]{11}),(?<url>.*)$")
 
     attr_reader :topic, :type, :url, :timestamp
 
@@ -19,8 +18,12 @@ module Routemaster::Models
       @timestamp = timestamp || Routemaster.now
     end
 
-    def dump
-      "#{@topic},#{@type},#{@timestamp.to_s(16)},#{@url}"
+    def marshal_dump
+      [@topic, @type, @url, @timestamp]
+    end
+
+    def marshal_load(args)
+      initialize(topic: args[0], type: args[1], url: args[2], timestamp: args[3])
     end
 
     def ==(other)
@@ -28,15 +31,6 @@ module Routemaster::Models
       other.type      == type &&
       other.timestamp == timestamp &&
       other.url       == url
-    end
-
-    def self.load(string)
-      return unless match = LOAD_REGEXP.match(string)
-      new(
-        topic:     match['topic'],
-        type:      match['type'],
-        url:       match['url'],
-        timestamp: match['t'].to_i(16))
     end
   end
 end

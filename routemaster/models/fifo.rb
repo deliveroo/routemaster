@@ -2,26 +2,27 @@ require 'routemaster/models/base'
 require 'routemaster/models/event'
 
 module Routemaster::Models
+  # A first-in, first-out list of marshalled Ruby objects
   class Fifo < Routemaster::Models::Base
 
     def initialize(name)
       @name = name
     end
 
-    def push(event)
-      conn.rpush(_key_events, event.dump)
+    def push(data)
+      conn.rpush(_key_events, Marshal.dump(data))
     end
 
     def peek
-      raw_event = conn.lindex(_key_events, 0)
-      return if raw_event.nil?
-      Event.load(raw_event)
+      raw = conn.lindex(_key_events, 0)
+      return if raw.nil?
+      Marshal.load(raw)
     end
 
     def pop
-      raw_event = conn.lpop(_key_events)
-      return if raw_event.nil?
-      Event.load(raw_event)
+      raw = conn.lpop(_key_events)
+      return if raw.nil?
+      Marshal.load(raw)
     end
 
     def length
@@ -35,7 +36,7 @@ module Routemaster::Models
     end
 
     def _key_events
-      @_key_events ||= "#{_key}/events"
+      @_key_events ||= "#{_key}/data"
     end
   end
 end
