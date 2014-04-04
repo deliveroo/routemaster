@@ -1,28 +1,17 @@
 require 'spec_helper'
 require 'routemaster/services/deliver'
-# require 'routemaster/models/fifo'
 require 'routemaster/models/queue'
 require 'spec/support/persistence'
+require 'spec/support/events'
 require 'webmock/rspec'
 
 
 describe Routemaster::Services::Deliver do
-  # let(:buffer) { Routemaster::Models::Fifo.new('buffer') }
-  # let(:queue) { double 'Queue', buffer: buffer }
   let(:buffer) { queue.buffer }
   let(:queue) { Routemaster::Models::Queue.new(subscriber: 'alice') }
   let(:callback) { 'https://alice.com/widgets' }
 
   subject { described_class.new(queue) }
-
-  def make_event
-    @event_counter ||= 0
-    @event_counter += 1
-    Routemaster::Models::Event.new(
-      topic: 'widgets',
-      type:  'noop',
-      url:   "https://example.com/widgets/#{@event_counter}")
-  end
 
   before do
     queue.callback = callback 
