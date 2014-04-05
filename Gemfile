@@ -1,5 +1,10 @@
 source ENV.fetch('GEM_SOURCE', 'https://rubygems.org')
 
+# process runner
+gem 'foreman'
+
+# web server
+gem 'unicorn'
 
 # application microframework
 gem 'sinatra'
