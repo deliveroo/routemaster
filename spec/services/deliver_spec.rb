@@ -4,6 +4,7 @@ require 'routemaster/models/subscription'
 require 'spec/support/persistence'
 require 'spec/support/events'
 require 'webmock/rspec'
+require 'timecop'
 
 
 describe Routemaster::Services::Deliver do
@@ -33,7 +34,9 @@ describe Routemaster::Services::Deliver do
 
     context 'when there are a few sendable events' do
       before do
-        3.times { buffer.push make_event }
+        Timecop.travel(-600) do
+          3.times { buffer.push make_event }
+        end
         subscription.timeout = 0
         stub_request(:post, callback).to_return(status: 204, body: '')
       end
