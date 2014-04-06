@@ -9,12 +9,14 @@ class Routemaster::Services::Fanout
   # dump implementation: pop from the topic, push to each subscription
   # TODO: do this atomically with a Lua script
   def run
-    event = @topic.pop
-    return if event.nil?
+    sent_event = false
+    while event = @topic.pop
+      sent_event = true
+      @topic.subscribers.each { |s| s.push(event) }
+    end
 
-    @topic.subscribers.each do |subscription|
-      subscription.push(event)
-      Routemaster.notify('subscription', subscription)
+    if sent_event
+      @topic.subscribers.each { |s| Routemaster.notify('subscription', s) }
     end
   end
 end

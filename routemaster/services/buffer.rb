@@ -18,8 +18,10 @@ class Routemaster::Services::Buffer
       @buffer.push(event)
     end
     
-    # ping for delivery if buffer full or time elapsed 
-    Routemaster.notify('buffer', @subscription)
+    # ping for delivery if buffer full or time elapsed
+    if @subscription.stale? || @buffer.length >= @subscription.max_events
+      Routemaster.notify('buffer', @subscription)
+    end
   end
 end
 

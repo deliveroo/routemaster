@@ -43,9 +43,9 @@ class Routemaster::Services::Deliver
   private
 
   def _should_deliver?
+    return true  if @subscription.stale?
     return false if @buffer.length == 0
     return true  if @buffer.length >= @subscription.max_events
-    return true  if @buffer.peek.timestamp + @subscription.timeout < Routemaster.now
     false
   end
 

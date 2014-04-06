@@ -56,8 +56,14 @@ module Routemaster::Models
       conn.hget(_key, 'uuid')
     end
 
+    def stale?
+      oldest_event = buffer.peek
+      return false if oldest_event.nil?
+      oldest_event.timestamp + timeout < Routemaster.now
+    end
+
     def buffer
-      @_buffer = Fifo.new("buffer-#{@subscriber}")
+      @_buffer ||= Fifo.new("buffer-#{@subscriber}")
     end
 
     extend Forwardable
