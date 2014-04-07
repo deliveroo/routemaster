@@ -1,11 +1,13 @@
 require 'routemaster/models'
 require 'routemaster/mixins/connection'
 require 'routemaster/mixins/assert'
+require 'routemaster/mixins/log'
 
 module Routemaster::Models
   class Subscribers
     include Routemaster::Mixins::Connection
     include Routemaster::Mixins::Assert
+    include Routemaster::Mixins::Log
     include Enumerable
 
     def initialize(topic)
@@ -14,7 +16,9 @@ module Routemaster::Models
 
     def add(subscription)
       _assert subscription.kind_of?(Subscription)
-      conn.sadd(_key, subscription.subscriber)
+      if conn.sadd(_key, subscription.subscriber)
+        _log.info { "new subscriber '#{subscription.subscriber}' to '#{@topic.name}'" }
+      end
     end
 
     # yields Subscriptions

@@ -1,10 +1,13 @@
 require 'routemaster/services'
 require 'routemaster/models/fifo'
+require 'routemaster/mixins/log'
 require 'faraday'
 require 'faraday_middleware'
 
 # Manage delivery buffer and emitting the HTTP delivery
 class Routemaster::Services::Deliver
+  include Routemaster::Mixins::Log
+
   def initialize(subscription)
     @subscription  = subscription
     @buffer = subscription.buffer
@@ -34,7 +37,12 @@ class Routemaster::Services::Deliver
     response = conn.post do |post|
       post.body = data 
     end
-    return if response.success?
+    if response.success?
+      _log.debug { "delivered #{events.length} events to '#{@subscription.subscriber}'" } 
+      return
+    else
+      _log.warn { "failed to deliver #{events.length} events to '#{@subscription.subscriber}'" }
+    end
     
     # put events back in case of failure
     events.each { |e| @buffer.push e }

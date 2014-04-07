@@ -12,7 +12,9 @@ module Routemaster::Models
 
     def initialize(subscriber:)
       @subscriber = User.new(subscriber)
-      conn.sadd('subscriptions', @subscriber)
+      if conn.sadd('subscriptions', @subscriber)
+        _log.info { "new subscription by '#{@subscriber}'" }
+      end
     end
 
     def callback=(value)

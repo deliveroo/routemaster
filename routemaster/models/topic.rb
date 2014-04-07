@@ -17,7 +17,9 @@ module Routemaster::Models
 
       return if publisher.nil?
 
-      conn.hsetnx(_key, 'publisher', publisher)
+      if conn.hsetnx(_key, 'publisher', publisher)
+        _log.info { "new topic '#{@name}' from '#{@publisher}'" }
+      end
 
       current_publisher = conn.hget(_key, 'publisher')
       unless conn.hget(_key, 'publisher') == @publisher
