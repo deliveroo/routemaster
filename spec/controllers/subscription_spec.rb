@@ -13,7 +13,9 @@ describe Routemaster::Controllers::Subscription do
       callback: 'https://app.example.com/events',
       uuid:     'alice'
     }}
-    let(:perform) { post '/subscription', payload.to_json, 'CONTENT_TYPE' => 'application/json' }
+    let(:raw_payload) { payload.to_json }
+    let(:perform) { post '/subscription', raw_payload, 'CONTENT_TYPE' => 'application/json' }
+    let(:subscription) { Routemaster::Models::Subscription.new(subscriber: 'charlie') }
 
     before do
       Routemaster::Models::Topic.new(name: 'widgets', publisher: 'bob')
@@ -30,9 +32,56 @@ describe Routemaster::Controllers::Subscription do
       expect(last_response).to be_not_found
     end
 
-    it 'rejects bad callbacks'
-    it 'rejects non-JSON bodies'
-    it 'accepts an optional "timeout"'
-    it 'accepts an optional "max"'
+    it 'rejects bad topic lists' do
+      payload[:topics] = 1234
+      perform
+      expect(last_response).to be_bad_request
+    end
+
+    it 'rejects bad callbacks' do
+      payload[:callback] = 'http://example.com' # no SSL
+      perform
+      expect(last_response).to be_bad_request
+    end
+
+    it 'rejects non-JSON bodies' do
+      raw_payload.replace 'nonsense'
+      perform
+      expect(last_response).to be_bad_request
+    end
+
+    it 'accepts an optional "timeout"' do
+      payload[:timeout] = 500
+      perform
+      expect(last_response.status).to eq(204)
+    end
+
+    it 'accepts an optional "max"' do
+      payload[:max] = 500
+      perform
+      expect(last_response.status).to eq(204)
+    end
+
+    it 'sets the subscription callback' do
+      perform
+      expect(subscription.callback).to eq('https://app.example.com/events')
+    end
+
+    it 'sets the subscription uuid' do
+      perform
+      expect(subscription.uuid).to eq('alice')
+    end
+
+    it 'sets the subscription timeout' do
+      payload[:timeout] = 675
+      perform
+      expect(subscription.timeout).to eq(675)
+    end
+
+    it 'sets the subscription max' do
+      payload[:max] = 512
+      perform
+      expect(subscription.max_events).to eq(512)
+    end
   end
 end
