@@ -38,4 +38,5 @@ group :development do
   # better REPL
   gem 'pry'
   gem 'pry-nav'
+  gem 'pry-remote'
 end
