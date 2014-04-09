@@ -29,7 +29,9 @@ before_fork do |server, worker|
   # to the implementation of standard Unix signal handlers, this
   # helps (but does not completely) prevent identical, repeated signals
   # from being lost when the receiving process is busy.
-  sleep 250e-3
+  if ENV.fetch('RACK_ENV', 'development') =~ /production|staging/
+    sleep 250e-3
+  end
 end
 
 after_fork do |server, worker|
