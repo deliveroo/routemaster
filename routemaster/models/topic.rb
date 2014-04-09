@@ -42,6 +42,12 @@ module Routemaster::Models
       end
     end
 
+    def self.find(name)
+      publisher = conn.hget("topic/#{name}", 'publisher')
+      return if publisher.nil?
+      new(name: name, publisher: publisher)
+    end
+
     def marshal_dump
       [@name, @publisher]
     end

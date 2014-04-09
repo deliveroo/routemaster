@@ -65,4 +65,9 @@ describe Routemaster::Models::Topic do
       expect(described_class.all).to include(topic2)
     end
   end
+
+  describe '.find' do
+    it 'returns existing topics'
+    it 'returns nil for unknown topics'
+  end
 end
