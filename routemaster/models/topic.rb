@@ -3,6 +3,7 @@ require 'routemaster/models/event'
 require 'routemaster/models/user'
 require 'routemaster/models/subscribers'
 require 'routemaster/models/fifo'
+require 'forwardable'
 
 module Routemaster::Models
   class Topic < Routemaster::Models::Base
