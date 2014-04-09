@@ -59,10 +59,12 @@ class Routemaster::Services::Deliver
 
   def conn
     @_conn ||= begin
-      Faraday.new(@subscription.callback) do |f|
-        f.request :json
-        f.adapter Faraday.default_adapter
-      end
+      Faraday.new(@subscription.callback) { |c|
+        c.request :json
+        c.adapter Faraday.default_adapter
+      }.tap { |c|
+        c.basic_auth(@subscription.uuid, 'x')
+      }
     end
   end
 end

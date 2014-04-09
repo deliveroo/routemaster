@@ -11,10 +11,12 @@ describe Routemaster::Services::Deliver do
   let(:buffer) { subscription.buffer }
   let(:subscription) { Routemaster::Models::Subscription.new(subscriber: 'alice') }
   let(:callback) { 'https://alice.com/widgets' }
+  let(:callback_auth) { 'https://hello:x@alice.com/widgets' }
 
   subject { described_class.new(subscription) }
 
   before do
+    subscription.uuid = 'hello'
     subscription.callback = callback 
   end
 
@@ -38,7 +40,7 @@ describe Routemaster::Services::Deliver do
           3.times { buffer.push make_event }
         end
         subscription.timeout = 0
-        stub_request(:post, callback).to_return(status: 204, body: '')
+        stub_request(:post, callback_auth).to_return(status: 204, body: '')
       end
       
       it 'passes' do
@@ -47,7 +49,7 @@ describe Routemaster::Services::Deliver do
 
       it 'POSTs to the callback' do
         perform
-        a_request(:post, callback).should have_been_made
+        a_request(:post, callback_auth).should have_been_made
       end
 
       it 'sends valid JSON' do
@@ -75,7 +77,7 @@ describe Routemaster::Services::Deliver do
 
       context 'when the callback fails' do
         before do
-          stub_request(:post, callback).to_return(status: 500)
+          stub_request(:post, callback_auth).to_return(status: 500)
         end
 
         it 'does not clear the buffer' do
@@ -94,7 +96,7 @@ describe Routemaster::Services::Deliver do
 
       it 'does not send events' do
         perform
-        a_request(:any, callback).should_not have_been_made
+        a_request(:any, callback_auth).should_not have_been_made
       end
     end
 
@@ -103,12 +105,12 @@ describe Routemaster::Services::Deliver do
         subscription.timeout = 500
         subscription.max_events = 3
         3.times { buffer.push make_event }
-        stub_request(:post, callback).to_return(status: 204, body: '')
+        stub_request(:post, callback_auth).to_return(status: 204, body: '')
       end
 
       it 'makes a request' do
         perform
-        a_request(:any, callback).should have_been_made
+        a_request(:any, callback_auth).should have_been_made
       end
     end
   end
