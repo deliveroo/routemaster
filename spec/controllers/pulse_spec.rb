@@ -10,7 +10,7 @@ describe Routemaster::Controllers::Pulse do
   context 'when all is fine' do
     it 'succeeds' do
       perform
-      expect(last_response).to be_ok
+      expect(last_response.status).to eq(204)
     end
 
     it 'does not return anything' do
