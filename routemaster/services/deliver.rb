@@ -14,6 +14,8 @@ class Routemaster::Services::Deliver
   end
 
   def run
+    _log.debug { "starting delivery to '#{@subscription.subscriber}'" }
+
     # check if buffer full or time elapsed
     return unless _should_deliver?
 
@@ -46,6 +48,8 @@ class Routemaster::Services::Deliver
     
     # put events back in case of failure
     events.each { |e| @buffer.push e }
+
+    nil
   end
 
   private

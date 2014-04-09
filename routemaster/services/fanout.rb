@@ -12,6 +12,8 @@ class Routemaster::Services::Fanout
   # dump implementation: pop from the topic, push to each subscription
   # TODO: do this atomically with a Lua script
   def run
+    _log.debug { "starting fanout for '#{@topic.name}'" }
+
     event_counter = 0
     while event = @topic.pop
       event_counter += 1
@@ -20,14 +22,14 @@ class Routemaster::Services::Fanout
 
     if event_counter > 0
       @topic.subscribers.each { |s| Routemaster.notify('subscription', s) }
-      _log(event_counter)
+      _log_count(event_counter)
     end
   end
 
   private 
 
-  def _log(count)
-    super().debug do
+  def _log_count(count)
+    _log.debug do
       if !@topic.subscribers.any?
         "dispatched #{count} events, no subscribers"
       else

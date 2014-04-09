@@ -13,6 +13,7 @@ class Routemaster::Services::Buffer
   end
 
   def run
+    _log.debug { "starting buffering for '#{@subscription.subscriber}'" }
     event_counter = 0
 
     # fill the buffer
