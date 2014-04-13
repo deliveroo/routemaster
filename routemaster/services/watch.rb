@@ -136,15 +136,16 @@ module Routemaster::Services
         
         if payload == 'kill'
           _log.debug { 'received kill event' }
-          bunnny.ack(info.delivery_tag, false)
+          bunnny.ack(delivery_info.delivery_tag, false)
           stop
           abort 'thread should be dead!!'
         end
 
         begin 
           event = Routemaster::Models::Event.load(payload)
-        rescue ArgumentError => e
+        rescue ArgumentError, TypeError
           _log.warn 'bad event payload'
+          bunny.ack(delivery_info.delivery_tag, false)
           return
         rescue Exception => e
           _log.error { "unknown error while receiving event for #{delivery_info.inspect}" }

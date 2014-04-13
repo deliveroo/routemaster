@@ -104,5 +104,8 @@ describe Routemaster::Services::Watch do
       perform(3)
       expect(delivery._buf.length).to eq(3)
     end
+
+    it 'stops on a kill event'
+    it 'removes bad events from the queue'
   end
 end
