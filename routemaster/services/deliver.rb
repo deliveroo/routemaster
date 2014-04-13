@@ -1,5 +1,6 @@
 require 'routemaster/services'
 require 'routemaster/mixins/log'
+require 'config/openssl'
 require 'faraday'
 require 'json'
 
