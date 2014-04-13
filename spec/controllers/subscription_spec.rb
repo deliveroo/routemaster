@@ -26,10 +26,10 @@ describe Routemaster::Controllers::Subscription do
       expect(last_response.status).to eq(204)
     end
     
-    it 'rejects unknown topics' do
+    it 'acceptc unknown topics' do
       payload[:topics] = %w(grizzlis)
       perform
-      expect(last_response).to be_not_found
+      expect(last_response).to eq(204)
     end
 
     it 'rejects bad topic lists' do

@@ -18,7 +18,8 @@ module Routemaster::Controllers
       halt 400 unless data['topics'].kind_of?(Array)
 
       topics = data['topics'].map do |name|
-        Routemaster::Models::Topic.find(name)
+        Routemaster::Models::Topic.find(name) ||
+        Routemaster::Models::Topic.new(name: name, publisher: nil)
       end
       halt 404 unless topics.all?
 
