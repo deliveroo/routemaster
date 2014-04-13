@@ -6,7 +6,7 @@ module Routemaster::Mixins::Log
   def _log
     @@_logger ||= begin
       file_path = ENV['ROUTEMASTER_LOG_FILE']
-      file = file_path ? File.open(file_path, 'a') : $stdout
+      file = (file_path && File.exist?(file_path)) ? File.open(file_path, 'a') : $stderr
       level = Logger.const_get(ENV.fetch('ROUTEMASTER_LOG_LEVEL', 'INFO'))
       Logger.new(file).tap do |logger|
         logger.level     = level 
