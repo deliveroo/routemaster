@@ -15,6 +15,11 @@ module Routemaster::Mixins::Log
     end
   end
 
+  def _log_exception(e)
+    _log.warn { "#{e.class.name} (#{e.message})" }
+    _log.debug { e.backtrace.join("\n") }
+  end
+
   private
 
   TIMESTAMP_FORMAT = '%F %T.%L'

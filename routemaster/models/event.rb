@@ -1,10 +1,12 @@
 require 'routemaster/models'
 require 'routemaster/models/callback_url'
 require 'routemaster/mixins/assert'
+require 'base64'
 
 module Routemaster::Models
   class Event
     include Routemaster::Mixins::Assert
+    extend  Routemaster::Mixins::Assert
 
     VALID_TYPES = %w(create update delete noop)
 
@@ -32,5 +34,16 @@ module Routemaster::Models
       other.timestamp == timestamp &&
       other.url       == url
     end
+
+    def dump
+      Base64.encode64(Marshal.dump(self))
+    end
+
+    def self.load(data)
+      Marshal.load(Base64.decode64(data)).tap do |event|
+        _assert event.kind_of?(self), 'desirialized record not an Event'
+      end
+    end
+
   end
 end

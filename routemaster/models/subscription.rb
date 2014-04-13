@@ -58,23 +58,37 @@ module Routemaster::Models
       conn.hget(_key, 'uuid')
     end
 
-    def stale?
-      oldest_event = buffer.peek
-      return false if oldest_event.nil?
-      oldest_event.timestamp + timeout < Routemaster.now
+    # # TODO: yield events in batches
+    # def listen
+    #   _queue.subscribe(ack: false) do |delivery_info, properties, payload|
+    #     begin
+    #       yield [Event.load(payload)]
+    #       bunny.ack(delivery_info.delivery_tag, false)
+    #     rescue
+    #       bunny.nack(delivery_info.delivery_tag, false)
+    #       raise
+    #     end
+    #   end
+    # end
+
+    def to_s
+      "subscription for '#{@subscriber}'"
+    end 
+
+    extend Enumerable
+
+    def self.each
+      conn.smembers('subscriptions').each { |s| yield new(subscriber: s) }
     end
 
-    def buffer
-      @_buffer ||= Fifo.new("buffer-#{@subscriber}")
-    end
-
-    extend Forwardable
-    delegate %i(push peek pop length) => :_fifo
+    # ideally this would not be exposed, but binding topics
+    # and subscriptions requires accessing this.
+    def queue ; _queue ; end
 
     private
 
-    def _fifo
-      @_fifo ||= Fifo.new("subscription-#{@subscriber}")
+    def _queue
+      @_queue ||= bunny.queue(_bunny_name(@subscriber), durable: true, auto_delete: false)
     end
 
     def _key

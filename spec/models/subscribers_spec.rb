@@ -6,8 +6,15 @@ require 'routemaster/models/subscription'
 describe Routemaster::Models::Subscribers do
   Subscription = Routemaster::Models::Subscription
 
-  let(:topic) { double 'Topic', name: 'widgets' }
+  let(:exchange) { double 'exchange' }
+  let(:topic) { double 'Topic', name: 'widgets', exchange: exchange }
   subject { described_class.new(topic) }
+
+  let(:queue) { double 'queue', bind: true }
+
+  before do
+    allow_any_instance_of(Subscription).to receive(:queue).and_return(queue)
+  end
 
   describe '#initialize' do
     it 'passes' do
@@ -39,6 +46,11 @@ describe Routemaster::Models::Subscribers do
       subject.add Subscription.new(subscriber: 'bob')
       subject.add Subscription.new(subscriber: 'alice')
       expect(subject.count).to eq(2)
+    end
+
+    it 'binds the queue to the exchange' do
+      expect(queue).to receive(:bind).with(exchange)
+      subject.add Subscription.new(subscriber: 'alice')
     end
   end
 end

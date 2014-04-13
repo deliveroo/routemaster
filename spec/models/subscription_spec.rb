@@ -36,4 +36,8 @@ describe Routemaster::Models::Subscription do
       expect(subject.timeout).to eq(123)
     end
   end
+
+  describe '.each' do
+    it 'yields subscriptions'
+  end
 end

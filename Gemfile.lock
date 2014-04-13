@@ -2,6 +2,9 @@ GEM
   remote: http://yarp.dev/
   specs:
     addressable (2.3.6)
+    amq-protocol (1.9.2)
+    bunny (1.2.1)
+      amq-protocol (>= 1.9.2)
     celluloid (0.15.2)
       timers (~> 1.1.0)
     celluloid-io (0.15.0)
@@ -31,7 +34,7 @@ GEM
     guard-rspec (4.2.8)
       guard (~> 2.1)
       rspec (>= 2.14, < 4.0)
-    hiredis (0.5.1)
+    hiredis (0.5.2)
     kgio (2.9.2)
     listen (2.7.1)
       celluloid (>= 0.15.2)
@@ -93,6 +96,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bunny
   dotenv
   faraday
   faraday_middleware

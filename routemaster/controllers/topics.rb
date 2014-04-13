@@ -1,6 +1,5 @@
 require 'routemaster/controllers'
 require 'routemaster/models/topic'
-require 'routemaster/notify'
 require 'sinatra'
 require 'json'
 
@@ -32,7 +31,6 @@ class Routemaster::Controllers::Topics < Sinatra::Base
     end
 
     topic.push(event)
-    Routemaster.notify('topic', topic)
     
     halt :ok
   end

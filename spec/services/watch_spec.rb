@@ -1,70 +1,108 @@
 require 'spec_helper'
 require 'spec/support/persistence'
+require 'spec/support/events'
 require 'routemaster/services/watch'
+require 'routemaster/models/subscription'
 
 describe Routemaster::Services::Watch do
-  describe '#run' do
-    context 'when no messages are queued' do
-      it 'passes' do
-        subject.run
+  let(:subscription) { Routemaster::Models::Subscription.new(subscriber: 'alice')  }
+
+  def subject(max_events = nil) 
+    @subject ||= described_class.new(max_events)
+  end
+
+  def queue_event
+    subscription.queue.publish(make_event.dump) 
+  end
+
+  def queue_kill_event
+    subscription.queue.publish('kill')
+  end
+
+  def perform(max_events = nil)
+    subject(max_events).run
+  end
+
+  def kill_after(seconds)
+    Thread.new { sleep seconds; subject.stop }
+  end
+
+  describe '#stop' do
+    shared_examples 'an execution stopper' do
+      it 'stops execution' do
+        Thread.new { sleep 1 ; subject.stop }
+        thread = Thread.new { subject.run }
+        sleep 2
+        expect(thread.status).to be_false
       end
     end
 
-    context 'when a message is queued' do
-      context 'with an invalid message' do
-        before { Routemaster.notify('foo', :bar) }
+    context 'without subscriptions' do
+      it_behaves_like 'an execution stopper'
+    end
 
-        it 'raises an exception' do
-          expect { subject.run }.to raise_error
+    context 'with subscriptions' do
+      before { subscription }
+      it_behaves_like 'an execution stopper'
+    end
+  end
+
+  describe '#run' do
+    let(:delivery) { double('delivery', run: true) }
+    
+    before do
+      allow(Routemaster::Services::Deliver).to receive(:new) { |sub, buf|
+        delivery.stub(_sub: sub, _buf: buf)
+      }.and_return(delivery)
+    end
+
+    it 'passes when no messages are queued' do
+      subscription
+      kill_after(2)
+      perform
+    end
+
+    it 'attempts delivery once per event' do
+      expect(delivery).to receive(:run).exactly(3).times
+      3.times { queue_event }
+      perform(3)
+    end
+
+    it 'passes batches to delivery' do
+      delivery.stub run: false
+      5.times { queue_event }
+      perform(5)
+      expect(delivery._buf.length).to eq(5)
+    end
+
+    it 'passes a new batch once accepted by delivery' do
+      allow(delivery).to receive(:run).and_return(true, false, false)
+      3.times { queue_event }
+      perform(3)
+      expect(delivery._buf.length).to eq(2)
+    end
+
+    it 'passes events in order' do
+      delivery.stub run: false
+      5.times { queue_event }
+      perform(5)
+      expect(delivery._buf.first.url).to end_with('/1')
+      expect(delivery._buf.last.url).to  end_with('/5')
+    end
+
+    it 'keeps events when delivery fails' do
+      allow(delivery).to receive(:run) do 
+        if @already_ran
+          false
+        else
+          @already_ran = true
+          raise Routemaster::Services::Deliver::CantDeliver
         end
       end
 
-      shared_examples 'a service factory' do
-        it 'passes' do
-          expect { subject.run }.not_to raise_error
-        end
-
-        it 'calls the service' do
-          expect_any_instance_of(service).to receive(:run)
-          subject.run
-        end
-      end
-
-      context 'with a "topic" message' do
-        let(:service) { Routemaster::Services::Fanout }
-
-        before do
-          Routemaster.notify(
-            'topic',
-            Routemaster::Models::Topic.new(name: 'widgets', publisher: 'alice'))
-        end
-
-        it_behaves_like 'a service factory'
-      end
-
-      context 'with a "subscription" message' do
-        let(:service) { Routemaster::Services::Buffer }
-
-        before do
-          Routemaster.notify(
-            'subscription',
-            Routemaster::Models::Subscription.new(subscriber: 'alice'))
-        end
-
-        it_behaves_like 'a service factory'
-      end
-
-      context 'with a "buffer" message' do
-        let(:service) { Routemaster::Services::Deliver }
-
-        before do
-          Routemaster.notify(
-            'buffer',
-            Routemaster::Models::Subscription.new(subscriber: 'alice'))
-        end
-
-        it_behaves_like 'a service factory'
-      end
+      3.times { queue_event } 
+      perform(3)
+      expect(delivery._buf.length).to eq(3)
     end
   end
 end

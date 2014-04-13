@@ -2,7 +2,6 @@ require 'spec_helper'
 require 'routemaster/controllers/topics'
 require 'spec/support/rack_test'
 require 'spec/support/persistence'
-require 'spec/support/notifications'
 
 describe Routemaster::Controllers::Topics do
   let(:uid) { 'joe-user' }
@@ -23,16 +22,16 @@ describe Routemaster::Controllers::Topics do
 
     it 'pushes the event' do
       perform
-      last_event = topic.peek
+      last_event = topic.last_event
       expect(last_event).not_to be_nil
       expect(last_event.type).to eq('create')
       expect(last_event.url).to  eq('https://example.com/widgets/123')
     end
 
-    it 'posts a notification' do
-      perform
-      expect(last_notification.name).to eq('topic')
-      expect(last_notification.payload).to eq(topic)
+    describe '(error cases)' do
+      it 'returns 400 on bad JSON'
+      it 'returns 400 on bad topic'
+      it 'returns 400  on bad event type'
     end
 
     context 'when the topic is claimed' do

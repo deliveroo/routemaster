@@ -2,7 +2,6 @@ require 'routemaster/models/base'
 require 'routemaster/models/event'
 require 'routemaster/models/user'
 require 'routemaster/models/subscribers'
-require 'routemaster/models/fifo'
 require 'forwardable'
 
 module Routemaster::Models
@@ -12,8 +11,9 @@ module Routemaster::Models
     attr_reader :name, :publisher
 
     def initialize(name:, publisher:)
-      @name = Name.new(name)
+      @name      = Name.new(name)
       @publisher = Publisher.new(publisher) if publisher
+
       conn.sadd('topics', name)
 
       return if publisher.nil?
@@ -49,25 +49,30 @@ module Routemaster::Models
       new(name: name, publisher: publisher)
     end
 
-    def marshal_dump
-      [@name, @publisher]
+    def push(event)
+      _assert event.kind_of?(Event), 'can only push Event'
+      conn.hset(_key, 'last_event', event.dump)
+      _exchange.publish(event.dump, persistent: true)
     end
 
-    def marshal_load(argv)
-      initialize(name: argv[0], publisher: argv[1])
+    def last_event
+      raw = conn.hget(_key, 'last_event')
+      return if raw.nil?
+      Event.load(raw)
     end
 
-    extend Forwardable
-    delegate %i(push peek pop length) => :_fifo
+    # ideally this would not be exposed, but binding topics
+    # and subscriptions requires accessing this.
+    def exchange ; _exchange ; end
 
     private
 
-    def _fifo
-      @_fifo ||= Fifo.new("topic-#{@name}")
-    end
-
     def _key
       @_key ||= "topic/#{@name}"
+    end
+
+    def _exchange
+      @_exchange ||= bunny.fanout(_bunny_name(@name), durable: true)
     end
 
     class Name < String

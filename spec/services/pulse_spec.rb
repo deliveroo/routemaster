@@ -16,5 +16,9 @@ describe Routemaster::Services::Pulse do
         expect(perform).to be_false
       end
     end
+
+    context 'when RabbitMQ is down' do
+      it 'returns false'
+    end
   end
 end

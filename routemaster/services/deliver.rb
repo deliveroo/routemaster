@@ -1,33 +1,28 @@
 require 'routemaster/services'
-require 'routemaster/models/fifo'
 require 'routemaster/mixins/log'
 require 'faraday'
-require 'faraday_middleware'
+require 'json'
 
 # Manage delivery buffer and emitting the HTTP delivery
 class Routemaster::Services::Deliver
   include Routemaster::Mixins::Log
 
-  def initialize(subscription)
-    @subscription  = subscription
-    @buffer = subscription.buffer
+  CantDeliver = Class.new(Exception)
+
+  def initialize(subscription, events)
+    @subscription = subscription
+    @buffer       = events
   end
 
   def run
+    return false unless @buffer.any?
+    return false unless _should_deliver?(@buffer)
     _log.debug { "starting delivery to '#{@subscription.subscriber}'" }
 
-    # check if buffer full or time elapsed
-    return unless _should_deliver?
-
-    # TODO: lock the buffer for writing
-    # also avoid clearing it until the acknowledgment from the callback
 
     # assemble data
-    data = []
-    events = []
-    while event = @buffer.pop
-      events << event
-      data << {
+    data = @buffer.map do |event|
+      {
         topic: event.topic,
         type:  event.type,
         url:   event.url,
@@ -36,35 +31,35 @@ class Routemaster::Services::Deliver
     end
 
     # send data
-    response = conn.post do |post|
-      post.body = data 
+    response = _conn.post do |post|
+      post.headers['Content-Type'] = 'application/json'
+      post.body = data.to_json
     end
-    if response.success?
-      _log.debug { "delivered #{events.length} events to '#{@subscription.subscriber}'" } 
-      return
-    else
-      _log.warn { "failed to deliver #{events.length} events to '#{@subscription.subscriber}'" }
-    end
-    
-    # put events back in case of failure
-    events.each { |e| @buffer.push e }
 
-    nil
+    if response.success?
+      _log.debug { "delivered #{@buffer.length} events to '#{@subscription.subscriber}'" } 
+      return true
+    else
+      _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscription.subscriber}'" }
+      raise CantDeliver.new('delivery failure')
+    end
   end
+
 
   private
 
-  def _should_deliver?
-    return true  if @subscription.stale?
-    return false if @buffer.length == 0
-    return true  if @buffer.length >= @subscription.max_events
+  
+  def _should_deliver?(buffer)
+    return true  if buffer.first.timestamp + @subscription.timeout <= Routemaster.now
+    return false if buffer.length == 0
+    return true  if buffer.length >= @subscription.max_events
     false
   end
 
-  def conn
+
+  def _conn
     @_conn ||= begin
       Faraday.new(@subscription.callback) { |c|
-        c.request :json
         c.adapter Faraday.default_adapter
       }.tap { |c|
         c.basic_auth(@subscription.uuid, 'x')

@@ -8,12 +8,12 @@ require 'timecop'
 
 
 describe Routemaster::Services::Deliver do
-  let(:buffer) { subscription.buffer }
+  let(:buffer) { Array.new }
   let(:subscription) { Routemaster::Models::Subscription.new(subscriber: 'alice') }
   let(:callback) { 'https://alice.com/widgets' }
   let(:callback_auth) { 'https://hello:x@alice.com/widgets' }
 
-  subject { described_class.new(subscription) }
+  subject { described_class.new(subscription, buffer) }
 
   before do
     subscription.uuid = 'hello'
@@ -28,13 +28,17 @@ describe Routemaster::Services::Deliver do
         expect { perform }.not_to raise_error
       end
 
+      it 'returns falsy' do
+        expect(perform).to be_false
+      end
+
       it 'does not issue requests' do
         perform
         a_request(:any, //).should_not have_been_made
       end
     end
 
-    context 'when there are a few sendable events' do
+    context 'when there are events' do
       before do
         Timecop.travel(-600) do
           3.times { buffer.push make_event }
@@ -45,6 +49,10 @@ describe Routemaster::Services::Deliver do
       
       it 'passes' do
         expect { perform }.not_to raise_error
+      end
+
+      it 'returns true' do
+        expect(perform).to be_true
       end
 
       it 'POSTs to the callback' do
@@ -70,19 +78,13 @@ describe Routemaster::Services::Deliver do
         perform
       end
 
-      it 'clears the buffer' do
-        perform
-        expect(buffer.length).to eq(0)
-      end
-
       context 'when the callback fails' do
         before do
           stub_request(:post, callback_auth).to_return(status: 500)
         end
 
-        it 'does not clear the buffer' do
-          perform
-          expect(buffer.length).not_to eq(0)
+        it 'raises an exception' do
+          expect { perform }.to raise_error(described_class::CantDeliver)
         end
       end
     end
@@ -98,6 +100,10 @@ describe Routemaster::Services::Deliver do
         perform
         a_request(:any, callback_auth).should_not have_been_made
       end
+
+      it 'returns flasy' do
+        expect(perform).to be_false
+      end
     end
 
     context 'when there are many recent events' do
@@ -111,6 +117,10 @@ describe Routemaster::Services::Deliver do
       it 'makes a request' do
         perform
         a_request(:any, callback_auth).should have_been_made
+      end
+
+      it 'returns truthy' do
+        expect(perform).to be_true
       end
     end
   end

@@ -19,6 +19,9 @@ module Routemaster::Models
       if conn.sadd(_key, subscription.subscriber)
         _log.info { "new subscriber '#{subscription.subscriber}' to '#{@topic.name}'" }
       end
+
+      # bind the subscription's RabbitMQ queue to the topic's exchange
+      subscription.queue.bind(@topic.exchange)
     end
 
     # yields Subscriptions
