@@ -29,7 +29,7 @@ describe Routemaster::Controllers::Subscription do
     it 'acceptc unknown topics' do
       payload[:topics] = %w(grizzlis)
       perform
-      expect(last_response).to eq(204)
+      expect(last_response.status).to eq(204)
     end
 
     it 'rejects bad topic lists' do
