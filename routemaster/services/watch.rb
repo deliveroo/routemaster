@@ -184,6 +184,7 @@ module Routemaster::Services
             end
           rescue Routemaster::Services::Deliver::CantDeliver
             @batch.each(&:nack)
+            # TODO: nack on delivery failrues
           end
         end
       end

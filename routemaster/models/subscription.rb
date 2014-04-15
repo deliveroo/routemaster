@@ -18,6 +18,7 @@ module Routemaster::Models
     end
 
     def callback=(value)
+      # TODO: test the callback with an empty event batch
       conn.hset(_key, 'callback', CallbackURL.new(value))
     end
 
