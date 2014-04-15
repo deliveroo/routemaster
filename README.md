@@ -108,7 +108,7 @@ push to a given topic will see their requests met with errors.
     >> POST /topics/:name
     >> {
     >>   event: <type>,
-    >>   url: <url>
+    >>   url:   <url>
     >> }
 
 `:name` is limited to 32 characters (lowercase letters and the underscore
@@ -146,7 +146,7 @@ A client can therefore only obtain events from their own subscription.
 
     >> POST /subscription
     >> {
-    >>   topics: [<name>, ...],
+    >>   topics:   [<name>, ...],
     >>   callback: <url>,
     >>   uuid:     <uuid>,
     >>   timeout:  <t>,
@@ -181,9 +181,9 @@ Otherwise, they will be resent at the next interval.
     >> [
     >>   { 
     >>     topic: <name>,
-    >>     event:   <type>, 
-    >>     url:     <url>, 
-    >>     t:       <t> 
+    >>     event: <type>, 
+    >>     url:   <url>, 
+    >>     t:     <t> 
     >>   },
     >>   ...
     >> ]
@@ -219,7 +219,7 @@ Routermaster provides monitoring endpoints:
     <<   {
     <<     subscriber: <username>,
     <<     callback:   <url>,
-    <<     topics:   [<name>, ...],
+    <<     topics:     [<name>, ...],
     <<     events: {
     <<       sent:       <sent_count>,
     <<       queued:     <queue_size>,
