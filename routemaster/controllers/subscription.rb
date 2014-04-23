@@ -11,9 +11,11 @@ module Routemaster::Controllers
       begin
         data = JSON.parse(request.body.read)
       rescue JSON::ParserError => e
+        # TODO: log this.
         halt 400
       end
 
+      # TODO: log this
       halt 400 if (data.keys - VALID_KEYS).any?
       halt 400 unless data['topics'].kind_of?(Array)
 
@@ -30,6 +32,7 @@ module Routemaster::Controllers
         sub.timeout    = data['timeout'] if data['timeout']
         sub.max_events = data['max']     if data['max']
       rescue ArgumentError => e
+        # TODO: log this.
         halt 400
       end
 
