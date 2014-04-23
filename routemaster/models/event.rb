@@ -29,7 +29,7 @@ module Routemaster::Models
     end
 
     def ==(other)
-      other.topic     == topic
+      other.topic     == topic &&
       other.type      == type &&
       other.timestamp == timestamp &&
       other.url       == url

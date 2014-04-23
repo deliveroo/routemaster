@@ -35,4 +35,21 @@ describe Routemaster::Models::Event do
       expect(t).to be_within(10).of(Time.now.utc.to_i)
     end
   end
+
+  describe '#==' do
+    it 'is true for the same event' do
+      expect(subject).to eq(subject)
+    end
+
+    it 'is true for an event with the same data' do
+      other = described_class.new(**options)
+      expect(other).to eq(subject)
+    end
+
+    it 'is false when the topic differs' do
+      other_options = options.merge(topic: 'wapitis')
+      other = described_class.new(**other_options)
+      expect(other).not_to eq(subject)
+    end
+  end
 end
