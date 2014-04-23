@@ -8,7 +8,8 @@ class Routemaster::Controllers::Topics < Sinatra::Base
     begin
       topic = Routemaster::Models::Topic.new(
         name:       params['name'], 
-        publisher:  request.env['REMOTE_USER'])
+        publisher:  request.env['REMOTE_USER']
+      )
     rescue ArgumentError
       halt 400, 'bad topic'
     rescue Routemaster::Models::Topic::TopicClaimedError
