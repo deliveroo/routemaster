@@ -27,6 +27,8 @@ module Routemaster::Mixins::Log
   TIMESTAMP_FORMAT = '%F %T.%L'
 
   def _formatter(severity, datetime, progname, message)
+    # In "deployed" environments (normally running Foreman), timestamps are
+    # already added by the wrapper.
     if _show_timestamp?
       "[%s] %s: %s\n" % [
         datetime.utc.strftime(TIMESTAMP_FORMAT),
