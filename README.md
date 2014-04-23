@@ -51,7 +51,7 @@ until they become reachable again.
 
 --------------------------------------------------------------------------------
 
-### Topics and queues
+### Topics and Subscriptions
 
 *Topics* are where the inbound events are sent. There should be one topic
 per domain concept, e.g. `properties`, `bookings`, `users`.
@@ -59,13 +59,13 @@ per domain concept, e.g. `properties`, `bookings`, `users`.
 Only one client may publish/push to a topic (and it should be the
 authoritative service for the concept).
 
-Each topic fans out to multiple *queues* which are where the outbound events
-pile in.
-Each pulling client (subscriber) has exactly one queue which aggregates events
-from multiple topics.
+Each topic fans out to multiple *subscriptionss* which are where the outbound
+events pile in.
+Each pulling client (subscriber) has exactly one subscription queue which
+aggregates events from multiple topics.
 
 A subscriber can "catch up" event if it hasn't pulled events for a while
-(events get buffered in queues).
+(events get buffered in subscription queues).
 
 
 --------------------------------------------------------------------------------
@@ -141,10 +141,10 @@ authentication-related):
 Subscription implicitly creates a queue for the client, which starts
 accumulating events.
 
-From the client's perspective, the queue is a singleton resource.
-A client can therefore only pull from their own queue.
+From the client's perspective, the subscription is a singleton resource.
+A client can therefore only obtain events from their own subscription.
 
-    >> POST /queue
+    >> POST /subscription
     >> {
     >>   topics:   [<name>, ...],
     >>   callback: <url>,
@@ -173,7 +173,7 @@ Possible statuses:
 Clients receive an HTTPS request for new batches of events, they don't have to
 query for them.
 If the request completes successfully, the events will be deleted from the
-queue.
+subscription queue.
 Otherwise, they will be resent at the next interval.
 
     >> POST <callback>
@@ -192,7 +192,8 @@ Otherwise, they will be resent at the next interval.
 
 Possible response statuses:
 
-- 200, 204: Event batch is ackownledged, and will be deleted from the queue.
+- 200, 204: Event batch is ackownledged, and will be deleted from the
+  subscription queue.
 - Anything else: failure, batch to be sent again later.
 
 
@@ -213,7 +214,7 @@ Routermaster provides monitoring endpoints:
 
 `<count>` is the total number of events ever sent on a given topic.
 
-    >> GET /queues
+    >> GET /subscriptions
     << [
     <<   {
     <<     subscriber: <username>,
@@ -227,9 +228,9 @@ Routermaster provides monitoring endpoints:
     <<   }, ...
     << ]
 
-- `<name>`: the names of all topics routed into this queue.
+- `<name>`: the names of all topics routed into this subscriptions queue.
 - `<sent_count>`: total number of events ever sent on this topic.
-- `<queue_size>`: current number of events in the queue.
+- `<queue_size>`: current number of events in the subscription queue.
 - `<oldest>`: timestamp (seconds since epoch) of the oldest pending event.
 
 

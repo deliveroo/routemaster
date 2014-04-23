@@ -1,0 +1,15 @@
+language: ruby
+rvm:
+- 2.1.1
+services:
+- redis-server
+script:
+- bundle exec rspec
+install:
+- "./rebund/run download"
+- bundle install --path vendor/bundle
+after_script:
+- "./rebund/run upload"
+env:
+  global:
+    secure: aPA8JcaCxGsCN3aDOwMfrFtFU9mhs2s+33IFQRWZKKXupMjjlUqP0YXkl+3b/vTN0dvJDb9V8BSDY/cHzssezvNJRmZWRC5LQqK2a3LrXFnzBx3qsgSe3QRveB/X1S5SUHzkaouvHfqLq9OxfrDlPzngjbDyelOqRtzeSLiPja8=
