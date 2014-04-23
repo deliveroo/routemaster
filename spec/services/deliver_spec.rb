@@ -17,14 +17,15 @@ describe Routemaster::Services::Deliver do
 
   before do
     subscription.uuid = 'hello'
-    subscription.callback = callback 
+    subscription.callback = callback
   end
 
   describe '#run' do
     let(:perform) { subject.run }
 
     context 'when there are no events' do
-      it 'passes' do 
+
+      it 'passes' do
         expect { perform }.not_to raise_error
       end
 
@@ -46,7 +47,7 @@ describe Routemaster::Services::Deliver do
         subscription.timeout = 0
         stub_request(:post, callback_auth).to_return(status: 204, body: '')
       end
-      
+
       it 'passes' do
         expect { perform }.not_to raise_error
       end
@@ -125,4 +126,3 @@ describe Routemaster::Services::Deliver do
     end
   end
 end
-

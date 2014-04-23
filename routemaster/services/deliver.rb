@@ -1,5 +1,6 @@
 require 'routemaster/services'
 require 'routemaster/mixins/log'
+require 'routemaster/mixins/log_exception'
 require 'config/openssl'
 require 'faraday'
 require 'json'
@@ -7,6 +8,7 @@ require 'json'
 # Manage delivery buffer and emitting the HTTP delivery
 class Routemaster::Services::Deliver
   include Routemaster::Mixins::Log
+  include Routemaster::Mixins::LogException
 
   CantDeliver = Class.new(Exception)
 
@@ -16,40 +18,42 @@ class Routemaster::Services::Deliver
   end
 
   def run
-    return false unless @buffer.any?
-    return false unless _should_deliver?(@buffer)
-    _log.debug { "starting delivery to '#{@subscription.subscriber}'" }
+    with_exception_logging do
+      return false unless @buffer.any?
+      return false unless _should_deliver?(@buffer)
+      _log.debug { "starting delivery to '#{@subscription.subscriber}'" }
 
 
-    # assemble data
-    data = @buffer.map do |event|
-      {
-        topic: event.topic,
-        type:  event.type,
-        url:   event.url,
-        t:     event.timestamp
-      }
-    end
+      # assemble data
+      data = @buffer.map do |event|
+        {
+          topic: event.topic,
+          type:  event.type,
+          url:   event.url,
+          t:     event.timestamp
+        }
+      end
 
-    # send data
-    response = _conn.post do |post|
-      post.headers['Content-Type'] = 'application/json'
-      post.body = data.to_json
-    end
+      # send data
+      response = _conn.post do |post|
+        post.headers['Content-Type'] = 'application/json'
+        post.body = data.to_json
+      end
 
-    if response.success?
-      _log.debug { "delivered #{@buffer.length} events to '#{@subscription.subscriber}'" } 
-      return true
-    else
-      _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscription.subscriber}'" }
-      raise CantDeliver.new('delivery failure')
+      if response.success?
+        _log.debug { "delivered #{@buffer.length} events to '#{@subscription.subscriber}'" }
+        return true
+      else
+        _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscription.subscriber}'" }
+        raise CantDeliver.new('delivery failure')
+      end
     end
   end
 
 
   private
 
-  
+
   def _should_deliver?(buffer)
     return true  if buffer.first.timestamp + @subscription.timeout <= Routemaster.now
     return false if buffer.length == 0

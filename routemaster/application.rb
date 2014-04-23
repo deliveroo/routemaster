@@ -16,4 +16,3 @@ class Routemaster::Application < Sinatra::Base
     body ''
   end
 end
-

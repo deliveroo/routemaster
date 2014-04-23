@@ -25,7 +25,10 @@ gem 'faraday_middleware'
 # configuration through environement
 gem 'dotenv'
 
-group :development do 
+# exception logging
+gem 'sentry-raven'
+
+group :development do
   # SSL support for local development
   gem 'tunnels',        require: false
   # unit/functional tests
