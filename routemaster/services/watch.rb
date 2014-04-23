@@ -83,12 +83,6 @@ module Routemaster::Services
         )
       end
 
-      def _key
-        @@uid ||= 0
-        @@uid += 1
-        "#{@subscription}.#{Socket.gethostname}.#{$$}.#{@@uid}"
-      end
-
       def start
         _log.info { "starting listener for #{@subscription}" }
         @consumer.on_delivery { |*args| _on_delivery(*args) }
@@ -130,6 +124,12 @@ module Routemaster::Services
       end
 
       private
+
+      def _key
+        @@uid ||= 0
+        @@uid += 1
+        "#{@subscription}.#{Socket.gethostname}.#{$$}.#{@@uid}"
+      end
 
       def _on_delivery(delivery_info, properties, payload)
         _log.info { 'on_delivery starts' }
