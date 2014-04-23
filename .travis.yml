@@ -3,6 +3,7 @@ rvm:
 - 2.1.1
 services:
 - redis-server
+- rabbitmq
 script:
 - bundle exec rspec
 install:
