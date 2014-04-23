@@ -59,12 +59,9 @@ class Routemaster::Services::Deliver
 
 
   def _conn
-    @_conn ||= begin
-      Faraday.new(@subscription.callback) { |c|
-        c.adapter Faraday.default_adapter
-      }.tap { |c|
-        c.basic_auth(@subscription.uuid, 'x')
-      }
+    @_conn ||= Faraday.new(@subscription.callback) do |c|
+      c.adapter Faraday.default_adapter
+      c.basic_auth(@subscription.uuid, 'x')
     end
   end
 end
