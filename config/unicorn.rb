@@ -7,11 +7,11 @@
 listen Integer(ENV.fetch('PORT',8080)), tcp_nopush: false, tcp_nodelay: true
 
 # nuke workers after x seconds instead of 60 seconds (the default)
-timeout Integer(ENV.fetch('ROUTEMASTER_WEB_TIMEOUT', 5))
+timeout Integer(ENV.fetch('UNICORN_WEB_TIMEOUT', 5))
 
 # Use at least one worker per core if you're on a dedicated server,
 # more will usually help for _short_ waits on databases/caches.
-worker_processes Integer(ENV.fetch('ROUTEMASTER_WEB_WORKERS',10))
+worker_processes Integer(ENV.fetch('UNICORN_WEB_WORKERS',10))
 
 # combine Ruby 2.0.0dev or REE with "preload_app true" for memory savings
 # http://rubyenterpriseedition.com/faq.html#adapt_apps_for_cow
