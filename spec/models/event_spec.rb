@@ -37,6 +37,8 @@ describe Routemaster::Models::Event do
   end
 
   describe '#==' do
+    before { options[:timestamp] = 1234 }
+
     it 'is true for the same event' do
       expect(subject).to eq(subject)
     end
