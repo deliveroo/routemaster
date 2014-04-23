@@ -14,16 +14,16 @@ module Routemaster::Models
       @name      = Name.new(name)
       @publisher = Publisher.new(publisher) if publisher
 
-      conn.sadd('topics', name)
+      _redis.sadd('topics', name)
 
       return if publisher.nil?
 
-      if conn.hsetnx(_key, 'publisher', publisher)
+      if _redis.hsetnx(_key, 'publisher', publisher)
         _log.info { "new topic '#{@name}' from '#{@publisher}'" }
       end
 
-      current_publisher = conn.hget(_key, 'publisher')
-      unless conn.hget(_key, 'publisher') == @publisher
+      current_publisher = _redis.hget(_key, 'publisher')
+      unless _redis.hget(_key, 'publisher') == @publisher
         raise TopicClaimedError.new("topic claimed by #{current_publisher}")
       end
     end
@@ -37,26 +37,26 @@ module Routemaster::Models
     end
 
     def self.all
-      conn.smembers('topics').map do |n|
-        p = conn.hget("topic/#{n}", 'publisher')
+      _redis.smembers('topics').map do |n|
+        p = _redis.hget("topic/#{n}", 'publisher')
         new(name: n, publisher: p)
       end
     end
 
     def self.find(name)
-      publisher = conn.hget("topic/#{name}", 'publisher')
+      publisher = _redis.hget("topic/#{name}", 'publisher')
       return if publisher.nil?
       new(name: name, publisher: publisher)
     end
 
     def push(event)
       _assert event.kind_of?(Event), 'can only push Event'
-      conn.hset(_key, 'last_event', event.dump)
+      _redis.hset(_key, 'last_event', event.dump)
       _exchange.publish(event.dump, persistent: true)
     end
 
     def last_event
-      raw = conn.hget(_key, 'last_event')
+      raw = _redis.hget(_key, 'last_event')
       return if raw.nil?
       Event.load(raw)
     end

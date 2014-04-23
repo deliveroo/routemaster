@@ -12,28 +12,28 @@ module Routemaster::Models
 
     def initialize(subscriber:)
       @subscriber = User.new(subscriber)
-      if conn.sadd('subscriptions', @subscriber)
+      if _redis.sadd('subscriptions', @subscriber)
         _log.info { "new subscription by '#{@subscriber}'" }
       end
     end
 
     def callback=(value)
       # TODO: test the callback with an empty event batch
-      conn.hset(_key, 'callback', CallbackURL.new(value))
+      _redis.hset(_key, 'callback', CallbackURL.new(value))
     end
 
     def callback
-      conn.hget(_key, 'callback')
+      _redis.hget(_key, 'callback')
     end
 
     def timeout=(value)
       _assert value.kind_of?(Fixnum)
       _assert TIMEOUT_RANGE.include?(value)
-      conn.hset(_key, 'timeout', value)
+      _redis.hset(_key, 'timeout', value)
     end
 
     def timeout
-      raw = conn.hget(_key, 'timeout')
+      raw = _redis.hget(_key, 'timeout')
       return DEFAULT_TIMEOUT if raw.nil?
       raw.to_i
     end
@@ -41,22 +41,22 @@ module Routemaster::Models
     def max_events=(value)
       _assert value.kind_of?(Fixnum)
       _assert (value > 0)
-      conn.hset(_key, 'max_events', value)
+      _redis.hset(_key, 'max_events', value)
     end
 
     def max_events
-      raw = conn.hget(_key, 'max_events')
+      raw = _redis.hget(_key, 'max_events')
       return DEFAULT_MAX_EVENTS if raw.nil?
       raw.to_i
     end
 
     def uuid=(value)
       _assert value.kind_of?(String) unless value.nil?
-      conn.hset(_key, 'uuid', value) 
+      _redis.hset(_key, 'uuid', value) 
     end
 
     def uuid
-      conn.hget(_key, 'uuid')
+      _redis.hget(_key, 'uuid')
     end
 
     # # TODO: yield events in batches
@@ -79,7 +79,7 @@ module Routemaster::Models
     extend Enumerable
 
     def self.each
-      conn.smembers('subscriptions').each { |s| yield new(subscriber: s) }
+      _redis.smembers('subscriptions').each { |s| yield new(subscriber: s) }
     end
 
     # ideally this would not be exposed, but binding topics

@@ -1,11 +1,11 @@
 require 'routemaster/services'
-require 'routemaster/mixins/connection'
+require 'routemaster/mixins/redis'
 
 class Routemaster::Services::Pulse
-  include Routemaster::Mixins::Connection
+  include Routemaster::Mixins::Redis
 
   def run
-    conn.ping
+    _redis.ping
     true
   rescue Redis::CannotConnectError
     false

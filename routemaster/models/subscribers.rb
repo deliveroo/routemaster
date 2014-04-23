@@ -1,11 +1,11 @@
 require 'routemaster/models'
-require 'routemaster/mixins/connection'
+require 'routemaster/mixins/redis'
 require 'routemaster/mixins/assert'
 require 'routemaster/mixins/log'
 
 module Routemaster::Models
   class Subscribers
-    include Routemaster::Mixins::Connection
+    include Routemaster::Mixins::Redis
     include Routemaster::Mixins::Assert
     include Routemaster::Mixins::Log
     include Enumerable
@@ -16,7 +16,7 @@ module Routemaster::Models
 
     def add(subscription)
       _assert subscription.kind_of?(Subscription)
-      if conn.sadd(_key, subscription.subscriber)
+      if _redis.sadd(_key, subscription.subscriber)
         _log.info { "new subscriber '#{subscription.subscriber}' to '#{@topic.name}'" }
       end
 
@@ -26,7 +26,7 @@ module Routemaster::Models
 
     # yields Subscriptions
     def each
-      conn.smembers(_key).each do |name|
+      _redis.smembers(_key).each do |name|
         yield Subscription.new(subscriber: name)
       end
     end

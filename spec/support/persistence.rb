@@ -1,4 +1,4 @@
-require 'routemaster/mixins/connection'
+require 'routemaster/mixins/redis'
 require 'routemaster/mixins/bunny'
 require 'singleton'
 require 'faraday'
@@ -7,10 +7,10 @@ require 'uri'
 
 class RedisCleaner
   include Singleton
-  include Routemaster::Mixins::Connection
+  include Routemaster::Mixins::Redis
 
   def clean!
-    conn.flushdb
+    _redis.flushdb
   end
 end
 
