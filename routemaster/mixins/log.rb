@@ -3,6 +3,8 @@ require 'logger'
 
 module Routemaster::Mixins::Log
 
+  protected
+
   def _log
     @@_logger ||= begin
       file_path = ENV['ROUTEMASTER_LOG_FILE']
