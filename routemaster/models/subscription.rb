@@ -59,19 +59,6 @@ module Routemaster::Models
       _redis.hget(_key, 'uuid')
     end
 
-    # # TODO: yield events in batches
-    # def listen
-    #   _queue.subscribe(ack: false) do |delivery_info, properties, payload|
-    #     begin
-    #       yield [Event.load(payload)]
-    #       bunny.ack(delivery_info.delivery_tag, false)
-    #     rescue
-    #       bunny.nack(delivery_info.delivery_tag, false)
-    #       raise
-    #     end
-    #   end
-    # end
-
     def to_s
       "subscription for '#{@subscriber}'"
     end 
