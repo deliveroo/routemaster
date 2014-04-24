@@ -38,6 +38,16 @@ describe Routemaster::Models::Subscription do
   end
 
   describe '.each' do
-    it 'yields subscriptions'
+    
+    it 'does not yield when no subscriptions are present' do
+      expect { |b| described_class.each(&b) }.not_to yield_control
+    end
+    
+    it 'yields subscriptions' do
+      a = described_class.new(subscriber: 'alice')
+      b = described_class.new(subscriber: 'bob')
+
+      expect { |b| described_class.each(&b) }.to yield_control.twice
+    end
   end
 end
