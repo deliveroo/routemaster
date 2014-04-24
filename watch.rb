@@ -8,14 +8,6 @@ include Routemaster::Mixins::Log
 # Its template resembles the following:
 # '{PROTOCOL}://{PUBLIC_KEY}:{SECRET_KEY}@{HOST}/{PATH}{PROJECT_ID}'
 
-if ENV['EXCEPTION_SERVICE_URL']
-  require 'raven'
-  Raven.configure do |config|
-    config.dsn = ENV['EXCEPTION_SERVICE_URL']
-    config.environments = %w[staging production]
-  end
-end
-
 _log.info { 'creating watch' }
 watch = Routemaster::Services::Watch.new
 

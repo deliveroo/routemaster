@@ -9,6 +9,7 @@ require 'routemaster/models/subscription'
 
 # require the services we will perform
 require 'routemaster/services/deliver'
+require 'routemaster/services/exception_loggers/sentry'
 
 module Routemaster::Services
   class Watch
@@ -39,7 +40,7 @@ module Routemaster::Services
       @thread.join if @thread
     end
 
-    
+
     def stop
       _log.info { 'stopping watch service' }
       @consumers.each(&:stop)
@@ -133,7 +134,7 @@ module Routemaster::Services
 
       def _on_delivery(delivery_info, properties, payload)
         _log.info { 'on_delivery starts' }
-        
+
         if payload == 'kill'
           _log.debug { 'received kill event' }
           bunnny.ack(delivery_info.delivery_tag, false)
@@ -141,7 +142,7 @@ module Routemaster::Services
           abort 'thread should be dead!!'
         end
 
-        begin 
+        begin
           event = Routemaster::Models::Event.load(payload)
         rescue ArgumentError, TypeError
           _log.warn 'bad event payload'
@@ -152,7 +153,7 @@ module Routemaster::Services
           _log_exception(e)
           return
         end
-       
+
         @batch << TaggedEvent.new(event, delivery_info)
         _log.info 'before _deliver'
         _deliver
