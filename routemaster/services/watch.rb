@@ -182,6 +182,8 @@ module Routemaster::Services
             if deliver.run
               @batch.each(&:ack)
               @batch.replace([])
+            # TODO:
+            # else schedule delivery for later - using another thread?
             end
           rescue Routemaster::Services::Deliver::CantDeliver
             @batch.each(&:nack)
