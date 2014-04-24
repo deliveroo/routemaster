@@ -15,10 +15,6 @@ describe Routemaster::Services::Watch do
     subscription.queue.publish(make_event.dump) 
   end
 
-  def queue_kill_event
-    subscription.queue.publish('kill')
-  end
-
   def perform(max_events = nil)
     subject(max_events).run
   end
@@ -105,7 +101,15 @@ describe Routemaster::Services::Watch do
       expect(delivery._buf.length).to eq(3)
     end
 
-    it 'stops on a kill event'
-    it 'removes bad events from the queue'
+    it 'stops on a kill event' do
+      subscription.queue.publish('kill')
+      expect { perform(1) }.not_to raise_error
+    end
+
+    it 'removes bad events from the queue' do
+      subscription.queue.publish('whatever')
+      expect { perform(1) }.not_to raise_error
+      expect(subscription.queue.pop).to eq([nil, nil, nil])
+    end
   end
 end
