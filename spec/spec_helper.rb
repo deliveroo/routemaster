@@ -5,7 +5,6 @@ Dotenv.load!('.env.test')
 Dotenv.load!('.env')
 
 require 'core_ext/string'
-require 'spec/support/dummy_service'
 
 require 'pry'
 require 'pry-remote'
