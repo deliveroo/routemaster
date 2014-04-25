@@ -1,13 +1,19 @@
 require 'routemaster'
 require 'sinatra'
-require 'raven'
 require 'routemaster/middleware/authentication'
 require 'routemaster/controllers/pulse'
 require 'routemaster/controllers/topics'
 require 'routemaster/controllers/subscription'
+require 'routemaster/mixins/log_exception'
 
 class Routemaster::Application < Sinatra::Base
-  use Raven::Rack
+
+  include Routemaster::Mixins::LogException
+
+  configure do
+    # Do capture any errors. We're logging them ourselves
+    set :raise_errors, false
+  end
 
   use Routemaster::Middleware::Authentication
   use Routemaster::Controllers::Pulse
@@ -18,4 +24,9 @@ class Routemaster::Application < Sinatra::Base
     content_type 'text/plain'
     body ''
   end
+
+  error do
+    deliver_exception env['sinatra.error']
+  end
+
 end

@@ -87,7 +87,6 @@ describe Routemaster::Services::Deliver do
         it 'raises an exception' do
           expect { perform }.to raise_error(described_class::CantDeliver)
         end
-
       end
     end
 

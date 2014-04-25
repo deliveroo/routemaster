@@ -25,8 +25,8 @@ gem 'faraday_middleware'
 # configuration through environement
 gem 'dotenv'
 
-# exception logging
-gem 'sentry-raven'
+# exception handling
+gem 'sentry-raven', require: false
 
 group :development do
   # SSL support for local development

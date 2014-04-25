@@ -17,8 +17,6 @@ _log.info { 'trapping signals for clean exit' }
 end
 
 _log.info { 'running watch' }
-with_exception_logging do
-  watch.run
-end
+watch.run
 _log.info { 'watch completed' }
 Kernel.exit(0)

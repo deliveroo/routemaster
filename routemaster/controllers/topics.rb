@@ -16,7 +16,12 @@ class Routemaster::Controllers::Topics < Sinatra::Base
       halt 403, 'topic claimed'
     end
 
-    event_data = JSON.parse(request.body.read)
+    begin
+      event_data = JSON.parse(request.body.read)
+    rescue JSON::ParserError
+      halt 400, 'misformated JSON'
+    end
+
     if event_data.keys.sort != %w(type url)
       halt 400, 'bad event'
     end

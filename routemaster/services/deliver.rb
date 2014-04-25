@@ -18,35 +18,33 @@ class Routemaster::Services::Deliver
   end
 
   def run
-    with_exception_logging do
-      return false unless @buffer.any?
-      return false unless _should_deliver?(@buffer)
-      _log.debug { "starting delivery to '#{@subscription.subscriber}'" }
+    return false unless @buffer.any?
+    return false unless _should_deliver?(@buffer)
+    _log.debug { "starting delivery to '#{@subscription.subscriber}'" }
 
 
-      # assemble data
-      data = @buffer.map do |event|
-        {
-          topic: event.topic,
-          type:  event.type,
-          url:   event.url,
-          t:     event.timestamp
-        }
-      end
+    # assemble data
+    data = @buffer.map do |event|
+      {
+        topic: event.topic,
+        type:  event.type,
+        url:   event.url,
+        t:     event.timestamp
+      }
+    end
 
-      # send data
-      response = _conn.post do |post|
-        post.headers['Content-Type'] = 'application/json'
-        post.body = data.to_json
-      end
+    # send data
+    response = _conn.post do |post|
+      post.headers['Content-Type'] = 'application/json'
+      post.body = data.to_json
+    end
 
-      if response.success?
-        _log.debug { "delivered #{@buffer.length} events to '#{@subscription.subscriber}'" }
-        return true
-      else
-        _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscription.subscriber}'" }
-        raise CantDeliver.new('delivery failure') and return false
-      end
+    if response.success?
+      _log.debug { "delivered #{@buffer.length} events to '#{@subscription.subscriber}'" }
+      return true
+    else
+      _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscription.subscriber}'" }
+      raise CantDeliver.new('delivery failure')
     end
   end
 

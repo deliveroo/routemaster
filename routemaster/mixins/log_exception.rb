@@ -1,20 +1,20 @@
 require 'routemaster/mixins'
-require "routemaster/services/exception_loggers/#{ENV['EXCEPTION_SERVICE']}"
+
+begin
+  require "routemaster/services/exception_loggers/#{ENV.fetch('EXCEPTION_SERVICE', 'print')}"
+rescue LoadError
+  $stderr.puts "Please install and configure exception service first!"
+  abort
+end
 
 module Routemaster::Mixins::LogException
 
   protected
 
-  def with_exception_logging(&block)
-    yield
-  rescue => e
+  def deliver_exception(exception)
     # send the exception message to your choice of service!
-    if service = ENV['EXCEPTION_SERVICE'].camelize
-      Routemaster::Services::ExceptionLoggers.const_get(service).process(e)
-    else
-      _log_exception(e)
-    end
-    raise
+    service = ENV.fetch('EXCEPTION_SERVICE', 'print').camelize
+    Routemaster::Services::ExceptionLoggers.const_get(service).instance.process(exception)
   end
 
 end

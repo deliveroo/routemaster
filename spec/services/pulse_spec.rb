@@ -18,15 +18,14 @@ describe Routemaster::Services::Pulse do
       it 'returns false' do
         expect(perform).to be_false
       end
-
-      it 'logs the exception' do
-        DummyService.should_receive(:process)
-        perform
-      end
     end
 
     context 'when RabbitMQ is down' do
-      it 'returns false'
+      before { subject.stub(:bunny).and_raise(Bunny::TCPConnectionFailed.new(1,2,3)) }
+
+      it 'returns false' do
+        expect(perform).to be_false
+      end
     end
   end
 end

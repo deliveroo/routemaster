@@ -67,7 +67,14 @@ describe Routemaster::Models::Topic do
   end
 
   describe '.find' do
-    it 'returns existing topics'
-    it 'returns nil for unknown topics'
+    let(:result) { described_class.find('widgets') }
+    it 'returns existing topics' do
+      subject
+      expect(result).to eq(subject)
+    end
+
+    it 'returns nil for unknown topics' do
+      expect(result).to be_nil
+    end
   end
 end
