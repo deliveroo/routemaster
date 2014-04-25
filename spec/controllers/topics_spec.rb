@@ -6,14 +6,16 @@ require 'spec/support/persistence'
 describe Routemaster::Controllers::Topics do
   let(:uid) { 'joe-user' }
   let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
-  let(:topic) { Routemaster::Models::Topic.new(name: 'widgets', publisher: uid) }
+  let(:topic_name) { 'widgets' }
+  let(:topic) { Routemaster::Models::Topic.new(name: topic_name, publisher: uid) }
 
   describe 'POST /topics/:name' do
-    let(:perform) { post "/topics/widgets", payload, 'CONTENT_TYPE' => 'application/json' }
-    let(:payload) { {
+    let(:perform) { post "/topics/#{topic_name}", payload, 'CONTENT_TYPE' => 'application/json' }
+    let(:data) {{
       type: 'create',
       url:  'https://example.com/widgets/123'
-    }.to_json }
+    }}
+    let(:payload) { data.to_json }
 
     it 'responds ok' do
       perform
@@ -29,9 +31,23 @@ describe Routemaster::Controllers::Topics do
     end
 
     describe '(error cases)' do
-      it 'returns 400 on bad JSON'
-      it 'returns 400 on bad topic'
-      it 'returns 400  on bad event type'
+      it 'returns 400 on bad JSON' do
+        payload.replace('whatever')
+        perform
+        expect(last_response.status).to eq(400)
+      end
+
+      it 'returns 400 on bad topic' do
+        topic_name.replace 'oh_my_gentle_jeezuss1234toolong'
+        perform
+        expect(last_response.status).to eq(400)
+      end
+
+      it 'returns 400  on bad event type' do
+        data[:type] = 'whatever'
+        perform
+        expect(last_response.status).to eq(400)
+      end
     end
 
     context 'when the topic is claimed' do
