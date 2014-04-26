@@ -1,3 +1,8 @@
+# The DSN can be found in Sentry by navigation to
+# Account -> Projects -> [Project Name] -> [Member Name].
+# Its template resembles the following:
+# '{PROTOCOL}://{PUBLIC_KEY}:{SECRET_KEY}@{HOST}/{PATH}{PROJECT_ID}'
+
 require 'singleton'
 require 'routemaster/services'
 
@@ -6,6 +11,9 @@ module Routemaster::Services::ExceptionLoggers
     include Singleton
 
     def initialize
+      # Require Raven as late as possible.
+      # ie. only when an exception is raised,
+      # caught and handled here.
       require 'raven'
       Raven.configure do |config|
         config.dsn = ENV.fetch('EXCEPTION_SERVICE_URL')

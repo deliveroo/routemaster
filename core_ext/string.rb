@@ -1,7 +1,8 @@
 class String
-  def camelize(term = self, uppercase_first_letter = true)
+  def camelize(term = self)
     string = term.to_s
-    string = string.sub(/^[a-z\d]*/) { $&.capitalize }
+    string = string.gsub(/[^|\/][a-z\d]*/) { $&.capitalize }
+    string.gsub!(/_(\w)?/){|m| m[1].upcase}
     string.gsub!('/', '::')
     string
   end

@@ -3,11 +3,6 @@ require 'routemaster/mixins/log'
 
 include Routemaster::Mixins::Log
 
-# The DSN can be found in Sentry by navigation to
-# Account -> Projects -> [Project Name] -> [Member Name].
-# Its template resembles the following:
-# '{PROTOCOL}://{PUBLIC_KEY}:{SECRET_KEY}@{HOST}/{PATH}{PROJECT_ID}'
-
 _log.info { 'creating watch' }
 watch = Routemaster::Services::Watch.new
 
