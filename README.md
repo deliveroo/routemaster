@@ -103,7 +103,7 @@ first event to the bus.
 push to a given topic will see their requests met with errors.
 
 
-#### Pushing 
+#### Pushing
 
     >> POST /topics/:name
     >> {
@@ -179,11 +179,11 @@ Otherwise, they will be resent at the next interval.
     >> POST <callback>
     >>
     >> [
-    >>   { 
+    >>   {
     >>     topic: <name>,
-    >>     event: <type>, 
-    >>     url:   <url>, 
-    >>     t:     <t> 
+    >>     event: <type>,
+    >>     url:   <url>,
+    >>     t:     <t>
     >>   },
     >>   ...
     >> ]
@@ -239,6 +239,22 @@ Monitoring resources can be queries by clients with a UUID included in `ROUTEMAS
 Routemaster does not, and will not include an UI for monitoring, as that would
 complexify its codebase too much (it's a separate concern, really).
 
+--------------------------------------------------------------------------------
+
+### Exception Logging
+
+We've decided to leave this choice up to you but have added [Sentry](https://getsentry.com/welcome/) as an example.
+
+You can if you wish just have these send to `stdout` if no credentials are set.
+
+It should be quick and easy to get this, or another service up and running in no time.
+
+- configure the service
+  - set the two environment variables `EXCEPTION_SERVICE` and `EXCEPTION_SERVICE_URL`
+
+- create a new logger service in `services/exception_loggers` named as set in `ENV['EXCEPTION_SERVICE']`
+  - This new service will make the call with necessary params to the `EXCEPTION_SERVICE_URL`
+
 
 --------------------------------------------------------------------------------
 
@@ -273,5 +289,3 @@ Monitoring:
 - [RabbitMQ](https://www.rabbitmq.com/)
 - [ActiveSupport::Notification](http://api.rubyonrails.org/classes/ActiveSupport/Notifications.html)
 - [Pusher](https://app.pusher.com/)
-
-

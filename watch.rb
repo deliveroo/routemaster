@@ -1,5 +1,6 @@
 require 'routemaster/services/watch'
 require 'routemaster/mixins/log'
+
 include Routemaster::Mixins::Log
 
 _log.info { 'creating watch' }
@@ -14,4 +15,3 @@ _log.info { 'running watch' }
 watch.run
 _log.info { 'watch completed' }
 Kernel.exit(0)
-

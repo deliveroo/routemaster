@@ -1,5 +1,6 @@
 require 'routemaster/services'
 require 'routemaster/mixins/log'
+require 'routemaster/mixins/log_exception'
 require 'config/openssl'
 require 'faraday'
 require 'json'
@@ -7,6 +8,7 @@ require 'json'
 # Manage delivery buffer and emitting the HTTP delivery
 class Routemaster::Services::Deliver
   include Routemaster::Mixins::Log
+  include Routemaster::Mixins::LogException
 
   CantDeliver = Class.new(Exception)
 
@@ -38,7 +40,7 @@ class Routemaster::Services::Deliver
     end
 
     if response.success?
-      _log.debug { "delivered #{@buffer.length} events to '#{@subscription.subscriber}'" } 
+      _log.debug { "delivered #{@buffer.length} events to '#{@subscription.subscriber}'" }
       return true
     else
       _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscription.subscriber}'" }
@@ -49,7 +51,7 @@ class Routemaster::Services::Deliver
 
   private
 
-  
+
   def _should_deliver?(buffer)
     return true  if buffer.first.timestamp + @subscription.timeout <= Routemaster.now
     return false if buffer.length == 0

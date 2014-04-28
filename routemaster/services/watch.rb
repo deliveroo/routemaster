@@ -39,7 +39,7 @@ module Routemaster::Services
       @thread.join if @thread
     end
 
-    
+
     def stop
       _log.info { 'stopping watch service' }
       @consumers.each(&:stop)
@@ -133,7 +133,7 @@ module Routemaster::Services
 
       def _on_delivery(delivery_info, properties, payload)
         _log.info { 'on_delivery starts' }
-        
+
         if payload == 'kill'
           _log.debug { 'received kill event' }
           bunny.ack(delivery_info.delivery_tag, false)
