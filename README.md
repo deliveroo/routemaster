@@ -74,7 +74,7 @@ A subscriber can "catch up" event if it hasn't pulled events for a while
 
 Environment variables:
 
-* `ROUTEMASTER_CLIENTS` - let's you specify the allow UUIDs
+* `ROUTEMASTER_CLIENTS` - the allow UUIDs
   * only "demo" by default
 * `ROUTEMASTER_MONITORS`
 * For other settings check the ```.env``` files
