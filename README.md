@@ -77,6 +77,7 @@ Environment variables:
 * `ROUTEMASTER_CLIENTS` - let's you specify the allow UUIDs
   * only "demo" by default
 * `ROUTEMASTER_MONITORS`
+* For other settings check the ```.env``` files
 
 #### Development
 To get this service up and running you will need the following tools:
@@ -103,10 +104,12 @@ You can also point it to port 3000 if you are running vanila webrick server.
 #### Running it
 
 To run the Routemaster service locally you can use the **foreman** tool:
-
-`foreman start`
-
-This will start both the **web** and **watch** processes.
+```
+foreman start
+```
+This will start both the **web** and **watch** processes. Keep in mind that the
+default web port that the **web** process will listen to is defined in the .env
+file.
 
 --------------------------------------------------------------------------------
 
