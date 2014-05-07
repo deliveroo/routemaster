@@ -72,12 +72,44 @@ A subscriber can "catch up" event if it hasn't pulled events for a while
 
 ### Installing & Configuring
 
-
 Environment variables:
 
-- `ROUTEMASTER_CLIENTS`
-- `ROUTEMASTER_MONITORS`
+* `ROUTEMASTER_CLIENTS` - the allow UUIDs
+  * only "demo" by default
+* `ROUTEMASTER_MONITORS`
+* For other settings check the ```.env``` files
 
+#### Development
+To get this service up and running you will need the following tools:
+
+* redis
+  * `brew install redis`
+  * Just let it run with default settings
+  * If you want to run it manually - `redis-server`
+* RabbitMQ
+  * `brew install rabbitmq`
+  * Just let it run with default settings
+  * If you want to run it manually - `rabbitmq-server`
+
+Also this service should run on a https host, you can get around this easily
+by using the **tunnels** gem.
+
+```
+gem install tunnels
+sudo tunnels 127.0.0.1:443 127.0.0.1:80
+```
+This creates a tunnel between port 443 (the default SSL port) and your 80 port.
+You can also point it to port 3000 if you are running vanila webrick server.
+
+#### Running it
+
+To run the Routemaster service locally you can use the **foreman** tool:
+```
+foreman start
+```
+This will start both the **web** and **watch** processes. Keep in mind that the
+default web port that the **web** process will listen to is defined in the .env
+file.
 
 --------------------------------------------------------------------------------
 
