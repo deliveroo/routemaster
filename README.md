@@ -100,7 +100,7 @@ By default this is going to be called routemaster.development
 
 Routemaster only accepts HTTPS calls.
 To get around this restriction on development we can create a tunnel such that
-the requests to our HTTPS port goes to the normal HTTP port
+the requests to our HTTPS port goes to the normal HTTP port.
 You can use the **tunnels** gem to do that.
 
 ```
@@ -108,16 +108,34 @@ gem install tunnels
 sudo tunnels 127.0.0.1:443 127.0.0.1:80
 ```
 
-Which effectively creates a tunnel between port 443 (the default SSL port) and your 80 port.
+This command creates a tunnel between port 443 (the default SSL port) and your 80 port.
 
-At this point you need to forward the calls arriving at port 80 to the actual routemaster port.
-We can use http://pow.cx/ to do that. Install it here https://github.com/basecamp/pow
-Configure Port Proxying to to forward requests coming to http://localhost:80 to http://routemaster.dev:<routemaster_port>
-This is as simple as creating a file with a port number in the .pow folder
+This is not enough since you need to forward the calls arriving at port 80 to the actual routemaster port.
+We can use http://pow.cx/ to do that.
+
+- Install it here https://github.com/basecamp/pow
+- Configure Port Proxying to to forward requests arriving at http://localhost:80 to http://routemaster.dev:<routemaster_port>.
+
+This last step is as simple as creating a file with a port number in the .pow folder
 
 ```
 $ echo <routemaster_port> > ~/.pow/routemaster
 ```
+
+Now all your calls to `https://routemaster.dev` should correctly arrive to `http://127.0.0.1:<routemaster_port>`.
+
+You will probably need Routemaster to contact your app on HTTPS to deliver events.
+To do that just repeat the POW step to add a Port Proxying to your app.
+
+`$ echo <your-app-port> > ~/.pow/<your-app-name>`
+
+which for rails will probably be
+
+`$ echo 3000 > ~/.pow/<your-app-name>`
+
+You can register your app to Routemaster and provide as a callback url for events
+`https://<your-app-name>.dev/<your-app-route>`
+
 
 #### Running it
 
