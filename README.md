@@ -91,15 +91,33 @@ To get this service up and running you will need the following tools:
   * Just let it run with default settings
   * If you want to run it manually - `rabbitmq-server`
 
-Also this service should run on a https host, you can get around this easily
-by using the **tunnels** gem.
+Routemaster needs to have a RabbitMQ virtual host to connect to.
+By default this is going to be called routemaster.development
+
+- Check if RabbitMQ is running by pointing your browser to http://localhost:15672/#/
+- Login with guest/guest
+- Go to admin => Virtual hosts => add a new virtual host called routemaster.development
+
+Routemaster only accepts HTTPS calls.
+To get around this restriction on development we can create a tunnel such that
+the requests to our HTTPS port goes to the normal HTTP port
+You can use the **tunnels** gem to do that.
 
 ```
 gem install tunnels
 sudo tunnels 127.0.0.1:443 127.0.0.1:80
 ```
-This creates a tunnel between port 443 (the default SSL port) and your 80 port.
-You can also point it to port 3000 if you are running vanila webrick server.
+
+Which effectively creates a tunnel between port 443 (the default SSL port) and your 80 port.
+
+At this point you need to forward the calls arriving at port 80 to the actual routemaster port.
+We can use http://pow.cx/ to do that. Install it here https://github.com/basecamp/pow
+Configure Port Proxying to to forward requests coming to http://localhost:80 to http://routemaster.dev:<routemaster_port>
+This is as simple as creating a file with a port number in the .pow folder
+
+```
+$ echo <routemaster_port> > ~/.pow/routemaster
+```
 
 #### Running it
 
