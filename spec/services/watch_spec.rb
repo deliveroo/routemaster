@@ -26,9 +26,13 @@ describe Routemaster::Services::Watch do
   describe '#stop' do
     shared_examples 'an execution stopper' do
       it 'stops execution' do
-        Thread.new { sleep 1 ; subject.stop }
+        # FIXME:
+        # this is a horrible, horrible smell as it relies on timing.
+        # deoupling the Consumer class should help refactor this as well.
         thread = Thread.new { subject.run }
-        sleep 2
+        100.times { sleep 10e-3 } # gives time for the watch to start
+        subject.stop
+        100.times { sleep 10e-3 } # gives time for the watch to stop
         expect(thread.status).to be_false
       end
     end
