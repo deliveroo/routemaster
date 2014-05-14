@@ -1,5 +1,5 @@
 GEM
-  remote: http://yarp.dev/
+  remote: https://rubygems.org/
   specs:
     addressable (2.3.6)
     amq-protocol (1.9.2)
