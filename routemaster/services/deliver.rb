@@ -32,7 +32,7 @@ class Routemaster::Services::Deliver
     end
 
     # send data
-    response = _conn.post do |post|
+    response = _http.post do |post|
       post.headers['Content-Type'] = 'application/json'
       post.body = data.to_json
     end
@@ -58,8 +58,8 @@ class Routemaster::Services::Deliver
   end
 
 
-  def _conn
-    @_conn ||= Faraday.new(@subscription.callback) do |c|
+  def _http
+    @_http ||= Faraday.new(@subscription.callback) do |c|
       c.adapter Faraday.default_adapter
       c.basic_auth(@subscription.uuid, 'x')
     end
