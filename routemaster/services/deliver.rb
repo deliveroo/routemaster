@@ -40,10 +40,10 @@ class Routemaster::Services::Deliver
     if response.success?
       _log.debug { "delivered #{@buffer.length} events to '#{@subscription.subscriber}'" } 
       return true
-    else
-      _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscription.subscriber}'" }
-      raise CantDeliver.new('delivery failure')
     end
+
+    _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscription.subscriber}'" }
+    raise CantDeliver.new('delivery failure')
   end
 
 
