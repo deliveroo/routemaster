@@ -4,6 +4,8 @@ require 'dotenv'
 Dotenv.load!('.env.test')
 Dotenv.load!('.env')
 
+require 'core_ext/string'
+
 require 'pry'
 require 'pry-remote'
 require 'pry-nav'

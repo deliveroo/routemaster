@@ -8,11 +8,11 @@ module Routemaster::Mixins::Bunny
   end
 
   def bunny
-    @@_bunny ||= Bunny.new(ENV['ROUTEMASTER_AMQP_URL']).start.create_channel
+    $bunny ||= Bunny.new(ENV['ROUTEMASTER_AMQP_URL']).start.create_channel
   end
 
   def _bunny_disconnect
-    @@_bunny = nil
+    $bunny = nil
   end
 
   def _bunny_name(string)

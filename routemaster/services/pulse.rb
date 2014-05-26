@@ -1,10 +1,12 @@
 require 'routemaster/services'
 require 'routemaster/mixins/redis'
 require 'routemaster/mixins/bunny'
+require 'routemaster/mixins/log_exception'
 
 class Routemaster::Services::Pulse
   include Routemaster::Mixins::Redis
   include Routemaster::Mixins::Bunny
+  include Routemaster::Mixins::LogException
 
   def run
     _redis_alive? && _bunny_alive?

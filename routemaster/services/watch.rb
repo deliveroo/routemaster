@@ -37,7 +37,7 @@ module Routemaster::Services
       @threads.each(&:join)
     end
 
-    
+
     def stop
       _log.info { 'stopping watch service' }
       @consumers.each(&:stop)

@@ -10,7 +10,10 @@ describe Routemaster::Services::Pulse do
     end
 
     context 'when Redis is down' do
-      before { Redis.any_instance.stub(:ping).and_raise(Redis::CannotConnectError) }
+      before do
+        ENV['EXCEPTION_SERVICE'] = 'DummyService'
+        Redis.any_instance.stub(:ping).and_raise(Redis::CannotConnectError)
+      end
 
       it 'returns false' do
         expect(perform).to be_false
