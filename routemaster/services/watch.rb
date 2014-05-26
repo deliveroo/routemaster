@@ -42,7 +42,6 @@ module Routemaster::Services
       _log.info { 'stopping watch service' }
       @consumers.each(&:stop)
       @_noop_thread.terminate
-      # @thread.terminate if @thread
     end
 
     private
