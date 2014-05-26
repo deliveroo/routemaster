@@ -30,9 +30,9 @@ describe Routemaster::Services::Watch do
   describe '#stop' do
     shared_examples 'an execution stopper' do
       it 'stops execution' do
-        Thread.new { sleepalot 0.5 ; subject.stop }
+        Thread.new { sleepalot 1 ; subject.stop }
         thread = Thread.new { subject.run }
-        sleepalot 1
+        sleepalot 2
         expect(thread.status).to be_false
       end
     end
@@ -58,7 +58,7 @@ describe Routemaster::Services::Watch do
 
     it 'passes when no messages are queued' do
       subscription
-      kill_after(1)
+      kill_after(2)
       perform
     end
 
