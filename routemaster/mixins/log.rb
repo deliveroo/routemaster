@@ -43,6 +43,6 @@ module Routemaster::Mixins::Log
   end
 
   def _show_timestamp?
-    ENV['RACK_ENV'] !~ /staging|production/
+    ENV.fetch('RACK_ENV', 'development') !~ /staging|production/
   end
 end
