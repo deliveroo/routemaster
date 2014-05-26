@@ -45,7 +45,6 @@ module Routemaster
 
       def cancel
         _log.info { "stopping consumer for #{@subscription}" }
-        # binding.pry
         _assert(!!_consumer)
         _consumer.cancel
         sleep 10e-3 while @running
@@ -69,14 +68,12 @@ module Routemaster
       end
 
       def _on_delivery(info, props, payload)
-        # _assert(@consumer, 'consumer was cancelled')
         @on_message.call Message.new(info, props, payload)
       rescue Exception => e
         binding.pry
       end
 
       def _on_cancellation
-        # _assert(@consumer, 'consumer was cancelled')
         @on_cancel.call
       end
 
