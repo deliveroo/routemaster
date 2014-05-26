@@ -1,160 +1,97 @@
 require 'routemaster/services'
 require 'routemaster/mixins/assert'
-require 'routemaster/mixins/bunny'
-require 'routemaster/models/event'
-
-# require the classes we may need to deserialize
-# require 'routemaster/models/topic'
-# require 'routemaster/models/subscription'
+require 'routemaster/models/batch'
+require 'routemaster/models/consumer'
 
 # require the services we will perform
 require 'routemaster/services/deliver'
 
-module Routemaster::Services
-  class TaggedEvent < Struct.new(:event, :info)
-    include Routemaster::Mixins::Bunny
+module Routemaster
+  module Services
 
-    def ack
-      bunny.ack(info.delivery_tag, false)
-    end
+    class Consume
+      include Routemaster::Mixins::Bunny
+      include Routemaster::Mixins::Log
 
-    def nack
-      bunny.nack(info.delivery_tag, false, true)
-    end
-  end
+      def initialize(subscription, max_events)
+        @batch        = Models::Batch.new
+        @subscription = subscription
+        @max_events   = max_events # only for test purposes
+        @counter      = 0
 
-
-  class Consume
-    include Routemaster::Mixins::Bunny
-    include Routemaster::Mixins::Log
-
-    def initialize(sub, max_events)
-      @batch        = []
-      @subscription = sub
-      @thread       = nil
-      @max_events   = max_events # only for test purposes
-      @counter      = 0
-      @running      = false
-      @consumer     = Bunny::Consumer.new(
-        bunny,      # Bunny::Channel
-        sub.queue,  # Bunny::Queue
-        _key,       # consumer_tag (the Bunny default fails)
-        false,      # no_ack
-        false       # exclusive
-      )
-    end
-
-    def start
-      _log.info { "starting listener for #{@subscription}" }
-      @consumer.on_delivery { |*args| _on_delivery(*args) }
-      @consumer.on_cancellation { _on_cancellation }
-
-      @thread = Thread.new do
-        begin
-          _log.debug { "queue has #{@subscription.queue.message_count} messages" }
-          @running = true
-          @subscription.queue.subscribe_with(@consumer, block: true)
-        rescue Exception => e
-          _log_exception(e)
-          # TODO: gracefully handle failing threads, possibly by sending myself SIGQUIT.
-          raise
-        ensure
-          @running = false
-        end
-        _log.info { "listen thread for #{@subscription} completing" }
+        @consumer     = Models::Consumer.new(
+          subscription: @subscription,
+          on_message:   method(:_on_message).to_proc,
+          on_cancel:    method(:_on_cancel).to_proc
+        )
+        _log.debug { 'initialized' }
       end
-      @thread.abort_on_exception = true
-      self
-    end
 
-    def wait
-      return if @thread.nil?
-      @thread.join
-      @thread = nil
-      self
-    end
+      def run
+        @consumer.start
+        self
+      end
 
-    def stop
-      return if @thread.nil?
-      _log.info { "stopping listener for #{@subscription}" }
-      @consumer.cancel
-      _on_cancellation # only gets called when remotely canceled?
-      _lock.synchronize { @thread.terminate if @thread }
-      wait
-      self
-    end
+      def stop
+        _log.info { 'stopping' }
+        @consumer.cancel
+        @batch.nack.flush
+      rescue Exception => e
+        binding.pry
+      end
 
-    private
+      private
 
-    def _key
-      @@uid ||= 0
-      @@uid += 1
-      "#{@subscription}.#{Socket.gethostname}.#{$$}.#{@@uid}"
-    end
 
-    def _on_delivery(delivery_info, properties, payload)
-      _log.info { 'on_delivery starts' }
-      
-      if payload == 'kill'
-        _log.debug { 'received kill event' }
-        bunny.ack(delivery_info.delivery_tag, false)
+      def _on_message(message)
+        _log.info { 'on_message starts' }
+        
+        if message.kill?
+          _log.debug { 'received kill event' }
+          message.ack
+          stop
+          return
+        end
+
+        if message.event?
+          @batch.push(message)
+          _log.info 'before _deliver'
+          _deliver
+          _log.info 'after _deliver'
+        end
+
+        @counter += 1
+        if @max_events && @counter >= @max_events
+          _log.debug { 'event allowance reached' }
+          stop
+        end
+
+        nil
+      rescue Exception => e
+        _log_exception(e)
         stop
-        abort 'thread should be dead!!'
       end
 
-      catch :event_processed do
-        begin 
-          event = Routemaster::Models::Event.load(payload)
-        rescue ArgumentError, TypeError
-          _log.warn 'bad event payload'
-          bunny.ack(delivery_info.delivery_tag, false)
-          throw :event_processed
-        rescue Exception => e
-          _log.error { "unknown error while receiving event for #{delivery_info.inspect}" }
-          _log_exception(e)
-          raise
-        end
-       
-        @batch << TaggedEvent.new(event, delivery_info)
-        _log.info 'before _deliver'
-        _deliver
-        _log.info 'after _deliver'
+      def _on_cancel
+        _log.info { "cancelling #{@batch.length} pending events for #{@subscription}" }
+        @batch.synchronize { |b| b.nack.flush }
       end
-      @counter += 1
-      stop if @max_events && @counter >= @max_events
 
-      nil
-    rescue Exception => e
-      _log_exception(e)
-    end
-
-    def _on_cancellation
-      _log.info { "cancelling #{@batch.length} pending events for #{@subscription}" }
-      _lock.synchronize do
-        @batch.each(&:nack)
-        @batch.replace([])
-      end
-    end
-
-    def _deliver
-      _lock.synchronize do
-        begin
-          deliver = Routemaster::Services::Deliver.new(@subscription, @batch.map(&:event))
-          if deliver.run
-            @batch.each(&:ack)
-            @batch.replace([])
-          # TODO:
-          # else schedule delivery for later - using another thread?
+      def _deliver
+        @batch.synchronize do
+          begin
+            deliver = Routemaster::Services::Deliver.new(@subscription, @batch.events)
+            if deliver.run
+              @batch.ack.flush
+            # TODO:
+            # else schedule delivery for later - using another thread?
+            end
+          rescue Routemaster::Services::Deliver::CantDeliver
+            @batch.nack
+            # TODO: nack on delivery failrues
           end
-        rescue Routemaster::Services::Deliver::CantDeliver
-          @batch.each(&:nack)
-          # TODO: nack on delivery failrues
         end
       end
-    end
-
-    def _lock
-      @_lock ||= Mutex.new
     end
   end
 end
