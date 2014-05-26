@@ -48,6 +48,7 @@ module Routemaster
         # binding.pry
         _assert(!!_consumer)
         _consumer.cancel
+        sleep 10e-3 while @running
         _log.info { "consumer for #{@subscription} stopped" }
         self
       end
