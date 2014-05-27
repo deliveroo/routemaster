@@ -36,8 +36,6 @@ module Routemaster
         _log.info { 'stopping' }
         @consumer.cancel
         @batch.nack.flush
-      rescue Exception => e
-        binding.pry
       end
 
       private
