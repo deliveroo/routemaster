@@ -1,5 +1,6 @@
 require 'routemaster'
 require 'sinatra'
+require 'rack/ssl'
 require 'routemaster/middleware/authentication'
 require 'routemaster/controllers/pulse'
 require 'routemaster/controllers/topics'
@@ -15,6 +16,7 @@ class Routemaster::Application < Sinatra::Base
     set :raise_errors, false
   end
 
+  use Rack::SSL
   use Routemaster::Middleware::Authentication
   use Routemaster::Controllers::Pulse
   use Routemaster::Controllers::Topics
