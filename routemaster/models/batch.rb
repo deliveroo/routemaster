@@ -12,17 +12,13 @@ module Routemaster
 
       def initialize
         @batch = []
-        @mutex = Mutex.new
+        @monitor = Monitor.new
       end
 
       delegate %i[push length] => :@batch
 
       def synchronize(&block)
-        if @mutex.owned?
-          block.call(self)
-        else
-          @mutex.synchronize { block.call(self) }
-        end
+        @monitor.synchronize { block.call(self) }
         self
       end
 
