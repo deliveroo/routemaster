@@ -11,6 +11,9 @@ gem 'unicorn'
 # application microframework
 gem 'sinatra'
 
+# redirect to SSL, always
+gem 'rack-ssl'
+
 # database
 gem 'hiredis'
 gem 'redis', require: %w(redis redis/connection/hiredis)

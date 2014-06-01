@@ -17,13 +17,15 @@ class Routemaster::Services::Pulse
   def _redis_alive?
     _redis.ping
     true
-  rescue Redis::CannotConnectError
+  rescue Redis::CannotConnectError => e
+    deliver_exception(e)
     false
   end
 
   def _bunny_alive?
     bunny.connection.connected?
-  rescue Bunny::TCPConnectionFailed
+  rescue Bunny::TCPConnectionFailed => e
+    deliver_exception(e)
     false
   end
 end
