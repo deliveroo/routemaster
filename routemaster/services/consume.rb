@@ -28,11 +28,11 @@ module Routemaster
       end
 
       def run
-        @consumer.start
+        @consumer.run
         self
       end
 
-      def stop
+      def cancel
         _log.info { 'stopping' }
         @consumer.cancel
         @batch.nack
@@ -47,7 +47,7 @@ module Routemaster
         if message.kill?
           _log.debug { 'received kill event' }
           message.ack
-          stop
+          cancel
           return
         end
 
@@ -61,13 +61,13 @@ module Routemaster
         @counter += 1
         if @max_events && @counter >= @max_events
           _log.debug { 'event allowance reached' }
-          stop
+          cancel
         end
 
         nil
       rescue Exception => e
         _log_exception(e)
-        stop
+        cancel
       end
 
       def _on_cancel

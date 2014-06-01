@@ -20,7 +20,7 @@ module Routemaster
       end
 
       
-      def start
+      def run
         _log.info { "consumer for #{@subscription} starting" }
         _log.debug { "queue has #{@subscription.queue.message_count} messages" }
         @running = true

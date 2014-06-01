@@ -8,7 +8,7 @@ watch = Routemaster::Services::Watch.new
 
 _log.info { 'trapping signals for clean exit' }
 %w(INT TERM QUIT).each do |signal|
-  Kernel.trap(signal) { Thread.new { watch.stop } }
+  Kernel.trap(signal) { Thread.new { watch.cancel } }
 end
 
 _log.info { 'running watch' }

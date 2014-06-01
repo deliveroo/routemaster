@@ -20,17 +20,17 @@ describe Routemaster::Services::Watch do
   end
 
   def kill_after(seconds)
-    Thread.new { sleepalot seconds; subject.stop }
+    Thread.new { sleepalot seconds; subject.cancel }
   end
 
   def sleepalot(seconds)
     (seconds / 10e-3).to_i.times { sleep 10e-3 }
   end
 
-  describe '#stop' do
+  describe '#cancel' do
     shared_examples 'an execution stopper' do
       it 'stops execution' do
-        Thread.new { sleepalot 1 ; subject.stop }
+        Thread.new { sleepalot 1 ; subject.cancel }
         thread = Thread.new { subject.run }
         sleepalot 2
         expect(thread.status).to be_false

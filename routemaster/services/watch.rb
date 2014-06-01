@@ -37,9 +37,9 @@ module Routemaster::Services
     end
 
 
-    def stop
+    def cancel
       _log.info { 'stopping watch service' }
-      @consumers.each(&:stop)
+      @consumers.each(&:cancel)
       @_noop_thread.terminate
     end
 
