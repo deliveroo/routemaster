@@ -35,7 +35,7 @@ module Routemaster
       def stop
         _log.info { 'stopping' }
         @consumer.cancel
-        @batch.nack.flush
+        @batch.nack
       end
 
       private
@@ -72,7 +72,7 @@ module Routemaster
 
       def _on_cancel
         _log.info { "cancelling #{@batch.length} pending events for #{@subscription}" }
-        @batch.synchronize { |b| b.nack.flush }
+        @batch.nack
       end
 
       def _deliver
@@ -80,13 +80,13 @@ module Routemaster
           begin
             deliver = Routemaster::Services::Deliver.new(@subscription, @batch.events)
             if deliver.run
-              @batch.ack.flush
+              $stderr.puts "delivered #{@batch.length} events"
+              @batch.ack
             # TODO:
             # else schedule delivery for later - using another thread?
             end
-          rescue Routemaster::Services::Deliver::CantDeliver
-            @batch.nack
-            # TODO: nack on delivery failrues
+          rescue Routemaster::Services::Deliver::CantDeliver => e
+            _log_exception(e)
           end
         end
       end

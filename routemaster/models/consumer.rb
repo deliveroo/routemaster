@@ -6,7 +6,7 @@ require 'routemaster/mixins/assert'
 
 module Routemaster
   module Models
-    # Abstracts a RabbitMQ consumer (and its thread)
+    # Abstracts a RabbitMQ consumer
     class Consumer
       include Routemaster::Mixins::Log
       include Routemaster::Mixins::Bunny

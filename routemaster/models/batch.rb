@@ -18,28 +18,40 @@ module Routemaster
       delegate %i[push length] => :@batch
 
       def synchronize(&block)
-        @mutex.synchronize { block.call(self) }
+        if @mutex.owned?
+          block.call(self)
+        else
+          @mutex.synchronize { block.call(self) }
+        end
         self
       end
 
       def nack
-        @batch.each(&:ack)
+        synchronize do
+          @batch.each(&:nack)
+          _flush
+        end
         self
       end
 
       def ack  
-        @batch.each(&:nack)
-        self
-      end
-
-      def flush
-        @batch.replace(Array.new)
+        synchronize do
+          @batch.each(&:ack)
+          _flush
+        end
         self
       end
 
       def events
         @batch.map(&:event)
       end
+
+      private
+
+      def _flush
+        @batch.replace(Array.new)
+      end
+
     end
   end
 end
