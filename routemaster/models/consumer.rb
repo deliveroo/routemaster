@@ -69,8 +69,6 @@ module Routemaster
 
       def _on_delivery(info, props, payload)
         @on_message.call Message.new(info, props, payload)
-      rescue Exception => e
-        binding.pry
       end
 
       def _on_cancellation
