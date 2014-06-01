@@ -21,8 +21,7 @@ module Routemaster::Services
     def run
       _log.info { 'starting watch service' }
 
-      @consumers =
-      Routemaster::Models::Subscription.map do |subscription|
+      @consumers = Routemaster::Models::Subscription.map do |subscription|
         Consume.new(subscription, @max_events)
       end
 
