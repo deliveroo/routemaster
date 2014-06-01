@@ -80,7 +80,6 @@ module Routemaster
           begin
             deliver = Routemaster::Services::Deliver.new(@subscription, @batch.events)
             if deliver.run
-              $stderr.puts "delivered #{@batch.length} events"
               @batch.ack
             # TODO:
             # else schedule delivery for later - using another thread?
