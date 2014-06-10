@@ -68,6 +68,7 @@ module Routemaster
       end
 
       def _on_delivery(info, props, payload)
+        _assert(@running, 'received a message while not consuming')
         @on_message.call Message.new(info, props, payload)
       end
 
