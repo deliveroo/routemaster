@@ -1,9 +1,9 @@
 GEM
-  remote: https://rubygems.org/
+  remote: http://eu.yarp.io/
   specs:
     addressable (2.3.6)
     amq-protocol (1.9.2)
-    bunny (1.2.1)
+    bunny (1.2.2)
       amq-protocol (>= 1.9.2)
     celluloid (0.15.2)
       timers (~> 1.1.0)

@@ -20,19 +20,19 @@ describe Routemaster::Services::Watch do
   end
 
   def kill_after(seconds)
-    Thread.new { sleep seconds; subject.stop }
+    Thread.new { sleepalot seconds; subject.cancel }
   end
 
-  describe '#stop' do
+  def sleepalot(seconds)
+    (seconds / 10e-3).to_i.times { sleep 10e-3 }
+  end
+
+  describe '#cancel' do
     shared_examples 'an execution stopper' do
       it 'stops execution' do
-        # FIXME:
-        # this is a horrible, horrible smell as it relies on timing.
-        # deoupling the Consumer class should help refactor this as well.
+        Thread.new { sleepalot 1 ; subject.cancel }
         thread = Thread.new { subject.run }
-        100.times { sleep 10e-3 } # gives time for the watch to start
-        subject.stop
-        100.times { sleep 10e-3 } # gives time for the watch to stop
+        sleepalot 2
         expect(thread.status).to be_false
       end
     end
