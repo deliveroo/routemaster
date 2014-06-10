@@ -20,20 +20,22 @@ describe Routemaster::Services::Watch do
   end
 
   def kill_after(seconds)
-    Thread.new { sleepalot seconds; subject.cancel }
-  end
-
-  def sleepalot(seconds)
-    (seconds / 10e-3).to_i.times { sleep 10e-3 }
+    Thread.new do
+      (seconds / 10e-3).to_i.times { sleep 10e-3 }
+      subject.cancel
+    end
   end
 
   describe '#cancel' do
     shared_examples 'an execution stopper' do
       it 'stops execution' do
-        Thread.new { sleepalot 1 ; subject.cancel }
-        thread = Thread.new { subject.run }
-        sleepalot 2
-        expect(thread.status).to be_false
+        subject
+        worker_thread = Thread.new { subject.run }
+        worker_thread.abort_on_exception = true
+        sleep 10e-3 until subject.running?
+
+        subject.cancel
+        expect(worker_thread.status).to be_false
       end
     end
 
@@ -58,7 +60,7 @@ describe Routemaster::Services::Watch do
 
     it 'passes when no messages are queued' do
       subscription
-      kill_after(2)
+      kill_after(1)
       perform
     end
 

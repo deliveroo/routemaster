@@ -20,6 +20,8 @@ module Routemaster::Services
     # may be unnecessary given the acknowledgement mehanism.
     def run
       _log.info { 'starting watch service' }
+      _assert !@running, 'already running'
+      @running = :starting
 
       @consumers = Routemaster::Models::Subscription.map do |subscription|
         Consume.new(subscription, @max_events)
@@ -32,21 +34,33 @@ module Routemaster::Services
       # in case there are no consumers, sentinel thread
       @threads << _noop_thread if @threads.empty?
 
+      @running = :up
       _log.debug { 'started watch service' }
       @threads.each(&:join)
+    ensure
+      @running = false
+    end
+
+
+    def running?
+      @running == :up
     end
 
 
     def cancel
+      return unless @running
+
       _log.info { 'stopping watch service' }
       @consumers.each(&:cancel)
-      @_noop_thread.terminate
+      _noop_thread.terminate
+      sleep 10e-3 while @running
+      self
     end
 
     private
 
     def _noop_thread
-      @_noop_thread ||= Thread.new { sleep(60) }
+      @_noop_thread ||= Thread.new { sleep(3_600) }
     end
   end
 end
