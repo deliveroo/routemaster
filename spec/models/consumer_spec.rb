@@ -32,8 +32,7 @@ describe Routemaster::Models::Consumer do
 
   let(:options) {{
     subscription: subscription,
-    on_message:   receiver.method(:on_message),
-    on_cancel:    receiver.method(:on_cancel)
+    handler:      receiver
   }}
 
   subject { described_class.new(**options) }
@@ -49,13 +48,8 @@ describe Routemaster::Models::Consumer do
       expect { subject }.to raise_error(ArgumentError)
     end
 
-    it 'requires on_cancel:' do
-      options.delete :on_cancel
-      expect { subject }.to raise_error(ArgumentError)
-    end
-
-    it 'requires on_message:' do
-      options.delete :on_message
+    it 'requires handler:' do
+      options.delete :handler
       expect { subject }.to raise_error(ArgumentError)
     end
   end
@@ -64,7 +58,7 @@ describe Routemaster::Models::Consumer do
   describe '#start' do
     it 'starts message delivery' do
       subscription.queue.publish('kill')
-      expect(receiver).to receive(:on_message)
+      expect(receiver).to receive(:on_message).with(instance_of(Routemaster::Models::Message))
       subject.start
       receiver.wait_for_message
     end

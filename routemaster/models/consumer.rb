@@ -13,10 +13,9 @@ module Routemaster
       include Routemaster::Mixins::Bunny
       include Routemaster::Mixins::Assert
 
-      def initialize(subscription:, on_message:, on_cancel:)
+      def initialize(subscription:, handler:)
         @subscription = subscription
-        @on_message   = on_message
-        @on_cancel    = on_cancel
+        @handler      = handler
       end
 
       
@@ -33,7 +32,7 @@ module Routemaster
           on_cancellation:   method(:_on_cancellation).to_proc,
           &method(:_on_delivery).to_proc
         )
-        _assert(_consumer, 'consumer not started?')
+        _assert(running?, 'consumer not started?')
         self
       end
 
@@ -66,12 +65,12 @@ module Routemaster
 
       def _on_delivery(info, props, payload)
         _assert(running?, 'received a message while not consuming')
-        @on_message.call Message.new(info, props, payload)
+        @handler.on_message Message.new(info, props, payload)
       end
 
       def _on_cancellation(message)
         _log.warn "consumer #{self} cancelled remotely"
-        @on_cancel.call
+        @handler.on_cancel
       end
 
       def _key
