@@ -2,8 +2,6 @@ require 'routemaster/services'
 require 'routemaster/mixins/assert'
 require 'routemaster/models/batch'
 require 'routemaster/models/consumer'
-
-# require the services we will perform
 require 'routemaster/services/deliver'
 
 module Routemaster
