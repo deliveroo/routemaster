@@ -4,6 +4,7 @@ require 'dotenv'
 require 'config/openssl'
 require 'core_ext/string'
 require 'routemaster/application'
+require 'newrelic_rpm'
 
 Dotenv.load!
 run Routemaster::Application
