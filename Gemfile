@@ -32,7 +32,7 @@ gem 'dotenv'
 gem 'sentry-raven', require: false
 
 # monitoring
-gem 'newrelic_rpm'
+gem 'newrelic_rpm', require: false
 
 group :development do
   # SSL support for local development
