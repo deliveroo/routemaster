@@ -25,10 +25,12 @@ module Routemaster
       end
 
       def ack
+        return unless @delivery_info
         bunny.ack(@delivery_info.delivery_tag, false)
       end
 
       def nack
+        return unless @delivery_info
         bunny.nack(@delivery_info.delivery_tag, false)
       end
 
