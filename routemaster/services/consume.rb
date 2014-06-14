@@ -6,10 +6,11 @@ require 'routemaster/services/deliver'
 
 module Routemaster
   module Services
-
+    # Passes events in a Subscription to the Deliver service.
     class Consume
       include Routemaster::Mixins::Bunny
       include Routemaster::Mixins::Log
+
 
       def initialize(subscription, max_events)
         @batch        = Models::Batch.new
@@ -19,59 +20,65 @@ module Routemaster
 
         @consumer     = Models::Consumer.new(
           subscription: @subscription,
-          on_message:   method(:_on_message).to_proc,
-          on_cancel:    method(:_on_cancel).to_proc
+          handler:      self
         )
         _log.debug { 'initialized' }
       end
 
-      def run
-        @consumer.run
+
+      def start
+        @consumer.start
         self
       end
 
-      def cancel
+
+      def stop
         _log.info { 'stopping' }
-        @consumer.cancel
-        @batch.nack
+        @consumer.stop
+        on_cancel
+        self
       end
 
-      private
+
+      def running?
+        @consumer.running?
+      end
 
 
-      def _on_message(message)
+      def on_message(message)
         _log.info { 'on_message starts' }
         
         if message.kill?
           _log.debug { 'received kill event' }
           message.ack
-          cancel
+          stop
           return
         end
 
-        if message.event?
-          @batch.push(message)
-          _log.info 'before _deliver'
-          _deliver
-          _log.info 'after _deliver'
-        end
+        @batch.push(message) if message.event?
+        _deliver
 
         @counter += 1
         if @max_events && @counter >= @max_events
           _log.debug { 'event allowance reached' }
-          cancel
+          stop
         end
 
         nil
       rescue Exception => e
         _log_exception(e)
-        cancel
+        stop
       end
 
-      def _on_cancel
+
+      def on_cancel
         _log.info { "cancelling #{@batch.length} pending events for #{@subscription}" }
         @batch.nack
       end
+
+
+      private
+
 
       def _deliver
         @batch.synchronize do
