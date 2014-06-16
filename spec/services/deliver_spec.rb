@@ -16,6 +16,7 @@ describe Routemaster::Services::Deliver do
   subject { described_class.new(subscription, buffer) }
 
   before do
+    WebMock.enable!
     subscription.uuid = 'hello'
     subscription.callback = callback
   end

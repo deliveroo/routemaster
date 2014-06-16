@@ -130,7 +130,7 @@ describe 'integration' do
 
   before do
     if defined?(WebMock)
-      WebMock.disable_net_connect!(allow_localhost: true)
+      WebMock.disable!
     end
   end
 
