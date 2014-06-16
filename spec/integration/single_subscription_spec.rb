@@ -5,6 +5,9 @@ require 'pathname'
 
 require 'routemaster/models/subscription'
 
+# turn this on to get verbose tests
+VERBOSE = false
+
 describe 'integration' do
 
   class SubProcess
@@ -76,13 +79,16 @@ describe 'integration' do
 
     def _read_log(io)
       while line = io.gets
-        $stderr.write line # REMOVE ME
-        $stderr.flush      #
+        if VERBOSE
+          $stderr.write line
+          $stderr.flush
+        end
         @loglines.push line
       end
     end
 
     def _log(message)
+      return unless VERBOSE
       $stderr.write("\t-> #{@name}: #{message}\n")
     end
   end
