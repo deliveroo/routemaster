@@ -6,12 +6,14 @@ require 'pathname'
 describe 'integration' do
 
   class SubProcess
-    def initialize(name:, command:)
+    def initialize(name:, command:, start: nil, stop: nil)
       @name    = name
       @command = command
       @pid     = nil
       @reader  = nil
       @loglines = []
+      @start_regexp = start
+      @stop_regexp  = stop
     end
 
     def start
@@ -31,6 +33,8 @@ describe 'integration' do
         $stdin.reopen('/dev/null')
         $stdout.reopen(wr)
         $stderr.reopen(wr)
+        $stdout.sync = true
+        $stderr.sync = true
         exec @command
       end
       self
@@ -43,6 +47,16 @@ describe 'integration' do
       @reader.join
       @pid = nil
       self
+    end
+
+    def wait_start
+      return unless @start_regexp
+      wait_log @start_regexp
+    end
+
+    def wait_stop
+      return unless @stop_regexp
+      wait_log @stop_regexp
     end
 
     def wait_log(regexp)
@@ -66,70 +80,83 @@ describe 'integration' do
 
   WatchProcess = SubProcess.new(
     name:    'watch',
-    command: 'ruby -I. watch.rb'
+    command: 'ruby -I. watch.rb',
+    start:   /INFO: starting watch service/,
+    stop:    /INFO: watch completed/
   )
 
   WebProcess = SubProcess.new(
     name:    'web',
-    command: 'unicorn -c config/unicorn.rb'
+    command: 'unicorn -c config/unicorn.rb',
+    start:   /worker=1 ready/,
+    stop:    /master complete/
   )
 
   ClientProcess = SubProcess.new(
     name:    'client',
-    command: 'unicorn -c spec/support/client.rb -p 17892 spec/support/client.ru'
+    command: 'unicorn -c spec/support/client.rb -p 17892 spec/support/client.ru',
+    start:   /worker=1 ready/,
+    stop:    /master complete/
   )
 
-  TunnelProcess = SubProcess.new(
+  ServerTunnelProcess = SubProcess.new(
     name:    'ssl-tunnel',
-    command: 'tunnels 127.0.0.1:17893 127.0.0.1:17891'
+    command: 'tunnels 127.0.0.1:17893 127.0.0.1:17891',
+    start:   /Ready/
   )
 
-  Processes = [WatchProcess, WebProcess, ClientProcess, TunnelProcess]
+  ClientTunnelProcess = SubProcess.new(
+    name:    'ssl-tunnel',
+    command: 'tunnels 127.0.0.1:17894 127.0.0.1:17892',
+    start:   /Ready/
+  )
 
-  before { Processes.each(&:start) }
-  after  { Processes.each(&:stop) }
+  Processes = [WatchProcess, WebProcess, ClientProcess, ServerTunnelProcess, ClientTunnelProcess]
 
-  context 'watch worker' do
-    subject { WatchProcess }
+  shared_examples 'start and stop' do
+    before { subject.start }
+    after  { subject.stop }
+
     it 'starts cleanly' do
-      subject.wait_log /INFO: starting watch service/
+      subject.wait_start
     end
 
     it 'stops cleanly' do
-      subject.wait_log /INFO: starting watch service/
+      subject.wait_start
       subject.stop
-      subject.wait_log /INFO: watch completed/
+      subject.wait_stop
     end
+  end
+
+  context 'watch worker' do
+    subject { WatchProcess }
+    include_examples 'start and stop'
   end
 
   context 'web worker' do
     subject { WebProcess }
-    it 'starts cleanly' do
-      subject.wait_log /worker=1 ready/
-    end
-
-    it 'stops cleanly' do
-      subject.wait_log /worker=1 ready/
-      subject.stop
-      subject.wait_log /master complete/
-    end
+    include_examples 'start and stop'
   end
 
   context 'client worker' do
     subject { ClientProcess }
-    it 'starts cleanly' do
-      subject.wait_log /worker=1 ready/
-    end
-
-    it 'stops cleanly' do
-      subject.wait_log /worker=1 ready/
-      subject.stop
-      subject.wait_log /master complete/
-    end
+    include_examples 'start and stop'
   end
 
+  context 'server tunnel' do
+    subject { ServerTunnelProcess }
+    include_examples 'start and stop'
+  end
+
+  context 'client tunnel' do
+    subject { ClientTunnelProcess }
+    include_examples 'start and stop'
+  end
 
   context 'ruby client' do
+    before { Processes.each(&:start) }
+    after  { Processes.each(&:stop) }
+
     let(:client) {
       Routemaster::Client.new(url: 'https://127.0.0.1:17893', uuid: 'demo')
     }
