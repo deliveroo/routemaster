@@ -17,7 +17,7 @@ end
 
 use Routemaster::Receiver, {
   path:    '/events',
-  uuid:    'demo',
+  uuid:    'demo-client',
   handler: Handler.new
 }
 

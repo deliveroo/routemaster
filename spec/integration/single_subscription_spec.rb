@@ -3,6 +3,8 @@ require 'spec/support/persistence'
 require 'routemaster/client'
 require 'pathname'
 
+require 'routemaster/models/subscription'
+
 describe 'integration' do
 
   class SubProcess
@@ -64,7 +66,7 @@ describe 'integration' do
 
     def wait_log(regexp)
       Timeout::timeout(25) do
-        until @loglines.pop =~ regexp
+        until @loglines.shift =~ regexp
           sleep 50e-3
         end
       end
@@ -166,28 +168,68 @@ describe 'integration' do
     include_examples 'start and stop'
   end
 
-  context 'ruby client' do
+  context 'server, watch, and receiver running' do
     before { Processes.each(&:start) }
     before { Processes.each(&:wait_start) }
     after  { Processes.each(&:stop) }
 
-    let(:client) {
-      Routemaster::Client.new(url: 'https://127.0.0.1:17893', uuid: 'demo')
-    }
+    describe 'ruby client' do
+      let(:client) {
+        Routemaster::Client.new(url: 'https://127.0.0.1:17893', uuid: 'demo')
+      }
 
-    it 'connects' do
-      expect { client }.not_to raise_error
+      it 'connects' do
+        expect { client }.not_to raise_error
+      end
+
+      it 'subscribes' do
+        client.subscribe(
+          topics: %w(widgets),
+          callback: 'https://127.0.0.1:17894/events'
+        )
+
+        sub = Routemaster::Models::Subscription.new(subscriber: 'demo')
+        expect(sub.callback).to eq('https://127.0.0.1:17894/events')
+      end
+      
+      it 'publishes' do
+        client.created('widgets', 'https://example.com/widgets/1')
+      end
     end
 
-    it 'subscribes' do
-      client.subscribe(
-        topics: %w(widgets),
-        callback: 'https://127.0.0.1:17894/events'
-      )
-    end
-    
-    it 'publishes' do
-      client.created('widgets', 'https://example.com/widgets/1')
+    describe 'event reception' do
+      let(:client) {
+        Routemaster::Client.new(url: 'https://127.0.0.1:17893', uuid: 'demo')
+      }
+
+      before do
+        # FIXME: this has to be here because subscribing doesnt implicitely
+        # create the topics (it should)
+        client.created('cats', 'https://example.com/cats/1')
+        client.created('dogs', 'https://example.com/dogs/1')
+
+        client.subscribe(
+          topics:   %w(cats dogs),
+          callback: 'https://127.0.0.1:17894/events',
+          uuid:     'demo-client',
+          max:      1)
+      end
+
+      it 'routes a single event' do
+        client.created('cats', 'https://example.com/cats/1')
+        ClientProcess.wait_log %r(received https://example.com/cats/1, create, cats)
+      end
+
+      it 'routes events from multiple topics' do
+        client.created('cats', 'https://example.com/cats/1')
+        client.created('dogs', 'https://example.com/dogs/1')
+        ClientProcess.wait_log %r{create, cats}
+        ClientProcess.wait_log %r{create, dogs}
+      end
+
+      it 'sends batches of events'
+      it 'sends partial batches after a timeout'
+      it 'sends events to multiple clients'
     end
   end
 end
