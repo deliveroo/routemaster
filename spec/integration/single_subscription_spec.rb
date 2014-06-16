@@ -120,6 +120,12 @@ describe 'integration' do
 
   Processes = [ServerTunnelProcess, ClientTunnelProcess, WatchProcess, WebProcess, ClientProcess]
 
+  before do
+    if defined?(WebMock)
+      WebMock.disable_net_connect!(allow_localhost: true)
+    end
+  end
+
   shared_examples 'start and stop' do
     before { subject.start }
     after  { subject.stop }
