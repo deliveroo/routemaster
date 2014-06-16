@@ -71,6 +71,17 @@ describe Routemaster::Services::Consume do
       end
     end
 
+    context 'when receiving an unknown event' do
+      let(:messages) {[
+        Routemaster::Models::Message.new(nil, nil, 'do you even compute')
+      ]}
+
+      it 'acks the message' do
+        expect(messages.first).to receive(:ack)
+        perform
+      end
+    end
+
     context 'when receiving an event' do
       def make_message(id)
         event = Routemaster::Models::Event.new(
