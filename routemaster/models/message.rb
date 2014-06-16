@@ -1,6 +1,7 @@
 require 'routemaster/models'
 require 'routemaster/models/event'
 require 'routemaster/mixins/log'
+require 'routemaster/mixins/assert'
 require 'routemaster/mixins/bunny'
 
 module Routemaster
@@ -8,16 +9,22 @@ module Routemaster
     # Abstracts a message received by RabbitMQ
     class Message
       include Routemaster::Mixins::Log
+      include Routemaster::Mixins::Assert
       include Routemaster::Mixins::Bunny
 
       def initialize(delivery_info, properties, payload)
         @delivery_info = delivery_info
         @properties    = properties
         @payload       = payload
+        @status        = nil
       end
 
       def kill?
         @payload == 'kill'
+      end
+
+      def ping?
+        @payload == 'ping'
       end
 
       def event?
@@ -25,13 +32,19 @@ module Routemaster
       end
 
       def ack
-        return unless @delivery_info
+        _assert(@status != :nack, 'message cannot be acked after being nacked')
+        return if @delivery_info.nil? || @status
         bunny.ack(@delivery_info.delivery_tag, false)
+        @status = :ack
+        self
       end
 
       def nack
-        return unless @delivery_info
+        _assert(@status != :ack, 'message cannot be nacked after being acked')
+        return if @delivery_info.nil? || @status
         bunny.nack(@delivery_info.delivery_tag, false)
+        @status = :nack
+        self
       end
 
       def event
