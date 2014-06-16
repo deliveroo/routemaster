@@ -6,7 +6,6 @@ class SafeThread
 
   def initialize(&block)
     @thread = Thread.new do
-      Thread.abort_on_exception = true
       begin
         block.call
       rescue Exception => e
