@@ -58,7 +58,7 @@ describe Routemaster::Services::Watch do
       end
 
       allow(receiver).to receive(:start).and_return(receiver)
-      allow(receiver).to receive(:cancel).and_return(receiver)
+      allow(receiver).to receive(:stop).and_return(receiver)
       allow(Routemaster::Services::Receive).to receive(:new).and_return(receiver)
     end
 
