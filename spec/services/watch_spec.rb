@@ -41,7 +41,7 @@ describe Routemaster::Services::Watch do
   describe '#run' do
     let(:subscription_a) { double 'subscription-a', subscriber: 'alice' }
     let(:subscription_b) { double 'subscription-b', subscriber: 'bob' }
-    let(:consume) { double 'consume-service' }
+    let(:receiver) { double 'receiver-service' }
     let(:subscriptions)  { [] }
 
     let(:perform) do
@@ -57,37 +57,37 @@ describe Routemaster::Services::Watch do
         subscriptions.each { |s| block.call s }
       end
 
-      allow(consume).to receive(:start).and_return(consume)
-      allow(consume).to receive(:cancel).and_return(consume)
-      allow(Routemaster::Services::Consume).to receive(:new).and_return(consume)
+      allow(receiver).to receive(:start).and_return(receiver)
+      allow(receiver).to receive(:cancel).and_return(receiver)
+      allow(Routemaster::Services::Receive).to receive(:new).and_return(receiver)
     end
 
     it 'does nothing if no subscriptions' do
-      expect(Routemaster::Services::Consume).not_to receive(:new)
+      expect(Routemaster::Services::Receive).not_to receive(:new)
       perform
     end
 
     context 'with multiple subscriptions' do
       before { subscriptions << subscription_a << subscription_b }
 
-      it 'creates consume services for each subscription' do
-        expect(Routemaster::Services::Consume).to receive(:new)
-        expect(consume).to receive(:start).exactly(2).times
+      it 'creates receiver services for each subscription' do
+        expect(Routemaster::Services::Receive).to receive(:new)
+        expect(receiver).to receive(:start).exactly(2).times
         perform
       end
 
-      it 'stops consume services when ending' do
-        expect(consume).to receive(:cancel).exactly(2).times
+      it 'stops receiver services when ending' do
+        expect(receiver).to receive(:cancel).exactly(2).times
         perform
       end
     end
 
-    it 'creates consume services for new subscriptions' do
+    it 'creates receiver services for new subscriptions' do
       subscriptions << subscription_a
       subject.start
       sleep 250e-3
       subscriptions << subscription_b
-      expect(consume).to receive(:start).once
+      expect(receiver).to receive(:start).once
       sleep 250e-3
       subject.cancel
     end

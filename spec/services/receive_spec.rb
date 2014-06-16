@@ -1,9 +1,9 @@
 require 'spec_helper'
 require 'spec/support/persistence'
-require 'routemaster/services/consume'
+require 'routemaster/services/receive'
 require 'routemaster/models/subscription'
 
-describe Routemaster::Services::Consume do
+describe Routemaster::Services::Receive do
   
   let(:subscription) {
     Routemaster::Models::Subscription.new(subscriber: 'alice')

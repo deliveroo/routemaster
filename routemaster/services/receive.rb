@@ -7,7 +7,7 @@ require 'routemaster/services/deliver'
 module Routemaster
   module Services
     # Passes events in a Subscription to the Deliver service.
-    class Consume
+    class Receive
       include Routemaster::Mixins::Bunny
       include Routemaster::Mixins::Log
 

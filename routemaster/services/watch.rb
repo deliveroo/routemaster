@@ -1,7 +1,7 @@
 require 'routemaster/services'
 require 'routemaster/mixins/assert'
 require 'routemaster/models/subscription'
-require 'routemaster/services/consume'
+require 'routemaster/services/receive'
 require 'core_ext/safe_thread'
 
 module Routemaster::Services
@@ -12,7 +12,7 @@ module Routemaster::Services
     def initialize(max_events = nil)
       _assert (max_events.nil? || max_events > 0)
       @max_events = max_events
-      @consumers  = {} # subscription -> consume service
+      @receivers  = {} # subscription -> receive service
     end
 
     def start
@@ -25,7 +25,7 @@ module Routemaster::Services
       sleep 10e-3 while running?
     end
 
-    # Create Consume services for each subscription.
+    # Create Receive services for each subscription.
     # Poll the list of subscriptions regularly for news.
     #
     # TODO: stopping operation cleanly, possibly by trapping SIGTERM//SIGQUIT/SIGINT.
@@ -45,8 +45,8 @@ module Routemaster::Services
         Thread.pass
       end
 
-      _log.debug { 'stopping all consume services' }
-      @consumers.each_value(&:cancel)
+      _log.debug { 'stopping all receive services' }
+      @receivers.each_value(&:cancel)
       _log.debug { 'watch service completed' }
     rescue Exception => e
       binding.pry
@@ -70,10 +70,10 @@ module Routemaster::Services
 
     private
 
-    # add and start a Consume service, unless one exists
+    # add and start a Receive service, unless one exists
     def _add_subscription(subscription)
-      @consumers[subscription.subscriber] ||= begin
-        Consume.new(subscription, @max_events).start
+      @receivers[subscription.subscriber] ||= begin
+        Receive.new(subscription, @max_events).start
       end
     end
   end
