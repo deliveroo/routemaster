@@ -46,10 +46,11 @@ module Routemaster::Services
       end
 
       _log.debug { 'stopping all receive services' }
-      @receivers.each_value(&:cancel)
+      @receivers.each_value(&:stop)
       _log.debug { 'watch service completed' }
     rescue Exception => e
-      binding.pry
+      _log_exception(e)
+      raise
     ensure
       @running = nil
     end

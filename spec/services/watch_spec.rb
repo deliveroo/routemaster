@@ -77,7 +77,7 @@ describe Routemaster::Services::Watch do
       end
 
       it 'stops receiver services when ending' do
-        expect(receiver).to receive(:cancel).exactly(2).times
+        expect(receiver).to receive(:stop).exactly(2).times
         perform
       end
     end
