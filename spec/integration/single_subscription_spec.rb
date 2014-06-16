@@ -162,18 +162,26 @@ describe 'integration' do
 
   context 'ruby client' do
     before { Processes.each(&:start) }
+    before { Processes.each(&:wait_start) }
     after  { Processes.each(&:stop) }
 
     let(:client) {
       Routemaster::Client.new(url: 'https://127.0.0.1:17893', uuid: 'demo')
     }
 
-    before do
-      WebProcess.wait_log /worker=1 ready/
-    end
-
     it 'connects' do
       expect { client }.not_to raise_error
+    end
+
+    it 'subscribes' do
+      client.subscribe(
+        topics: %w(widgets),
+        callback: 'https://127.0.0.1:17894/events'
+      )
+    end
+    
+    it 'publishes' do
+      client.created('widgets', 'https://example.com/widgets/1')
     end
   end
 end
