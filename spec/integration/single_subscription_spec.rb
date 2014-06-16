@@ -18,7 +18,7 @@ describe 'integration' do
 
     def start
       raise 'already started' if @pid
-      $stderr.puts "\t-> start for #{@name}"
+      _log 'starting'
       @loglines = []
       rd, wr = IO.pipe
       if @pid = fork
@@ -26,7 +26,7 @@ describe 'integration' do
         wr.close
         @reader = Thread.new { _read_log(rd) }
       else
-        $stderr.puts "\t-> forked for #{@name}"
+        _log 'forked'
         # child
         rd.close
         ENV['ROUTEMASTER_LOG_FILE'] = nil
@@ -42,6 +42,7 @@ describe 'integration' do
 
     def stop
       return if @pid.nil?
+      _log 'stopping'
       Process.kill('TERM', @pid)
       Process.wait(@pid)
       @reader.join
@@ -51,7 +52,9 @@ describe 'integration' do
 
     def wait_start
       return unless @start_regexp
+      _log 'waiting to start'
       wait_log @start_regexp
+      _log 'started'
     end
 
     def wait_stop
@@ -75,6 +78,10 @@ describe 'integration' do
         $stderr.flush      #
         @loglines.push line
       end
+    end
+
+    def _log(message)
+      $stderr.write("\t-> #{@name}: #{message}\n")
     end
   end
 
@@ -100,18 +107,18 @@ describe 'integration' do
   )
 
   ServerTunnelProcess = SubProcess.new(
-    name:    'ssl-tunnel',
-    command: 'tunnels 127.0.0.1:17893 127.0.0.1:17891',
+    name:    'server-tunnel',
+    command: 'ruby spec/support/tunnel 127.0.0.1:17893 127.0.0.1:17891',
     start:   /Ready/
   )
 
   ClientTunnelProcess = SubProcess.new(
-    name:    'ssl-tunnel',
-    command: 'tunnels 127.0.0.1:17894 127.0.0.1:17892',
+    name:    'client-tunnel',
+    command: 'ruby spec/support/tunnel 127.0.0.1:17894 127.0.0.1:17892',
     start:   /Ready/
   )
 
-  Processes = [WatchProcess, WebProcess, ClientProcess, ServerTunnelProcess, ClientTunnelProcess]
+  Processes = [ServerTunnelProcess, ClientTunnelProcess, WatchProcess, WebProcess, ClientProcess]
 
   shared_examples 'start and stop' do
     before { subject.start }
