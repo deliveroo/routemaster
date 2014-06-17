@@ -36,7 +36,6 @@ module Routemaster::Services
       @running = true
 
       while @running
-        _log.debug { "watch service loop: #{Routemaster::Models::Subscription.count} subscriptions" }
         Routemaster::Models::Subscription.each do |subscription|
           _add_subscription(subscription)
         end
@@ -74,6 +73,7 @@ module Routemaster::Services
     # add and start a Receive service, unless one exists
     def _add_subscription(subscription)
       @receivers[subscription.subscriber] ||= begin
+        _log.info { "watch service loop: adding subscription for '#{subscription.subscriber}" }
         Receive.new(subscription, @max_events).start
       end
     end
