@@ -1,4 +1,5 @@
 # Unicorn configuration
+require 'core_ext/math'
 
 # listen on both a Unix domain socket and a TCP port,
 # we use a shorter backlog for quicker failover when busy
@@ -30,7 +31,7 @@ before_fork do |server, worker|
   # helps (but does not completely) prevent identical, repeated signals
   # from being lost when the receiving process is busy.
   if ENV.fetch('RACK_ENV', 'development') =~ /production|staging/
-    sleep 250e-3
+    sleep 250.ms
   end
 end
 

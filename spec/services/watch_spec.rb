@@ -3,117 +3,93 @@ require 'spec/support/persistence'
 require 'spec/support/events'
 require 'routemaster/services/watch'
 require 'routemaster/models/subscription'
+require 'core_ext/safe_thread'
+require 'timeout'
 
 describe Routemaster::Services::Watch do
-  let(:subscription) { Routemaster::Models::Subscription.new(subscriber: 'alice')  }
 
-  def subject(max_events = nil) 
-    @subject ||= described_class.new(max_events)
+  describe '#start' do
+    it 'starts the service' do
+      subject.start
+      expect(subject).to be_running
+      subject.cancel
+    end
   end
 
-  def queue_event
-    subscription.queue.publish(make_event.dump) 
-  end
-
-  def perform(max_events = nil)
-    subject(max_events).run
-  end
-
-  def kill_after(seconds)
-    Thread.new { sleepalot seconds; subject.cancel }
-  end
-
-  def sleepalot(seconds)
-    (seconds / 10e-3).to_i.times { sleep 10e-3 }
+  describe '#join' do
+    it 'waits for the service to complete' do
+      subject.start
+      SafeThread.new { subject.cancel }
+      subject.join
+      expect(subject).not_to be_running
+    end
   end
 
   describe '#cancel' do
-    shared_examples 'an execution stopper' do
-      it 'stops execution' do
-        Thread.new { sleepalot 1 ; subject.cancel }
-        thread = Thread.new { subject.run }
-        sleepalot 2
+    it 'stops the service' do
+      Timeout::timeout(5) do
+        subject
+        thread = SafeThread.new { subject.run }
+        sleep(10.ms) until subject.running?
+        subject.cancel
+        expect(subject).not_to be_running
         expect(thread.status).to be_false
       end
-    end
-
-    context 'without subscriptions' do
-      it_behaves_like 'an execution stopper'
-    end
-
-    context 'with subscriptions' do
-      before { subscription }
-      it_behaves_like 'an execution stopper'
     end
   end
 
   describe '#run' do
-    let(:delivery) { double('delivery', run: true) }
-    
-    before do
-      allow(Routemaster::Services::Deliver).to receive(:new) { |sub, buf|
-        delivery.stub(_sub: sub, _buf: buf)
-      }.and_return(delivery)
+    let(:subscription_a) { double 'subscription-a', subscriber: 'alice' }
+    let(:subscription_b) { double 'subscription-b', subscriber: 'bob' }
+    let(:receiver) { double 'receiver-service' }
+    let(:subscriptions)  { [] }
+
+    let(:perform) do
+      Timeout::timeout(60) do
+        subject.start
+        sleep 1
+        subject.cancel
+      end
     end
 
-    it 'passes when no messages are queued' do
-      subscription
-      kill_after(2)
+    before do
+      allow(Routemaster::Models::Subscription).to receive(:each) do |&block|
+        subscriptions.each { |s| block.call s }
+      end
+
+      allow(receiver).to receive(:start).and_return(receiver)
+      allow(receiver).to receive(:stop).and_return(receiver)
+      allow(Routemaster::Services::Receive).to receive(:new).and_return(receiver)
+    end
+
+    it 'does nothing if no subscriptions' do
+      expect(Routemaster::Services::Receive).not_to receive(:new)
       perform
     end
 
-    it 'attempts delivery once per event' do
-      expect(delivery).to receive(:run).exactly(3).times
-      3.times { queue_event }
-      perform(3)
-    end
+    context 'with multiple subscriptions' do
+      before { subscriptions << subscription_a << subscription_b }
 
-    it 'passes batches to delivery' do
-      delivery.stub run: false
-      5.times { queue_event }
-      perform(5)
-      expect(delivery._buf.length).to eq(5)
-    end
-
-    it 'passes a new batch once accepted by delivery' do
-      allow(delivery).to receive(:run).and_return(true, false, false)
-      3.times { queue_event }
-      perform(3)
-      expect(delivery._buf.length).to eq(2)
-    end
-
-    it 'passes events in order' do
-      delivery.stub run: false
-      5.times { queue_event }
-      perform(5)
-      expect(delivery._buf.first.url).to end_with('/1')
-      expect(delivery._buf.last.url).to  end_with('/5')
-    end
-
-    it 'keeps events when delivery fails' do
-      allow(delivery).to receive(:run) do 
-        if @already_ran
-          false
-        else
-          @already_ran = true
-          raise Routemaster::Services::Deliver::CantDeliver
-        end
+      it 'creates receiver services for each subscription' do
+        expect(Routemaster::Services::Receive).to receive(:new)
+        expect(receiver).to receive(:start).exactly(2).times
+        perform
       end
 
-      3.times { queue_event } 
-      perform(3)
-      expect(delivery._buf.length).to eq(3)
+      it 'stops receiver services when ending' do
+        expect(receiver).to receive(:stop).exactly(2).times
+        perform
+      end
     end
 
-    it 'stops on a kill event' do
-      subscription.queue.publish('kill')
-      expect { perform(1) }.not_to raise_error
-    end
-
-    it 'removes bad events from the queue' do
-      subscription.queue.publish('whatever')
-      expect { perform(1) }.not_to raise_error
-      expect(subscription.queue.pop).to eq([nil, nil, nil])
+    it 'creates receiver services for new subscriptions' do
+      subscriptions << subscription_a
+      subject.start
+      sleep(250.ms)
+      subscriptions << subscription_b
+      expect(receiver).to receive(:start).once
+      sleep(250.ms)
+      subject.cancel
     end
   end
 end

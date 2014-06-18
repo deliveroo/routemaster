@@ -1,7 +1,9 @@
 require 'routemaster/services'
 require 'routemaster/mixins/assert'
 require 'routemaster/models/subscription'
-require 'routemaster/services/consume'
+require 'routemaster/services/receive'
+require 'core_ext/safe_thread'
+require 'core_ext/math'
 
 module Routemaster::Services
   class Watch
@@ -11,42 +13,70 @@ module Routemaster::Services
     def initialize(max_events = nil)
       _assert (max_events.nil? || max_events > 0)
       @max_events = max_events
-      @consumers  = []
+      @receivers  = {} # subscription -> receive service
     end
 
-    # TODO: reacting to new queues. Possibly with a kill message on an internal
-    # transient queue.
+    def start
+      SafeThread.new { run }
+      sleep(10.ms) until running?
+      self
+    end
+
+    def join
+      sleep(10.ms) while running?
+    end
+
+    # Create Receive services for each subscription.
+    # Poll the list of subscriptions regularly for news.
+    #
     # TODO: stopping operation cleanly, possibly by trapping SIGTERM//SIGQUIT/SIGINT.
-    # may be unnecessary given the acknowledgement mehanism.
+    # may be unnecessary given the acknowledgement mechanism.
     def run
       _log.info { 'starting watch service' }
+      _assert !@running, 'already running'
+      @running = true
 
-      @consumers = Routemaster::Models::Subscription.map do |subscription|
-        Consume.new(subscription, @max_events)
+      while @running
+        Routemaster::Models::Subscription.each do |subscription|
+          _add_subscription(subscription)
+        end
+
+        sleep 0.25
+        Thread.pass
       end
 
-      @threads = @consumers.map do |consumer|
-        Thread.new { consumer.run }
-      end
+      _log.debug { 'stopping all receive services' }
+      @receivers.each_value(&:stop)
+      _log.debug { 'watch service completed' }
+    rescue Exception => e
+      _log_exception(e)
+      raise
+    ensure
+      @running = nil
+    end
 
-      # in case there are no consumers, sentinel thread
-      @threads << _noop_thread if @threads.empty?
 
-      _log.debug { 'started watch service' }
-      @threads.each(&:join)
+    def running?
+      !!@running
     end
 
 
     def cancel
-      _log.info { 'stopping watch service' }
-      @consumers.each(&:cancel)
-      @_noop_thread.terminate
+      return unless @running
+      @running = false
+      _log.info { 'waiting for watch service to stop' }
+      sleep(10.ms) until @running.nil?
+      self
     end
 
     private
 
-    def _noop_thread
-      @_noop_thread ||= Thread.new { sleep(60) }
+    # add and start a Receive service, unless one exists
+    def _add_subscription(subscription)
+      @receivers[subscription.subscriber] ||= begin
+        _log.info { "watch service loop: adding subscription for '#{subscription.subscriber}" }
+        Receive.new(subscription, @max_events).start
+      end
     end
   end
 end

@@ -1,10 +1,6 @@
-File.expand_path('../..', __FILE__).tap { |dir| $:.unshift(dir) unless $:.include?(dir) }
-
 require 'dotenv'
 Dotenv.load!('.env.test')
 Dotenv.load!('.env')
-
-require 'core_ext/string'
 
 require 'pry'
 require 'pry-remote'
@@ -19,7 +15,6 @@ require 'pry-nav'
 RSpec.configure do |config|
   config.treat_symbols_as_metadata_keys_with_true_values = true
   config.run_all_when_everything_filtered = true
-  config.filter_run :focus
 
   # Run specs in random order to surface order dependencies. If you find an
   # order dependency and want to debug it, you can fix the order by providing
