@@ -20,7 +20,7 @@ describe Routemaster::Controllers::Pulse do
   end
 
   context 'when the pulse serivce fails' do
-    before { Routemaster::Services::Pulse.any_instance.stub(run: false) }
+    before { allow_any_instance_of(Routemaster::Services::Pulse).to receive(:run).and_return(false) }
 
     it 'returns 500' do
       perform
