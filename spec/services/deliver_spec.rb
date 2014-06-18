@@ -31,12 +31,12 @@ describe Routemaster::Services::Deliver do
       end
 
       it 'returns falsy' do
-        expect(perform).to be_false
+        expect(perform).to eq(false)
       end
 
       it 'does not issue requests' do
         perform
-        a_request(:any, //).should_not have_been_made
+        expect(a_request(:any, //)).not_to have_been_made
       end
     end
 
@@ -54,12 +54,12 @@ describe Routemaster::Services::Deliver do
       end
 
       it 'returns true' do
-        expect(perform).to be_true
+        expect(perform).to eq(true)
       end
 
       it 'POSTs to the callback' do
         perform
-        a_request(:post, callback_auth).should have_been_made
+        expect(a_request(:post, callback_auth)).to have_been_made
       end
 
       it 'sends valid JSON' do
@@ -100,11 +100,11 @@ describe Routemaster::Services::Deliver do
 
       it 'does not send events' do
         perform
-        a_request(:any, callback_auth).should_not have_been_made
+        expect(a_request(:any, callback_auth)).not_to have_been_made
       end
 
       it 'returns flasy' do
-        expect(perform).to be_false
+        expect(perform).to eq(false)
       end
     end
 
@@ -118,11 +118,11 @@ describe Routemaster::Services::Deliver do
 
       it 'makes a request' do
         perform
-        a_request(:any, callback_auth).should have_been_made
+        expect(a_request(:any, callback_auth)).to have_been_made
       end
 
       it 'returns truthy' do
-        expect(perform).to be_true
+        expect(perform).to eq(true)
       end
     end
   end
