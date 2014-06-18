@@ -31,7 +31,8 @@ describe Routemaster::Models::Subscribers do
   describe '#each' do
     it 'yields subscriptions' do
       subject.add Subscription.new(subscriber: 'bob')
-      expect { |b| subject.each(&b) }.to yield_with_args(Subscription)
+      expect(subject.count).to eq(1)
+      expect(subject.first).to be_a_kind_of(Subscription)
     end
   end
 

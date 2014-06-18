@@ -14,7 +14,7 @@ describe Routemaster::Services::Pulse do
     end
 
     it 'returns true' do
-      expect(perform).to be_true
+      expect(perform).to eq(true)
     end
 
     shared_examples 'logging' do
@@ -30,7 +30,7 @@ describe Routemaster::Services::Pulse do
       end
 
       it 'returns false' do
-        expect(perform).to be_false
+        expect(perform).to eq(false)
       end
 
       include_examples 'logging'
@@ -40,7 +40,7 @@ describe Routemaster::Services::Pulse do
       before { subject.stub(:bunny).and_raise(Bunny::TCPConnectionFailed.new(1,2,3)) }
 
       it 'returns false' do
-        expect(perform).to be_false
+        expect(perform).to eq(false)
       end
 
       include_examples 'logging'

@@ -33,7 +33,7 @@ describe Routemaster::Services::Watch do
         sleep(10.ms) until subject.running?
         subject.cancel
         expect(subject).not_to be_running
-        expect(thread.status).to be_false
+        expect(thread.status).to eq(false)
       end
     end
   end
