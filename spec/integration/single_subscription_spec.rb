@@ -102,14 +102,14 @@ describe 'integration' do
 
   WebProcess = SubProcess.new(
     name:    'web',
-    command: 'unicorn -c config/unicorn.rb',
+    command: 'unicorn -I. -c config/unicorn.rb',
     start:   /worker=1 ready/,
     stop:    /master complete/
   )
 
   ClientProcess = SubProcess.new(
     name:    'client',
-    command: 'unicorn -c spec/support/client.rb -p 17892 spec/support/client.ru',
+    command: 'unicorn -I. -c spec/support/client.rb -p 17892 spec/support/client.ru',
     start:   /worker=1 ready/,
     stop:    /master complete/
   )
