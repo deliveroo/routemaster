@@ -1,4 +1,5 @@
 require 'routemaster/mixins'
+require 'core_ext/string'
 
 begin
   require "routemaster/services/exception_loggers/#{ENV.fetch('EXCEPTION_SERVICE', 'print')}"
