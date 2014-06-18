@@ -8,7 +8,7 @@ GIT
       sinatra
 
 GEM
-  remote: http://eu.yarp.io/
+  remote: https://rubygems.org/
   specs:
     addressable (2.3.6)
     amq-protocol (1.9.2)
@@ -56,6 +56,7 @@ GEM
     lumberjack (1.0.5)
     method_source (0.8.2)
     multipart-post (2.0.0)
+    newrelic_rpm (3.8.1.221)
     net-http-persistent (2.9.4)
     nio4r (1.0.0)
     pry (0.9.12.6)
@@ -123,6 +124,7 @@ DEPENDENCIES
   foreman
   guard-rspec
   hiredis
+  newrelic_rpm
   pry
   pry-nav
   pry-remote
