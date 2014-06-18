@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/models/consumer'
 require 'routemaster/models/subscription'
+require 'core_ext/math'
 
 describe Routemaster::Models::Consumer do
   class Receiver
@@ -19,7 +20,7 @@ describe Routemaster::Models::Consumer do
     def wait_for_message(count: 1, timeout: 1.0)
       started_at    = Time.now
       until (Time.now > started_at + timeout) || (@messages >= count)
-        sleep 10e-3
+        sleep(10.ms)
       end
     end
   end

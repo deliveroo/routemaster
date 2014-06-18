@@ -30,7 +30,7 @@ describe Routemaster::Services::Watch do
       Timeout::timeout(5) do
         subject
         thread = SafeThread.new { subject.run }
-        sleep 10e-3 until subject.running?
+        sleep(10.ms) until subject.running?
         subject.cancel
         expect(subject).not_to be_running
         expect(thread.status).to be_false
@@ -85,10 +85,10 @@ describe Routemaster::Services::Watch do
     it 'creates receiver services for new subscriptions' do
       subscriptions << subscription_a
       subject.start
-      sleep 250e-3
+      sleep(250.ms)
       subscriptions << subscription_b
       expect(receiver).to receive(:start).once
-      sleep 250e-3
+      sleep(250.ms)
       subject.cancel
     end
   end

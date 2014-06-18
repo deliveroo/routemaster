@@ -2,8 +2,8 @@ require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/client'
 require 'pathname'
-
 require 'routemaster/models/subscription'
+require 'core_ext/math'
 
 # turn this on to get verbose tests
 VERBOSE = false
@@ -70,7 +70,7 @@ describe 'integration' do
     def wait_log(regexp)
       Timeout::timeout(25) do
         until @loglines.shift =~ regexp
-          sleep 50e-3
+          sleep(50.ms)
         end
       end
     end

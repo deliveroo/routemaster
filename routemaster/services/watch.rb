@@ -3,6 +3,7 @@ require 'routemaster/mixins/assert'
 require 'routemaster/models/subscription'
 require 'routemaster/services/receive'
 require 'core_ext/safe_thread'
+require 'core_ext/math'
 
 module Routemaster::Services
   class Watch
@@ -17,12 +18,12 @@ module Routemaster::Services
 
     def start
       SafeThread.new { run }
-      sleep 10e-3 until running?
+      sleep(10.ms) until running?
       self
     end
 
     def join
-      sleep 10e-3 while running?
+      sleep(10.ms) while running?
     end
 
     # Create Receive services for each subscription.
@@ -64,7 +65,7 @@ module Routemaster::Services
       return unless @running
       @running = false
       _log.info { 'waiting for watch service to stop' }
-      sleep 10e-3 until @running.nil?
+      sleep(10.ms) until @running.nil?
       self
     end
 

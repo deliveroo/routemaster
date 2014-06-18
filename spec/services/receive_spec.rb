@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/services/receive'
 require 'routemaster/models/subscription'
+require 'core_ext/math'
 
 describe Routemaster::Services::Receive do
   
@@ -32,7 +33,7 @@ describe Routemaster::Services::Receive do
   def wait_for(timeout: 1, &block)
     started_at = Time.now
     until Time.now > started_at + timeout || block.call
-      sleep 10e-3
+      sleep(10.ms)
     end
   end
 
