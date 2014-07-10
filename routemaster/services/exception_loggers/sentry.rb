@@ -19,9 +19,8 @@ module Routemaster::Services::ExceptionLoggers
         config.dsn = ENV.fetch('EXCEPTION_SERVICE_URL')
         config.environments = [ENV['RACK_ENV']]
       end
-    rescue LoadError => e
-      $stderr.puts 'Please install and configure sentry-raven (or equivalent service) first!'
-      abort
+    rescue KeyError
+      abort 'Please install and configure sentry-raven (or equivalent service) first!'
     end
 
     def process(e, env = ENV['RACK_ENV'])
