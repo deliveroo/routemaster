@@ -1,12 +1,12 @@
 require 'spec_helper'
-require 'raven'
+require 'honeybadger'
 require 'routemaster/application'
 require 'routemaster/mixins/log'
 require 'routemaster/mixins/log_exception'
-require 'routemaster/services/exception_loggers/sentry'
+require 'routemaster/services/exception_loggers/honeybadger'
 require 'core_ext/silence_stream'
 
-describe Routemaster::Services::ExceptionLoggers::Sentry do
+describe Routemaster::Services::ExceptionLoggers::Honeybadger do
 
   describe '#process' do
     subject { described_class.instance }
@@ -23,15 +23,14 @@ describe Routemaster::Services::ExceptionLoggers::Sentry do
     end
 
     context 'when the configuration is set properly' do
-      before { ENV['EXCEPTION_SERVICE_URL']='http://test.host' }
-      after  { ENV.delete 'EXCEPTION_SERVICE_URL' }
+      before { ENV['HONEYBADGER_API_KEY'] = 'api_key_super_secret' }
+      after  { ENV.delete 'HONEYBADGER_API_KEY' }
 
       it 'should send a notification to Honeybadger' do
-        expect(Raven::Event).to receive(:capture_exception).with(error)
+        expect(Honeybadger).to receive(:notify).with(error)
 
-        STDOUT.silence_stream { subject.process(error) }
+        subject.process(error)
       end
     end
   end
-
 end

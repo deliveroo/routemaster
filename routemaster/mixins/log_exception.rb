@@ -4,8 +4,7 @@ require 'core_ext/string'
 begin
   require "routemaster/services/exception_loggers/#{ENV.fetch('EXCEPTION_SERVICE', 'print')}"
 rescue LoadError
-  $stderr.puts "Please install and configure exception service first!"
-  abort
+  abort "Please install and configure exception service first!"
 end
 
 module Routemaster::Mixins::LogException

@@ -311,7 +311,9 @@ complexify its codebase too much (it's a separate concern, really).
 
 ### Exception Logging
 
-We've decided to leave this choice up to you but have added [Sentry](https://getsentry.com/welcome/) as an example.
+We've decided to leave this choice up to you but we have added examples for the following:
+- [Sentry](https://getsentry.com/welcome/)
+- [Honeybadger](honeybadger.io)
 
 You can if you wish just have these send to `stdout` if no credentials are set.
 

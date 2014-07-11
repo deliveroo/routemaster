@@ -30,6 +30,7 @@ gem 'dotenv'
 
 # exception handling
 gem 'sentry-raven', require: false
+gem 'honeybadger', require: false
 
 # monitoring
 gem 'newrelic_rpm', require: false
