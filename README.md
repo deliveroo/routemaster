@@ -313,7 +313,7 @@ complexify its codebase too much (it's a separate concern, really).
 
 We've decided to leave this choice up to you but we have added examples for the following:
 - [Sentry](https://getsentry.com/welcome/)
-- [Honeybadger](honeybadger.io)
+- [Honeybadger](https://www.honeybadger.io)
 
 You can if you wish just have these send to `stdout` if no credentials are set.
 
