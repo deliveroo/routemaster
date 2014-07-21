@@ -132,10 +132,18 @@ describe Routemaster::Services::Receive do
       end
 
       context 'when delivery fails' do
-        it 'keeps events for next delivery' do
+        before do
           delivery_result << :fail << :fail << :fail
+        end
+
+        it 'drops events before next delivery' do
           perform
-          expect(@delivered_events.length).to eq(3)
+          expect(@delivered_events.length).to eq(1)
+        end
+
+        it 'nacks events' do
+          expect(messages.first).to receive(:nack)
+          perform
         end
       end
 
