@@ -16,6 +16,7 @@ module Routemaster
       end
 
       def disconnect
+        @_connection.close if @_connection
         @_connection = nil
       end
       
