@@ -20,7 +20,7 @@ module Routemaster
       
       def pop
         info, props, payload = @subscription.queue.pop(ack: true)
-        return if info.nil? && prop.nil? && payload.nil?
+        return if info.nil? && props.nil? && payload.nil?
         Message.new(info, props, payload)
         # return if running?
         # _log.info { "consumer for #{@subscription} starting" }
