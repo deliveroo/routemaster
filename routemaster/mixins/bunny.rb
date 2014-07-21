@@ -10,7 +10,7 @@ module Routemaster
       end
 
       def bunny
-        @_bunny_channel ||= Models::BunnyChannel.new
+        Models::BunnyChannel.instance
       end
 
       def _bunny_name(string)
