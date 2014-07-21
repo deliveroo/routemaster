@@ -8,36 +8,6 @@ require 'timeout'
 
 describe Routemaster::Services::Watch do
 
-  # describe '#start' do
-  #   it 'starts the service' do
-  #     subject.start
-  #     expect(subject).to be_running
-  #     subject.cancel
-  #   end
-  # end
-
-  # describe '#join' do
-  #   it 'waits for the service to complete' do
-  #     subject.start
-  #     SafeThread.new { subject.cancel }
-  #     subject.join
-  #     expect(subject).not_to be_running
-  #   end
-  # end
-
-  # describe '#cancel' do
-  #   it 'stops the service' do
-  #     Timeout::timeout(5) do
-  #       subject
-  #       thread = SafeThread.new { subject.run }
-  #       sleep(10.ms) until subject.running?
-  #       subject.cancel
-  #       expect(subject).not_to be_running
-  #       expect(thread.status).to eq(false)
-  #     end
-  #   end
-  # end
-
   describe '#run' do
     let(:subscription_a) { double 'subscription-a', subscriber: 'alice' }
     let(:subscription_b) { double 'subscription-b', subscriber: 'bob' }

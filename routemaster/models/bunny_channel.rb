@@ -1,7 +1,6 @@
 require 'routemaster/models'
 require 'routemaster/models/bunny_connection'
 require 'delegate'
-require 'bunny'
 
 module Routemaster
   module Models
