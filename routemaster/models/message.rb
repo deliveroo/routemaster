@@ -54,7 +54,7 @@ module Routemaster
           _log.warn 'bad event payload'
           ack
           nil
-        rescue Exception => e
+        rescue StandardError => e
           _log.error { "unknown error while parsing event for #{@delivery_info.inspect}" }
           _log_exception(e)
           raise
