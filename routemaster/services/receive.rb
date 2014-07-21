@@ -55,8 +55,10 @@ module Routemaster
           return
         end
 
-        @batch.push(message) if message.event?
-        _deliver
+        if message.event?
+          @batch.push(message)
+          _deliver
+        end
 
         @counter += 1
         if @max_events && @counter >= @max_events
@@ -65,7 +67,7 @@ module Routemaster
         end
 
         nil
-      rescue Exception => e
+      rescue StandardError => e
         _log_exception(e)
         stop
       end
@@ -90,6 +92,7 @@ module Routemaster
             # else schedule delivery for later - using another thread?
             end
           rescue Routemaster::Services::Deliver::CantDeliver => e
+            @batch.nack
             _log_exception(e)
           end
         end
