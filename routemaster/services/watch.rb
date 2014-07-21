@@ -29,8 +29,10 @@ module Routemaster::Services
       while @running
         run_in = []
         _updated_receivers do |subscriber, receiver|
+          _log.debug { "running receiver for #{subscriber} (#{receiver.batch_size} events)" }
           receiver.run
           run_in.push receiver.run_in
+          _log.debug { "receiver for #{subscriber} want to run in #{receiver.run_in}ms" }
           break unless @running
         end
 
@@ -38,6 +40,7 @@ module Routemaster::Services
 
         # wait for the smallest +run_in+ but no longer than 10 seconds
         delay = [(run_in.min || DEFAULT_DELAY), MAX_DELAY].min
+        _log.debug { "sleeping for #{delay} ms" }
         sleep delay.ms
       end
 

@@ -61,6 +61,10 @@ module Routemaster
         end
       end
 
+      def batch_size
+        @batch.events.length
+      end
+
       private
 
       def _deliver
