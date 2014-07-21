@@ -71,6 +71,7 @@ module Routemaster::Models
 
     # ideally this would not be exposed, but binding topics
     # and subscriptions requires accessing this.
+    # TODO: expose just a queue _name_ and add a Queue wrapper model
     def queue ; _queue ; end
 
     private
