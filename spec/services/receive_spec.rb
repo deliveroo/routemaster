@@ -95,6 +95,9 @@ describe Routemaster::Services::Receive do
         make_message(0), make_message(1), make_message(2)
       ]}
 
+      it 'returns the number of events' do
+        expect(subject.run).to eq(3)
+      end
 
       it 'acks the message on successful delivery' do
         delivery.results = [true, true, true]

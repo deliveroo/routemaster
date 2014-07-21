@@ -12,6 +12,7 @@ module Routemaster
       include Routemaster::Mixins::Log
       include Routemaster::Mixins::Assert
 
+      attr_reader :subscription
 
       def initialize(subscription, max_events)
         @batch        = Models::Batch.new
@@ -26,12 +27,12 @@ module Routemaster
       KillError = Class.new(StandardError)
       
       def run
-        @max_events.times do
+        @max_events.times do |count|
           message = @consumer.pop
 
           if message.nil?
             _deliver
-            break
+            break count
           end
           
           if message && message.kill?
@@ -45,7 +46,6 @@ module Routemaster
             _deliver
           end
         end
-        self
       end
 
 
