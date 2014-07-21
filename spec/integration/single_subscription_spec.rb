@@ -70,7 +70,7 @@ describe 'integration' do
     def wait_log(regexp)
       Timeout::timeout(25) do
         until @loglines.shift =~ regexp
-          sleep(50.ms)
+          sleep(10.ms)
         end
       end
     end
