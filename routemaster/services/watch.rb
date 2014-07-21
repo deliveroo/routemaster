@@ -58,8 +58,8 @@ module Routemaster::Services
       new_receivers = {}
       Routemaster::Models::Subscription.each do |subscription|
         subscriber = subscription.subscriber
-        _log.info { "watch service loop: detected subscription for '#{subscriber}'" }
         new_receivers[subscriber] = @receivers.fetch(subscriber) {
+          _log.info { "watch detected new subscription for '#{subscriber}'" }
           Receive.new(subscription, @max_events)
         }
       end
