@@ -20,20 +20,26 @@ module Routemaster::Services
     #
     # TODO: stopping operation cleanly, possibly by trapping SIGTERM//SIGQUIT/SIGINT.
     # may be unnecessary given the acknowledgement mechanism.
-    def run
+    def run(rounds = nil)
       _log.info { 'starting watch service' }
       @running = true
 
       while @running
-        _updated_receivers do |receiver|
+        _log.debug { "round #{rounds}" } if rounds
+        _updated_receivers do |subscriber, receiver|
+          _log.debug { "running receiver for #{subscriber}" }
           receiver.run
           break unless @running
         end
 
-        Thread.pass
+        break if rounds && (rounds -= 1).zero?
+
+        # TODO: if no messages where received, sleep
+        # for half the minimum subscription timeout (or 50ms)
+        sleep 50.ms
       end
 
-      _log.debug { 'watch service completed' }
+      _log.info { 'watch service completed' }
     rescue StandardError => e
       _log_exception(e)
       raise
@@ -45,20 +51,6 @@ module Routemaster::Services
       @running = false
     end
 
-
-    # def running?
-    #   !!@running
-    # end
-
-
-    # def cancel
-    #   return unless @running
-    #   @running = false
-    #   _log.info { 'waiting for watch service to stop' }
-    #   sleep(10.ms) until @running.nil?
-    #   self
-    # end
-
     private
 
     def _updated_receivers
@@ -66,21 +58,13 @@ module Routemaster::Services
       new_receivers = {}
       Routemaster::Models::Subscription.each do |subscription|
         subscriber = subscription.subscriber
-        _log.info { "watch service loop: adding subscription for '#{subscriber}" }
+        _log.info { "watch service loop: detected subscription for '#{subscriber}'" }
         new_receivers[subscriber] = @receivers.fetch(subscriber) {
           Receive.new(subscription, @max_events)
         }
       end
       @receivers = new_receivers
-      @receivers.each_value { |r| yield r }
+      @receivers.each_pair { |p| yield p }
     end
-
-    # add and start a Receive service, unless one exists
-    # def _add_subscription(subscription)
-    #   @receivers[subscription.subscriber] ||= begin
-    #     _log.info { "watch service loop: adding subscription for '#{subscription.subscriber}" }
-    #     Receive.new(subscription, @max_events).start
-    #   end
-    # end
   end
 end
