@@ -35,6 +35,9 @@ gem 'honeybadger', require: false
 # monitoring
 gem 'newrelic_rpm', require: false
 
+# monitoring
+gem 'newrelic_rpm'
+
 group :development do
   # SSL support for local development
   gem 'tunnels',        require: false
