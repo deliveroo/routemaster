@@ -10,32 +10,35 @@ module Routemaster::Services
     include Routemaster::Mixins::Log
     include Routemaster::Mixins::Assert
 
+    MAX_DELAY = 30_000 # max milliseconds between iterations, in Routemaster's time unit
+    DEFAULT_DELAY = 1_000 # default delay between iterations in absence of subscriptions
+
+    # +max_events+ is the largest number of events fetched in a run
+    # by receivers.
     def initialize(max_events = nil)
       @max_events = max_events || 100
       _assert (@max_events > 0)
     end
 
     # Create Receive services for each subscription.
-    # Poll the list of subscriptions regularly for news.
-    #
-    # TODO: stopping operation cleanly, possibly by trapping SIGTERM//SIGQUIT/SIGINT.
-    # may be unnecessary given the acknowledgement mechanism.
+    # Poll subscriptions regularly for news.
     def run(rounds = nil)
       _log.info { 'starting watch service' }
       @running = true
 
       while @running
-        _log.debug { "round #{rounds}" } if rounds
+        run_in = []
         _updated_receivers do |subscriber, receiver|
           receiver.run
+          run_in.push receiver.run_in
           break unless @running
         end
 
         break if rounds && (rounds -= 1).zero?
 
-        # TODO: if no messages where received, sleep
-        # for half the minimum subscription timeout (or 50ms)
-        sleep 50.ms
+        # wait for the smallest +run_in+ but no longer than 10 seconds
+        delay = [(run_in.min || DEFAULT_DELAY), MAX_DELAY].min
+        sleep delay.ms
       end
 
       _log.info { 'watch service completed' }

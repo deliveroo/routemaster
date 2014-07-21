@@ -11,7 +11,7 @@ describe Routemaster::Services::Watch do
   describe '#run' do
     let(:subscription_a) { double 'subscription-a', subscriber: 'alice' }
     let(:subscription_b) { double 'subscription-b', subscriber: 'bob' }
-    let(:receiver) { double 'receiver-service' }
+    let(:receiver) { double 'receiver-service', run_in: 0 }
     let(:subscriptions)  { [] }
 
     let(:perform) { subject.run(5) }

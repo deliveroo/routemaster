@@ -42,6 +42,11 @@ module Routemaster
         @batch.map(&:event)
       end
 
+      def age
+        now = Routemaster.now
+        @batch.select { |m| m.event? }.map { |m| now - m.event.timestamp }.max || 0
+      end
+
       private
 
       def _flush

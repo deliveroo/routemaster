@@ -19,6 +19,7 @@ module Routemaster
         @subscription = subscription
         @max_events   = max_events
         @consumer     = Models::Consumer.new(@subscription)
+        @last_count   = 1
 
         _assert(@max_events > 0)
         _log.debug { "initialized (max #{@max_events} events)" }
@@ -27,7 +28,7 @@ module Routemaster
       KillError = Class.new(StandardError)
       
       def run
-        @max_events.times do |count|
+        @last_count = @max_events.times do |count|
           message = @consumer.pop
 
           if message.nil?
@@ -48,6 +49,17 @@ module Routemaster
         end
       end
 
+
+      def run_in
+        age     = @batch.age
+        timeout = @subscription.timeout
+
+        if @last_count > 0 || age > timeout
+          0
+        else
+          timeout - age
+        end
+      end
 
       private
 
