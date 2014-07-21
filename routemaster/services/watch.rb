@@ -27,7 +27,6 @@ module Routemaster::Services
       while @running
         _log.debug { "round #{rounds}" } if rounds
         _updated_receivers do |subscriber, receiver|
-          _log.debug { "running receiver for #{subscriber}" }
           receiver.run
           break unless @running
         end
