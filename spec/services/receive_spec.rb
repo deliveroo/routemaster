@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'spec/support/persistence'
+# require 'spec/support/persistence'
 require 'routemaster/services/receive'
 require 'routemaster/models/subscription'
 require 'core_ext/math'
@@ -10,32 +10,33 @@ describe Routemaster::Services::Receive do
     Routemaster::Models::Subscription.new(subscriber: 'alice')
   }
 
-  class FakeDeliver
-    attr_reader :events
-
-    def initialize(_, events)
-      @events = events
-    end
-
-    def run
-      true
-    end
-  end
-
-  let(:max_events) { [nil] }
-
-  let(:options) {[
-   subscription, max_events.first
-  ]}
+  let(:max_events) { [10] }
+  let(:options) {[ subscription, max_events.first ]}
 
   subject { described_class.new(*options) }
 
-  def wait_for(timeout: 1, &block)
-    started_at = Time.now
-    until Time.now > started_at + timeout || block.call
-      sleep(10.ms)
+  class FakeDeliver
+    attr_accessor :events, :results
+
+    def initialize
+      @results = []
+    end
+
+    def run
+      result = results.pop
+      raise Routemaster::Services::Deliver::CantDeliver if result == :fail
+      result
     end
   end
+
+  def make_message(id)
+    event = Routemaster::Models::Event.new(
+      topic: 'widgets', type: 'create',
+      url: "https://example.com/widgets/#{id}",
+    )
+    Routemaster::Models::Message.new(nil, nil, event.dump)
+  end
+
 
   describe '#initialize' do
     it 'passes with valid args' do
@@ -43,13 +44,17 @@ describe Routemaster::Services::Receive do
     end
   end
 
-  describe '#on_message' do
-    let(:perform) { messages.each { |m| subject.on_message(m) } }
-    let(:delivery) { double 'delivery' }
+  describe '#run' do
+    let(:delivery) { FakeDeliver.new }
+    let(:messages) { [] }
 
     before do
+      allow_any_instance_of(Routemaster::Models::Consumer).to receive(:pop) do
+        messages.pop
+      end
+
       allow(Routemaster::Services::Deliver).to receive(:new) { |sub, events|
-        @delivered_events = events
+        delivery.events = events
         delivery
       }
     end
@@ -61,106 +66,78 @@ describe Routemaster::Services::Receive do
 
       it 'acks the message' do
         expect(messages.first).to receive(:ack)
-        perform
+        expect { subject.run }.to raise_error
       end
 
-      it 'stops the service' do
-        subject.start
-        perform
-        wait_for { ! subject.running? }
-        expect(subject).not_to be_running
+      it 'raises KillError' do
+        expect { subject.run }.to raise_error(Routemaster::Services::Receive::KillError)
       end
     end
 
     context 'when receiving an unknown event' do
       let(:messages) {[
-        Routemaster::Models::Message.new(nil, nil, 'do you even compute')
+        Routemaster::Models::Message.new(nil, nil, 'do you even')
       ]}
 
       it 'acks the message' do
         expect(messages.first).to receive(:ack)
-        perform
+        subject.run
+      end
+
+      it 'schedules a delivery' do
+        expect(delivery).to receive(:run)
+        subject.run
       end
     end
 
-    context 'when receiving an event' do
-      def make_message(id)
-        event = Routemaster::Models::Event.new(
-          topic: 'widgets', type: 'create',
-          url: "https://example.com/widgets/#{id}",
-        )
-        Routemaster::Models::Message.new(nil, nil, event.dump)
-      end
-
+    context 'when events are queued' do
       let(:messages) {[
         make_message(0), make_message(1), make_message(2)
       ]}
 
-      let(:delivery_result) { [] }
-
-      before do
-        allow(delivery).to receive(:run) do
-          case value = delivery_result.pop
-          when :fail
-            raise Routemaster::Services::Deliver::CantDeliver
-          else
-            value
-          end
-        end
-      end
 
       it 'acks the message on successful delivery' do
-        delivery_result << true << true << true
-        messages.each do |m|
-          expect(m).to receive(:ack)
-        end
-        perform
+        delivery.results = [true, true, true]
+        messages.each { |m| expect(m).to receive(:ack) }
+        subject.run
       end
 
       it 'does not (n)ack on non-delivery' do
-        delivery_result << false << false << false
+        delivery.results = [false, false, false]
         expect(messages.first).not_to receive(:ack)
         expect(messages.first).not_to receive(:nack)
-        perform
+        subject.run
       end
 
       it 'delivers messages in batches' do
-        delivery_result << false << false << false
-        perform
-        expect(@delivered_events.length).to eq(3)
-        expect(@delivered_events).to eq(messages.map(&:event))
+        delivery.results = [false, false, false]
+        subject.run
+        expect(delivery.events.length).to eq(3)
       end
 
       context 'when delivery fails' do
         before do
-          delivery_result << :fail << :fail << :fail
+          delivery.results = [:fail, :fail, :fail]
         end
 
         it 'drops events before next delivery' do
-          perform
-          expect(@delivered_events.length).to eq(1)
+          subject.run
+          expect(delivery.events.length).to eq(0)
         end
 
         it 'nacks events' do
           expect(messages.first).to receive(:nack)
-          perform
+          subject.run
         end
       end
 
       context 'when receiving the maximum events' do
-        it 'stops the service' do
-          max_events.replace([3])
-          subject.start
-          expect(subject).to be_running
-          perform
-          expect(subject).not_to be_running
+        it 'only processes the max' do
+          max_events.replace([2])
+          expect(messages).to receive(:pop).twice.and_call_original
+          subject.run
         end
       end
     end
   end
-
-  describe '#on_cancel' do
-    it 'nacks previsouly received events'
-  end
-  
 end
