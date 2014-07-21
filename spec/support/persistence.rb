@@ -19,7 +19,7 @@ class BunnyCleaner
   include Routemaster::Mixins::Bunny
 
   def clean!
-    _bunny_disconnect
+    Routemaster::Models::BunnyConnection.instance.close
 
     _allowing_requests do
       vhost = URI.parse(ENV['ROUTEMASTER_AMQP_URL']).path

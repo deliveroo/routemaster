@@ -15,37 +15,50 @@ module Routemaster
       def initialize(subscription, max_events)
         @batch        = Models::Batch.new
         @subscription = subscription
-        @max_events   = max_events # only for test purposes
-        @counter      = 0
+        @max_events   = max_events
+        # @counter      = 0
 
-        @consumer     = Models::Consumer.new(
-          subscription: @subscription,
-          handler:      self
-        )
+        @consumer     = Models::Consumer.new(@subscription)
         _log.debug { 'initialized' }
       end
 
+      
+      def run
+        events = 0
+        while events < @max_events
+          message = @consumer.pop
+          events += 1
+          on_message(message)
+          _deliver
 
-      def start
-        @consumer.start
+          break if message.nil?
+        end
         self
       end
 
 
-      def stop
-        _log.info { 'stopping' }
-        @consumer.stop
-        on_cancel
-        self
-      end
+      # def start
+      #   @consumer.start
+      #   self
+      # end
 
 
-      def running?
-        @consumer.running?
-      end
+      # def stop
+      #   _log.info { 'stopping' }
+      #   @consumer.stop
+      #   on_cancel
+      #   self
+      # end
 
+
+      # def running?
+      #   @consumer.running?
+      # end
+
+      private
 
       def on_message(message)
+        return if message.nil?
         _log.info { 'on_message starts' }
         
         if message.kill?
@@ -55,16 +68,13 @@ module Routemaster
           return
         end
 
-        if message.event?
-          @batch.push(message)
-          _deliver
-        end
+        @batch.push(message) if message.event?
 
-        @counter += 1
-        if @max_events && @counter >= @max_events
-          _log.debug { 'event allowance reached' }
-          stop
-        end
+        # @counter += 1
+        # if @max_events && @counter >= @max_events
+        #   _log.debug { 'event allowance reached' }
+        #   stop
+        # end
 
         nil
       rescue StandardError => e
@@ -73,10 +83,10 @@ module Routemaster
       end
 
 
-      def on_cancel
-        _log.info { "cancelling #{@batch.length} pending events for #{@subscription}" }
-        @batch.nack
-      end
+      # def on_cancel
+      #   _log.info { "cancelling #{@batch.length} pending events for #{@subscription}" }
+      #   @batch.nack
+      # end
 
 
       private
