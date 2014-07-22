@@ -50,7 +50,7 @@ module Routemaster
       end
 
 
-      def run_in
+      def time_to_next_run
         age     = @batch.age
         timeout = @subscription.timeout
 
