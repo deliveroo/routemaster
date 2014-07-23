@@ -1,5 +1,4 @@
 require 'spec_helper'
-# require 'spec/support/persistence'
 require 'routemaster/services/receive'
 require 'routemaster/models/subscription'
 require 'core_ext/math'
