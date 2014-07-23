@@ -10,87 +10,68 @@ module Routemaster
     class Receive
       include Routemaster::Mixins::Bunny
       include Routemaster::Mixins::Log
+      include Routemaster::Mixins::Assert
 
+      attr_reader :subscription
 
       def initialize(subscription, max_events)
         @batch        = Models::Batch.new
         @subscription = subscription
-        @max_events   = max_events # only for test purposes
-        @counter      = 0
+        @max_events   = max_events
+        @consumer     = Models::Consumer.new(@subscription)
+        @last_count   = 1
 
-        @consumer     = Models::Consumer.new(
-          subscription: @subscription,
-          handler:      self
-        )
-        _log.debug { 'initialized' }
+        _assert(@max_events > 0)
+        _log.debug { "initialized (max #{@max_events} events)" }
       end
 
+      KillError = Class.new(StandardError)
+      
+      def run
+        @last_count = @max_events.times do |count|
+          message = @consumer.pop
 
-      def start
-        @consumer.start
-        self
-      end
+          if message.nil?
+            _deliver
+            break count
+          end
+          
+          if message && message.kill?
+            _log.debug { 'received kill event' }
+            message.ack
+            raise KillError
+          end
 
-
-      def stop
-        _log.info { 'stopping' }
-        @consumer.stop
-        on_cancel
-        self
-      end
-
-
-      def running?
-        @consumer.running?
-      end
-
-
-      def on_message(message)
-        _log.info { 'on_message starts' }
-        
-        if message.kill?
-          _log.debug { 'received kill event' }
-          message.ack
-          stop
-          return
+          if message.event?
+            @batch.push(message)
+            _deliver
+          end
         end
-
-        if message.event?
-          @batch.push(message)
-          _deliver
-        end
-
-        @counter += 1
-        if @max_events && @counter >= @max_events
-          _log.debug { 'event allowance reached' }
-          stop
-        end
-
-        nil
-      rescue StandardError => e
-        _log_exception(e)
-        stop
       end
 
 
-      def on_cancel
-        _log.info { "cancelling #{@batch.length} pending events for #{@subscription}" }
-        @batch.nack
+      def time_to_next_run
+        age     = @batch.age
+        timeout = @subscription.timeout
+
+        if @last_count > 0 || age > timeout
+          0
+        else
+          timeout - age
+        end
       end
 
+      def batch_size
+        @batch.events.length
+      end
 
       private
-
 
       def _deliver
         @batch.synchronize do
           begin
             deliver = Routemaster::Services::Deliver.new(@subscription, @batch.events)
-            if deliver.run
-              @batch.ack
-            # TODO:
-            # else schedule delivery for later - using another thread?
-            end
+            @batch.ack if deliver.run
           rescue Routemaster::Services::Deliver::CantDeliver => e
             @batch.nack
             _log_exception(e)

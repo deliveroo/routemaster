@@ -70,7 +70,7 @@ describe 'integration' do
     def wait_log(regexp)
       Timeout::timeout(25) do
         until @loglines.shift =~ regexp
-          sleep(50.ms)
+          sleep(10.ms)
         end
       end
     end
@@ -207,8 +207,10 @@ describe 'integration' do
       let(:client) {
         Routemaster::Client.new(url: 'https://127.0.0.1:17893', uuid: 'demo')
       }
+      let(:max_events) { '1' }
+      let(:timeout) { '0' }
 
-      before do
+      def subscribe
         # FIXME: this has to be here because subscribing doesnt implicitely
         # create the topics (it should)
         client.created('cats', 'https://example.com/cats/1')
@@ -218,23 +220,47 @@ describe 'integration' do
           topics:   %w(cats dogs),
           callback: 'https://127.0.0.1:17894/events',
           uuid:     'demo-client',
-          max:      1)
+          max:      Integer(max_events),
+          timeout:  Integer(timeout)
+        )
       end
 
       it 'routes a single event' do
+        subscribe
         client.created('cats', 'https://example.com/cats/1')
         ClientProcess.wait_log %r(received https://example.com/cats/1, create, cats)
       end
 
       it 'routes events from multiple topics' do
+        subscribe
         client.created('cats', 'https://example.com/cats/1')
         client.created('dogs', 'https://example.com/dogs/1')
         ClientProcess.wait_log %r{create, cats}
         ClientProcess.wait_log %r{create, dogs}
       end
 
-      it 'sends batches of events'
-      it 'sends partial batches after a timeout'
+      it 'sends batches of events' do
+        max_events.replace '5'
+        timeout.replace '1000'
+        subscribe
+
+        5.times do |index|
+          client.created('cats', "https://example.com/cats/#{index}")
+        end
+        WatchProcess.wait_log %r{delivered 5 events}
+      end
+
+      it 'sends partial batches after a timeout' do
+        max_events.replace '10'
+        timeout.replace '1000'
+        subscribe
+
+        5.times do |index|
+          client.created('cats', "https://example.com/cats/#{index}")
+        end
+        WatchProcess.wait_log %r{delivered 5 events}
+      end
+
       it 'sends events to multiple clients'
     end
   end

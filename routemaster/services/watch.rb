@@ -10,73 +10,68 @@ module Routemaster::Services
     include Routemaster::Mixins::Log
     include Routemaster::Mixins::Assert
 
+    MAX_DELAY = 30_000 # max milliseconds between iterations, in Routemaster's time unit
+    DEFAULT_DELAY = 1_000 # default delay between iterations in absence of subscriptions
+
+    # +max_events+ is the largest number of events fetched in a run
+    # by receivers.
     def initialize(max_events = nil)
-      _assert (max_events.nil? || max_events > 0)
-      @max_events = max_events
-      @receivers  = {} # subscription -> receive service
-    end
-
-    def start
-      SafeThread.new { run }
-      sleep(10.ms) until running?
-      self
-    end
-
-    def join
-      sleep(10.ms) while running?
+      @max_events = max_events || 100
+      _assert (@max_events > 0)
     end
 
     # Create Receive services for each subscription.
-    # Poll the list of subscriptions regularly for news.
-    #
-    # TODO: stopping operation cleanly, possibly by trapping SIGTERM//SIGQUIT/SIGINT.
-    # may be unnecessary given the acknowledgement mechanism.
-    def run
+    # Poll subscriptions regularly for news.
+    def run(rounds = nil)
       _log.info { 'starting watch service' }
-      _assert !@running, 'already running'
       @running = true
 
       while @running
-        Routemaster::Models::Subscription.each do |subscription|
-          _add_subscription(subscription)
+        time_to_next_run = []
+        _updated_receivers do |subscriber, receiver|
+          _log.debug { "running receiver for #{subscriber} (#{receiver.batch_size} events)" }
+          receiver.run
+          time_to_next_run.push receiver.time_to_next_run
+          _log.debug { "receiver for #{subscriber} want to run in #{receiver.time_to_next_run}ms" }
+          break unless @running
         end
 
-        sleep 0.25
-        Thread.pass
+        break if rounds && (rounds -= 1).zero?
+
+        # wait for the smallest +time_to_next_run+ but no longer than 10 seconds
+        delay = [(time_to_next_run.min || DEFAULT_DELAY), MAX_DELAY].min
+        _log.debug { "sleeping for #{delay} ms" }
+        sleep delay.ms
       end
 
-      _log.debug { 'stopping all receive services' }
-      @receivers.each_value(&:stop)
-      _log.debug { 'watch service completed' }
-    rescue Exception => e
+      _log.info { 'watch service completed' }
+    rescue StandardError => e
       _log_exception(e)
       raise
     ensure
-      @running = nil
+      stop
     end
 
-
-    def running?
-      !!@running
-    end
-
-
-    def cancel
-      return unless @running
+    def stop
       @running = false
-      _log.info { 'waiting for watch service to stop' }
-      sleep(10.ms) until @running.nil?
-      self
     end
 
     private
 
-    # add and start a Receive service, unless one exists
-    def _add_subscription(subscription)
-      @receivers[subscription.subscriber] ||= begin
-        _log.info { "watch service loop: adding subscription for '#{subscription.subscriber}" }
-        Receive.new(subscription, @max_events).start
+    # Create receivers for any new subscriptions, and yield
+    # subscriber/receiver pairs for all known subscriptions.
+    def _updated_receivers
+      @receivers ||= {}
+      new_receivers = {}
+      Routemaster::Models::Subscription.each do |subscription|
+        subscriber = subscription.subscriber
+        new_receivers[subscriber] = @receivers.fetch(subscriber) {
+          _log.info { "watch detected new subscription for '#{subscriber}'" }
+          Receive.new(subscription, @max_events)
+        }
       end
+      @receivers = new_receivers
+      @receivers.each_pair { |p| yield p }
     end
   end
 end

@@ -5,38 +5,13 @@ require 'routemaster/models/subscription'
 require 'core_ext/math'
 
 describe Routemaster::Models::Consumer do
-  class Receiver
-    def initialize
-      @messages = 0
-    end
-
-    def on_message(message)
-      @messages += 1
-    end
-
-    def on_cancel
-    end
-
-    def wait_for_message(count: 1, timeout: 1.0)
-      started_at    = Time.now
-      until (Time.now > started_at + timeout) || (@messages >= count)
-        sleep(10.ms)
-      end
-    end
-  end
-
   let(:subscription) {
     Routemaster::Models::Subscription.new(subscriber: 'alice')
   }
 
-  let(:receiver) { Receiver.new }
+  let(:options) {[ subscription ]}
 
-  let(:options) {{
-    subscription: subscription,
-    handler:      receiver
-  }}
-
-  subject { described_class.new(**options) }
+  subject { described_class.new(*options) }
 
 
   describe '#initialize' do
@@ -45,53 +20,36 @@ describe Routemaster::Models::Consumer do
     end
 
     it 'requires subscription:' do
-      options.delete :subscription
-      expect { subject }.to raise_error(ArgumentError)
-    end
-
-    it 'requires handler:' do
-      options.delete :handler
+      options.clear
       expect { subject }.to raise_error(ArgumentError)
     end
   end
 
 
-  describe '#start' do
-    it 'starts message delivery' do
+  describe '#pop' do
+    it 'returns a queud message' do
       subscription.queue.publish('kill')
-      expect(receiver).to receive(:on_message).with(instance_of(Routemaster::Models::Message))
-      subject.start
-      receiver.wait_for_message
+      message = subject.pop
+      expect(message).to be_a_kind_of(Routemaster::Models::Message)
+      expect(message).to be_kill
     end
 
     it 'delivers multiple messages' do
       10.times { subscription.queue.publish('kill') }
-      expect(receiver).to receive(:on_message).exactly(10).times
-      subject.start
-      receiver.wait_for_message(count: 10)
+      10.times do
+        expect(subject.pop).to be_kill
+      end
     end
 
-    it 'can be called twice' do
-      2.times { subject.start }
-    end
-  end
-
-  describe '#stop' do
-    it 'stops message delivery' do
-      expect(receiver).not_to receive(:on_message)
-      subject.start
-      subject.stop
-      receiver.wait_for_message
+    it 'returns nil after the last message' do
       subscription.queue.publish('kill')
+      subject.pop
+      expect(subject.pop).to be_nil
     end
 
-    it 'can be called twice' do
-      subject.start
-      2.times { subject.stop }
-    end
-
-    it 'can be called without starting' do
-      subject.stop
+    it 'returns nil when there are no queued messages' do
+      subject.pop
+      expect(subject.pop).to be_nil
     end
   end
 end
