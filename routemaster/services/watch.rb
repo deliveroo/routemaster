@@ -58,6 +58,8 @@ module Routemaster::Services
 
     private
 
+    # Create receivers for any new subscriptions, and yield
+    # subscriber/receiver pairs for all known subscriptions.
     def _updated_receivers
       @receivers ||= {}
       new_receivers = {}
