@@ -1,15 +1,16 @@
 require 'routemaster/services'
 require 'routemaster/mixins/assert'
+require 'routemaster/mixins/log_exception'
 require 'routemaster/models/subscription'
 require 'routemaster/services/receive'
 require 'core_ext/safe_thread'
 require 'core_ext/math'
-require 'newrelic_rpm'
 
 module Routemaster::Services
   class Watch
     include Routemaster::Mixins::Log
     include Routemaster::Mixins::Assert
+    include Routemaster::Mixins::LogException
 
     MAX_DELAY = 30_000 # max milliseconds between iterations, in Routemaster's time unit
     DEFAULT_DELAY = 1_000 # default delay between iterations in absence of subscriptions
@@ -48,7 +49,7 @@ module Routemaster::Services
       _log.info { 'watch service completed' }
     rescue StandardError => e
       _log_exception(e)
-      NewRelic::Agent.notice_error(e)
+      deliver_exception(e)
       raise
     ensure
       stop

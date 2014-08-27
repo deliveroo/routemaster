@@ -1,6 +1,8 @@
 require 'spec_helper'
 require 'spec/support/persistence'
 require 'spec/support/events'
+require 'spec/support/dummy'
+require 'routemaster/application'
 require 'routemaster/services/watch'
 require 'routemaster/models/subscription'
 require 'core_ext/safe_thread'
@@ -15,6 +17,23 @@ describe Routemaster::Services::Watch do
     let(:subscriptions)  { [] }
 
     let(:perform) { subject.run(5) }
+    let(:app) { Routemaster::Application }
+
+    around do |example|
+      @old = ENV['EXCEPTION_SERVICE']
+      ENV['EXCEPTION_SERVICE'] = 'dummy'
+      example.run
+      ENV['EXCEPTION_SERVICE'] = @old
+    end
+
+    shared_examples 'logging' do
+      it 'logs exception' do
+        expect(receiver).to receive(:run).and_raise(StandardError)
+        expect(Routemaster::Services::ExceptionLoggers::Dummy.instance).to receive(:process)
+        subscriptions << subscription_a
+        expect{ subject.run(1) }.to raise_error(StandardError)
+      end
+    end
 
     before do
       allow(Routemaster::Models::Subscription).to receive(:each) do |&block|
@@ -49,13 +68,6 @@ describe Routemaster::Services::Watch do
       subject.run(1)
     end
 
-    it 'logs to New Relic when rescuing StandardError and re-raises' do
-      subscriptions << subscription_a
-      expect(receiver).to receive(:run).and_raise(StandardError)
-      expect(NewRelic::Agent).to receive(:notice_error)
-        .with(StandardError)
-
-      expect{ subject.run(1) }.to raise_error(StandardError)
-    end
+    include_examples 'logging'
   end
 end
