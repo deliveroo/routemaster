@@ -50,6 +50,7 @@ group :development do
   gem 'timecop',        require: false
   # better REPL
   gem 'pry'
+  gem 'pry-nav'
   gem 'pry-remote'
 
   # testing against the client
