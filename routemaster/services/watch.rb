@@ -4,6 +4,7 @@ require 'routemaster/models/subscription'
 require 'routemaster/services/receive'
 require 'core_ext/safe_thread'
 require 'core_ext/math'
+require 'newrelic_rpm'
 
 module Routemaster::Services
   class Watch
@@ -47,6 +48,7 @@ module Routemaster::Services
       _log.info { 'watch service completed' }
     rescue StandardError => e
       _log_exception(e)
+      NewRelic::Agent.notice_error(e)
       raise
     ensure
       stop

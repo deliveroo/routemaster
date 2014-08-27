@@ -48,5 +48,14 @@ describe Routemaster::Services::Watch do
       expect(receiver).to receive(:run).twice
       subject.run(1)
     end
+
+    it 'logs to New Relic when rescuing StandardError and re-raises' do
+      subscriptions << subscription_a
+      expect(receiver).to receive(:run).and_raise(StandardError)
+      expect(NewRelic::Agent).to receive(:notice_error)
+        .with(StandardError)
+
+      expect{ subject.run(1) }.to raise_error(StandardError)
+    end
   end
 end
