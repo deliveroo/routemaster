@@ -10,7 +10,7 @@ class Routemaster::Controllers::Topics < Sinatra::Base
       {
         name: topic.name,
         publisher: topic.publisher,
-        events: topic.exchange.channel.queue.message_count
+        events: topic.get_count
       }
     end.to_json
   end

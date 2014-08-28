@@ -53,6 +53,7 @@ module Routemaster::Models
       _assert event.kind_of?(Event), 'can only push Event'
       _redis.hset(_key, 'last_event', event.dump)
       _exchange.publish(event.dump, persistent: true)
+      increment_count
     end
 
     def last_event
@@ -65,7 +66,19 @@ module Routemaster::Models
     # and subscriptions requires accessing this.
     def exchange ; _exchange ; end
 
+    def get_count
+      _redis.get(topic_counter_name).to_i || 0
+    end
+
     private
+
+    def increment_count
+      _redis.incr(topic_counter_name)
+    end
+
+    def topic_counter_name
+      "#{@name}_cumulative_count"
+    end
 
     def _key
       @_key ||= "topic/#{@name}"

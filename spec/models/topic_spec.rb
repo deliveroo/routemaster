@@ -51,7 +51,6 @@ describe Routemaster::Models::Topic do
     end
   end
 
-  
   describe '.all' do
     it 'is empty in a blank state' do
       expect(described_class.all).to be_empty
@@ -75,6 +74,24 @@ describe Routemaster::Models::Topic do
 
     it 'returns nil for unknown topics' do
       expect(result).to be_nil
+    end
+  end
+
+  describe 'push' do
+
+    let(:options) do
+      {
+        topic: 'widgets',
+        type: 'create',
+        url: 'https://example.com/widgets/123'
+      }
+    end
+    let(:event) { Routemaster::Models::Event.new(**options) }
+
+    it 'increments the topic counter' do
+      expect(subject.get_count).to eql 0
+      subject.push(event)
+      expect(subject.get_count).to eql 1
     end
   end
 end
