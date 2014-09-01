@@ -7,7 +7,7 @@ module Routemaster::Models
     TIMEOUT_RANGE = 0..3_600_000
     DEFAULT_TIMEOUT = 500
     DEFAULT_MAX_EVENTS = 100
-    
+
     attr_reader :subscriber
 
     def initialize(subscriber:)
@@ -52,7 +52,7 @@ module Routemaster::Models
 
     def uuid=(value)
       _assert value.kind_of?(String) unless value.nil?
-      _redis.hset(_key, 'uuid', value) 
+      _redis.hset(_key, 'uuid', value)
     end
 
     def uuid
@@ -61,7 +61,13 @@ module Routemaster::Models
 
     def to_s
       "subscription for '#{@subscriber}'"
-    end 
+    end
+
+    def topics
+      self.queue.channel.exchanges.keys.map do |e|
+        Topic.find(e.split(".").last)
+      end
+    end
 
     extend Enumerable
 

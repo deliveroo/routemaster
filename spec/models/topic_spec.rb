@@ -51,7 +51,7 @@ describe Routemaster::Models::Topic do
     end
   end
 
-  
+
   describe '.all' do
     it 'is empty in a blank state' do
       expect(described_class.all).to be_empty

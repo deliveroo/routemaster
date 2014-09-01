@@ -42,5 +42,34 @@ module Routemaster::Controllers
 
       halt 204
     end
+
+    # GET /subscriptions
+    # [
+    #   {
+    #     subscriber: <username>,
+    #     callback:   <url>,
+    #     topics:     [<name>, ...],
+    #     events: {
+    #       sent:       <sent_count>,
+    #       queued:     <queue_size>,
+    #       oldest:     <staleness>,
+    #     }
+    #   }, ...
+    # ]
+
+    get '/subscriptions' do
+      Routemaster::Models::Subscription do |subscription|
+        {
+          subscriber: subscription.subscriber,
+          callback: subscription.callback,
+          topics: [],
+          events: {
+            sent: 0,
+            queued: subscription.queue.message_count,
+            oldest: 0
+          }
+        }
+      end.to_json
+    end
   end
 end

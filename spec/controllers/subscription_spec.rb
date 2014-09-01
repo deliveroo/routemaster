@@ -2,10 +2,24 @@ require 'spec_helper'
 require 'routemaster/controllers/subscription'
 require 'spec/support/rack_test'
 require 'spec/support/persistence'
+require 'json'
 
 describe Routemaster::Controllers::Subscription do
   let(:uid) { 'charlie' }
   let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
+
+  describe 'GET /subscriptions' do
+    let(:perform) { get "/subscriptions" }
+
+    it 'responds' do
+      perform
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'lists all subscriptions with required data points' do
+
+    end
+  end
 
   describe 'post /subscription' do
     let(:payload) {{
@@ -14,8 +28,12 @@ describe Routemaster::Controllers::Subscription do
       uuid:     'alice'
     }}
     let(:raw_payload) { payload.to_json }
-    let(:perform) { post '/subscription', raw_payload, 'CONTENT_TYPE' => 'application/json' }
-    let(:subscription) { Routemaster::Models::Subscription.new(subscriber: 'charlie') }
+    let(:perform) do
+      post '/subscription', raw_payload, 'CONTENT_TYPE' => 'application/json'
+    end
+    let(:subscription) do
+      Routemaster::Models::Subscription.new(subscriber: 'charlie')
+    end
 
     before do
       Routemaster::Models::Topic.new(name: 'widgets', publisher: 'bob')
@@ -25,7 +43,7 @@ describe Routemaster::Controllers::Subscription do
       perform
       expect(last_response.status).to eq(204)
     end
-    
+
     it 'acceptc unknown topics' do
       payload[:topics] = %w(grizzlis)
       perform
