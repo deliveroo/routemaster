@@ -89,9 +89,8 @@ describe Routemaster::Models::Topic do
     let(:event) { Routemaster::Models::Event.new(**options) }
 
     it 'increments the topic counter' do
-      expect(subject.get_count).to eql 0
-      subject.push(event)
-      expect(subject.get_count).to eql 1
+      expect{ subject.push(event) }
+        .to change{ subject.get_count }.by(1)
     end
   end
 end

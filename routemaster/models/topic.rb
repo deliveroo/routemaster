@@ -67,7 +67,7 @@ module Routemaster::Models
     def exchange ; _exchange ; end
 
     def get_count
-      _redis.get(topic_counter_name).to_i || 0
+      _redis.get(topic_counter_name).to_i
     end
 
     private
