@@ -69,6 +69,10 @@ module Routemaster::Models
       end
     end
 
+    def all_topics_count
+      topics.map { |x| x.get_count }.inject{|sum,x| sum + x }
+    end
+
     extend Enumerable
 
     def self.each

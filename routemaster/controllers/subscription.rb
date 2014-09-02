@@ -58,7 +58,7 @@ module Routemaster::Controllers
     # ]
 
     get '/subscriptions' do
-      Routemaster::Models::Subscription do |subscription|
+      Routemaster::Models::Subscription.each do |subscription|
         {
           subscriber: subscription.subscriber,
           callback: subscription.callback,

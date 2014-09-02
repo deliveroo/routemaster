@@ -59,13 +59,58 @@ describe Routemaster::Models::Subscription do
       Routemaster::Models::Topic.new(name: 'properties', publisher: 'demo')
     end
 
+    let(:property_photos_topic) do
+      Routemaster::Models::Topic.new(name: 'photos', publisher: 'demo')
+    end
+
     before do
-      subscriber = Routemaster::Models::Subscribers.new(properties_topic)
-      subscriber.add(subject)
+      subscriber1 = Routemaster::Models::Subscribers.new(properties_topic)
+      subscriber1.add(subject)
+      subscriber2 = Routemaster::Models::Subscribers.new(property_photos_topic)
+      subscriber2.add(subject)
     end
 
     it 'returns an array of associated topics' do
-      expect(subject.topics.first.name).to eql('properties')
+      expect(subject.topics.map{|x|x.name}).to eql(['properties','photos'])
     end
+  end
+
+  describe '.all_topics_count' do
+
+    let(:properties_topic) do
+      Routemaster::Models::Topic.new({
+        name: 'properties',
+        publisher: 'demo'
+      })
+    end
+
+    let(:property_photos_topic) do
+      Routemaster::Models::Topic.new({
+        name: 'photos',
+        publisher: 'demo'
+      })
+    end
+
+    before do
+      subscriber1 = Routemaster::Models::Subscribers.new(properties_topic)
+      subscriber1.add(subject)
+      subscriber2 = Routemaster::Models::Subscribers.new(property_photos_topic)
+      subscriber2.add(subject)
+    end
+
+    it 'should sum the cumulative totals for all associated topics' do
+      expect(subject)
+        .to receive(:topics)
+        .and_return([properties_topic, property_photos_topic])
+      expect(properties_topic)
+        .to receive(:get_count)
+        .and_return(100)
+      expect(property_photos_topic)
+        .to receive(:get_count)
+        .and_return(200)
+
+      expect(subject.all_topics_count).to eql 300
+    end
+
   end
 end
