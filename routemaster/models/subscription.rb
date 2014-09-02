@@ -65,7 +65,13 @@ module Routemaster::Models
 
     def topics
       self.queue.channel.exchanges.keys.map do |e|
-        Topic.find(e.split(".").last)
+        Routemaster::Models::Topic.find(e.split(".").last)
+      end
+    end
+
+    def topic_names
+      self.queue.channel.exchanges.keys.map do |e|
+        e.split(".").last
       end
     end
 

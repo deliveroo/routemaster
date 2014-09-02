@@ -9,6 +9,20 @@ describe Routemaster::Controllers::Subscription do
   let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
 
   describe 'GET /subscriptions' do
+
+    let(:topic) do
+      Routemaster::Models::Topic.new(
+        name: 'widget',
+        publisher: 'demo'
+      )
+    end
+
+    let(:subscription) do
+      Routemaster::Models::Subscription.new(
+        subscriber: 'charlie'
+      )
+    end
+
     let(:perform) { get "/subscriptions" }
 
     it 'responds' do
@@ -17,7 +31,23 @@ describe Routemaster::Controllers::Subscription do
     end
 
     it 'lists all subscriptions with required data points' do
+      topic.subscribers.add(subscription)
 
+      perform
+      resp = JSON(last_response.body)[0]
+
+      expect(resp)
+        .to eql({
+          "subscriber" => "charlie",
+          "callback"   => nil,
+          "topics"     => ["widget"],
+          "events"     => {
+            "sent"   => 0,
+            "queued" => 0,
+            "oldest" => 0
+          }
+        }
+      )
     end
   end
 

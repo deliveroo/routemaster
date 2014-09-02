@@ -58,18 +58,22 @@ module Routemaster::Controllers
     # ]
 
     get '/subscriptions' do
+      content_type :json
+      @ret = []
       Routemaster::Models::Subscription.each do |subscription|
-        {
+        @ret << {
           subscriber: subscription.subscriber,
           callback: subscription.callback,
-          topics: [],
+          topics: subscription.topic_names,
           events: {
-            sent: 0,
+            sent: subscription.all_topics_count,
             queued: subscription.queue.message_count,
             oldest: 0
           }
         }
-      end.to_json
+      end
+      @ret.to_json
     end
+
   end
 end
