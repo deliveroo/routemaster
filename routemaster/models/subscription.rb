@@ -83,7 +83,7 @@ module Routemaster::Models
     def age_of_oldest_message
       consumer = Routemaster::Models::Consumer.new(self)
       message = consumer.pop
-      if message.event?
+      if message && message.event?
         age = Routemaster.now - message.event.timestamp
       end
       message.nack unless message.nil?
