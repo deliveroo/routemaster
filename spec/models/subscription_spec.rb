@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/models/subscription'
 require 'routemaster/models/subscribers'
+require 'routemaster/models/consumer'
+require 'routemaster/models/message'
 require 'routemaster/models/topic'
 
 describe Routemaster::Models::Subscription do
@@ -76,14 +78,12 @@ describe Routemaster::Models::Subscription do
   end
 
   describe '.all_topics_count' do
-
     let(:properties_topic) do
       Routemaster::Models::Topic.new({
         name: 'properties',
         publisher: 'demo'
       })
     end
-
     let(:property_photos_topic) do
       Routemaster::Models::Topic.new({
         name: 'photos',
@@ -111,6 +111,30 @@ describe Routemaster::Models::Subscription do
 
       expect(subject.all_topics_count).to eql 300
     end
+  end
 
+  describe '.age_of_oldest_message' do
+
+    let(:subscription) {
+      Routemaster::Models::Subscription.new(subscriber: 'alice')
+    }
+    let(:options) {[ subscription ]}
+    let(:consumer) { Routemaster::Models::Consumer.new(*options) }
+    let(:event) {
+      Routemaster::Models::Event.new(
+        topic: 'widgets',
+        type:  'create',
+        url:   'https://example.com/widgets/123'
+      ).dump
+    }
+
+    before do
+      subscription.queue.publish(event)
+    end
+
+    it 'should return the age of the oldest message' do
+      expect(subscription.age_of_oldest_message)
+        .to be_an(Integer)
+    end
   end
 end

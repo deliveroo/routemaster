@@ -32,6 +32,16 @@ describe Routemaster::Controllers::Subscription do
 
     it 'lists all subscriptions with required data points' do
       topic.subscribers.add(subscription)
+      expect(Routemaster::Models::Subscription)
+        .to receive(:each).and_yield(subscription)
+      expect(subscription)
+        .to receive(:topic_names).and_return(['widget'])
+      expect(subscription)
+        .to receive(:age_of_oldest_message).and_return(1000)
+      expect(subscription)
+        .to receive(:all_topics_count).and_return(100)
+      expect(subscription)
+        .to receive_message_chain("queue.message_count").and_return(50)
 
       perform
       resp = JSON(last_response.body)[0]
@@ -42,9 +52,9 @@ describe Routemaster::Controllers::Subscription do
           "callback"   => nil,
           "topics"     => ["widget"],
           "events"     => {
-            "sent"   => 0,
-            "queued" => 0,
-            "oldest" => 0
+            "sent"   => 100,
+            "queued" => 50,
+            "oldest" => 1000
           }
         }
       )

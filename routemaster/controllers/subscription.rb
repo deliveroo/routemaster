@@ -68,7 +68,7 @@ module Routemaster::Controllers
           events: {
             sent: subscription.all_topics_count,
             queued: subscription.queue.message_count,
-            oldest: 0
+            oldest: subscription.age_of_oldest_message
           }
         }
       end

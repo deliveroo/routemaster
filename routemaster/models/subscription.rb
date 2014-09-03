@@ -1,6 +1,7 @@
 require 'routemaster/models/base'
 require 'routemaster/models/callback_url'
 require 'routemaster/models/user'
+require 'routemaster/models/consumer'
 
 module Routemaster::Models
   class Subscription < Routemaster::Models::Base
@@ -77,6 +78,16 @@ module Routemaster::Models
 
     def all_topics_count
       topics.map { |x| x.get_count }.inject{|sum,x| sum + x }
+    end
+
+    def age_of_oldest_message
+      consumer = Routemaster::Models::Consumer.new(self)
+      message = consumer.pop
+      if message.event?
+        age = Routemaster.now - message.event.timestamp
+      end
+      message.nack unless message.nil?
+      age || nil
     end
 
     extend Enumerable

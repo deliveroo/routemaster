@@ -11,7 +11,7 @@ module Routemaster
       include Routemaster::Mixins::Log
       include Routemaster::Mixins::Assert
       include Routemaster::Mixins::Bunny
-
+      
       def initialize(delivery_info, properties, payload)
         @delivery_info = delivery_info
         @properties    = properties
