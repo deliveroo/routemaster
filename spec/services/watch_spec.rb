@@ -20,10 +20,10 @@ describe Routemaster::Services::Watch do
     let(:app) { Routemaster::Application }
 
     around do |example|
-      @old = ENV['EXCEPTION_SERVICE']
+      old = ENV['EXCEPTION_SERVICE']
       ENV['EXCEPTION_SERVICE'] = 'dummy'
       example.run
-      ENV['EXCEPTION_SERVICE'] = @old
+      ENV['EXCEPTION_SERVICE'] = old
     end
 
     shared_examples 'logging' do
