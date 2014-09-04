@@ -4,10 +4,21 @@ require 'sinatra'
 require 'json'
 
 class Routemaster::Controllers::Topics < Sinatra::Base
+  get '/topics' do
+    content_type :json
+    Routemaster::Models::Topic.all.map do |topic|
+      {
+        name: topic.name,
+        publisher: topic.publisher,
+        events: topic.get_count
+      }
+    end.to_json
+  end
+
   post '/topics/:name' do
     begin
       topic = Routemaster::Models::Topic.new(
-        name:       params['name'], 
+        name:       params['name'],
         publisher:  request.env['REMOTE_USER']
       )
     rescue ArgumentError
@@ -37,8 +48,7 @@ class Routemaster::Controllers::Topics < Sinatra::Base
     end
 
     topic.push(event)
-    
+
     halt :ok
   end
 end
-

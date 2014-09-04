@@ -61,4 +61,42 @@ describe Routemaster::Controllers::Topics do
       end
     end
   end
+
+  describe 'GET /topics' do
+    let(:uid) { 'joe-user' }
+    let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
+
+    let(:perform) { get "/topics" }
+
+    before do
+      Routemaster::Models::Topic.new(name: 'widgets', publisher: uid)
+      Routemaster::Models::Topic.new(name: 'dongles', publisher: uid)
+    end
+
+    it 'responds' do
+      perform
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'lists all available topics' do
+      perform
+      response = JSON last_response.body
+      expect(response).to include(
+        {
+          "name" => 'widgets',
+          "publisher" => 'joe-user',
+          "events" => 0
+        }
+      )
+      expect(response).to include(
+        {
+          "name" => 'dongles',
+          "publisher" => 'joe-user',
+          "events" => 0
+        }
+      )
+    end
+
+  end
+
 end
