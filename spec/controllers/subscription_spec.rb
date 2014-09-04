@@ -35,8 +35,6 @@ describe Routemaster::Controllers::Subscription do
       expect(Routemaster::Models::Subscription)
         .to receive(:each).and_yield(subscription)
       expect(subscription)
-        .to receive(:topic_names).and_return(['widget'])
-      expect(subscription)
         .to receive(:age_of_oldest_message).and_return(1000)
       expect(subscription)
         .to receive(:all_topics_count).and_return(100)

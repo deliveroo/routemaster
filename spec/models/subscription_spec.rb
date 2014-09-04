@@ -73,7 +73,7 @@ describe Routemaster::Models::Subscription do
     end
 
     it 'returns an array of associated topics' do
-      expect(subject.topics.map{|x|x.name}).to eql(['properties','photos'])
+      expect(subject.topics.map{|x|x.name}).to eql(['photos','properties'])
     end
   end
 

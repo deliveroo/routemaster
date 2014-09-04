@@ -64,7 +64,7 @@ module Routemaster::Controllers
         @ret << {
           subscriber: subscription.subscriber,
           callback: subscription.callback,
-          topics: subscription.topic_names,
+          topics: subscription.topics.map(&:name),
           events: {
             sent: subscription.all_topics_count,
             queued: subscription.queue.message_count,
@@ -74,6 +74,5 @@ module Routemaster::Controllers
       end
       @ret.to_json
     end
-
   end
 end
