@@ -45,7 +45,7 @@ describe Routemaster::Controllers::Subscription do
       resp = JSON(last_response.body)[0]
 
       expect(resp)
-        .to eql({
+        .to eql([{
           "subscriber" => "charlie",
           "callback"   => nil,
           "topics"     => ["widget"],
@@ -54,7 +54,7 @@ describe Routemaster::Controllers::Subscription do
             "queued" => 50,
             "oldest" => 1000
           }
-        }
+        }]
       )
     end
   end
