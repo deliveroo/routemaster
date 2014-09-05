@@ -8,7 +8,7 @@ module Routemaster::Services::MetricsCollectors
     include Singleton
 
     def perform(name, value, tags)
-      _log_message("#{name}:#{value} (#{tags.join(",")})")
+      _log.info("#{name}:#{value} (#{tags.join(",")})")
     end
 
   end

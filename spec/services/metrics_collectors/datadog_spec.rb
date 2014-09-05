@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'dogapi'
 require 'routemaster/application'
-require 'routemaster/mixins/deliver_metric'
+require 'routemaster/services/deliver_metric'
 require 'routemaster/services/metrics_collectors/datadog'
 require 'core_ext/silence_stream'
 
