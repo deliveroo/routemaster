@@ -3,6 +3,7 @@ require 'routemaster/services'
 
 module Routemaster::Services::MetricsCollectors
   class Datadog
+    include Singleton
 
     def initialize
       require 'dogapi'
