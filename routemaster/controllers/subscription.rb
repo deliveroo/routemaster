@@ -59,9 +59,8 @@ module Routemaster::Controllers
 
     get '/subscriptions' do
       content_type :json
-      payload = []
       payload = Routemaster::Models::Subscription.map do |subscription|
-        payload << {
+        {
           subscriber: subscription.subscriber,
           callback: subscription.callback,
           topics: subscription.topics.map(&:name),

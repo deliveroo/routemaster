@@ -42,7 +42,7 @@ describe Routemaster::Controllers::Subscription do
         .to receive_message_chain("queue.message_count").and_return(50)
 
       perform
-      resp = JSON(last_response.body)[0]
+      resp = JSON(last_response.body)
 
       expect(resp)
         .to eql([{
