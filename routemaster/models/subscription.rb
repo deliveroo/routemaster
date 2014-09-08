@@ -81,7 +81,7 @@ module Routemaster::Models
         age = Routemaster.now - message.event.timestamp
       end
       message.nack unless message.nil?
-      age || nil
+      age || 0
     end
 
     extend Enumerable
