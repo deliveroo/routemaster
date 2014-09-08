@@ -7,9 +7,9 @@ module Routemaster::Services::MetricsCollectors
 
     def initialize
       require 'dogapi'
-
       api_key = ENV.fetch('DATADOG_API_KEY')
-      @dog ||= Dogapi::Client.new(api_key)
+      app_key = ENV.fetch('DATADOG_APP_KEY')
+      @dog ||= Dogapi::Client.new(api_key, app_key)
     rescue KeyError
       abort 'Please install and configure datadog (or equivalent service) first!'
     end
