@@ -22,10 +22,6 @@ module Routemaster::Mixins::Log
     _log.debug { e.backtrace.join("\n") }
   end
 
-  def _log_message(message)
-    _log.info { message }
-  end
-
   private
 
   TIMESTAMP_FORMAT = '%F %T.%L'

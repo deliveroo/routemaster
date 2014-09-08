@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'routemaster/application'
 require 'routemaster/mixins/log'
-require 'routemaster/mixins/deliver_metric'
+require 'routemaster/services/deliver_metric'
 require 'routemaster/services/metrics_collectors/print'
 
 describe Routemaster::Services::MetricsCollectors::Print do
@@ -18,9 +18,7 @@ describe Routemaster::Services::MetricsCollectors::Print do
         'env:test',
         'app:routemaster-test'
       ]
-      expect_any_instance_of(described_class).to receive(:_log_message)
-        .with("#{name}:#{value} (#{tags.join(',')})")
-      subject.perform(name, value, tags)
+      expect{subject.perform(name, value, tags)}.to_not raise_error
     end
 
   end
