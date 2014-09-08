@@ -19,13 +19,13 @@ scheduler.every '1s' do
     Routemaster::Services::DeliverMetric.deliver(
       'subscription.queue.size',
       subscription.queue.message_count,
-      tags
+      tags << ["subscription:#{subscription.subscriber}"]
     )
 
     Routemaster::Services::DeliverMetric.deliver(
       'subscription.queue.staleness',
       subscription.age_of_oldest_message,
-      tags
+      tags << ["subscription:#{subscription.subscriber}"]
     )
   end
 end
