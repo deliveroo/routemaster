@@ -37,7 +37,7 @@ describe Routemaster::Services::MetricsCollectors::Datadog do
           .with(
             "test.metric",
             10.5,
-            {:tags=>["environment:test", ["app:routemaster", "env:test"]]}
+            {:tags=>["app:routemaster", "env:test"]}
           )
 
         subject.perform(name, value, tags)
