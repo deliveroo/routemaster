@@ -7,7 +7,7 @@ module Routemaster::Services::MetricsCollectors
     include Routemaster::Mixins::Log
     include Singleton
 
-    def perform(name, value, tags)
+    def perform(name, value, tags, output = nil)
       _log.info("#{name}:#{value} (#{tags.join(",")})")
     end
 

@@ -71,7 +71,7 @@ module Routemaster::Models
     end
 
     def all_topics_count
-      topics.map { |x| x.get_count }.inject{|sum,x| sum + x }
+      topics.reduce(0) { |sum, topic| sum += topic.get_count }
     end
 
     def age_of_oldest_message

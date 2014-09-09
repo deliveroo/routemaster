@@ -100,13 +100,13 @@ describe Routemaster::Models::Subscription do
     end
 
     it 'should sum the cumulative totals for all associated topics' do
-      expect(subject)
+      allow(subject)
         .to receive(:topics)
         .and_return([properties_topic, property_photos_topic])
-      expect(properties_topic)
+      allow(properties_topic)
         .to receive(:get_count)
         .and_return(100)
-      expect(property_photos_topic)
+      allow(property_photos_topic)
         .to receive(:get_count)
         .and_return(200)
 

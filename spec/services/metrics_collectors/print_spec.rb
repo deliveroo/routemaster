@@ -18,7 +18,7 @@ describe Routemaster::Services::MetricsCollectors::Print do
         'env:test',
         'app:routemaster-test'
       ]
-      expect{subject.perform(name, value, tags)}.to_not raise_error
+      expect(subject.perform(name, value, tags)).to be_truthy
     end
 
   end
