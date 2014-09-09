@@ -6,6 +6,8 @@ representational state notification architectures.
 Routemaster aims to dispatch events with a median latency in the 50-100ms range,
 with no practical upper limit on throughput.
 
+![Build](https://api.travis-ci.org/HouseTrip/routemaster.svg?branch=master)
+
 
 #### Remote procedure call as an antipattern
 
