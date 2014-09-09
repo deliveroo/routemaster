@@ -1,13 +1,14 @@
 require 'routemaster/models/base'
 require 'routemaster/models/callback_url'
 require 'routemaster/models/user'
+require 'routemaster/models/consumer'
 
 module Routemaster::Models
   class Subscription < Routemaster::Models::Base
     TIMEOUT_RANGE = 0..3_600_000
     DEFAULT_TIMEOUT = 500
     DEFAULT_MAX_EVENTS = 100
-    
+
     attr_reader :subscriber
 
     def initialize(subscriber:)
@@ -52,7 +53,7 @@ module Routemaster::Models
 
     def uuid=(value)
       _assert value.kind_of?(String) unless value.nil?
-      _redis.hset(_key, 'uuid', value) 
+      _redis.hset(_key, 'uuid', value)
     end
 
     def uuid
@@ -61,7 +62,27 @@ module Routemaster::Models
 
     def to_s
       "subscription for '#{@subscriber}'"
-    end 
+    end
+
+    def topics
+      Routemaster::Models::Topic.all.select do |t|
+        t.subscribers.map(&:subscriber).include?(self.subscriber)
+      end
+    end
+
+    def all_topics_count
+      topics.map { |x| x.get_count }.inject{|sum,x| sum + x }
+    end
+
+    def age_of_oldest_message
+      consumer = Routemaster::Models::Consumer.new(self)
+      message = consumer.pop
+      if message && message.event?
+        age = Routemaster.now - message.event.timestamp
+      end
+      message.nack unless message.nil?
+      age || nil
+    end
 
     extend Enumerable
 
