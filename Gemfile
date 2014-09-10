@@ -37,7 +37,7 @@ gem 'honeybadger', require: false
 gem 'newrelic_rpm', require: false
 
 # Autoscaling
-gem 'hirefire-resource'
+gem 'hirefire-resource', require: false
 
 group :development do
   # SSL support for local development
