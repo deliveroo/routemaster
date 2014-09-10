@@ -10,6 +10,7 @@ gem 'unicorn'
 
 # application microframework
 gem 'sinatra'
+gem 'sinatra-initializers'
 
 # redirect to SSL, always
 gem 'rack-ssl'
@@ -34,6 +35,9 @@ gem 'honeybadger', require: false
 
 # monitoring
 gem 'newrelic_rpm', require: false
+
+# Autoscaling
+gem 'hirefire-resource'
 
 group :development do
   # SSL support for local development
