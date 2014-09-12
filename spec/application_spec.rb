@@ -28,7 +28,8 @@ describe Routemaster::Application do
     end
 
     it 'delivers the exception' do
-      expect_any_instance_of(app).to receive(:deliver_exception).with(an_instance_of(StandardError))
+      expect_any_instance_of(app).to receive(:deliver_exception)
+        .with(an_instance_of(StandardError))
       perform_fail
     end
 

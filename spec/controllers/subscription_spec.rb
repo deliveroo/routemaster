@@ -42,10 +42,10 @@ describe Routemaster::Controllers::Subscription do
         .to receive_message_chain("queue.message_count").and_return(50)
 
       perform
-      resp = JSON(last_response.body)[0]
+      resp = JSON(last_response.body)
 
       expect(resp)
-        .to eql({
+        .to eql([{
           "subscriber" => "charlie",
           "callback"   => nil,
           "topics"     => ["widget"],
@@ -54,7 +54,7 @@ describe Routemaster::Controllers::Subscription do
             "queued" => 50,
             "oldest" => 1000
           }
-        }
+        }]
       )
     end
   end
