@@ -32,11 +32,11 @@ describe Routemaster::Controllers::Subscription do
 
     it 'lists all subscriptions with required data points' do
       topic.subscribers.add(subscription)
-      expect(Routemaster::Models::Subscription)
+      allow(Routemaster::Models::Subscription)
         .to receive(:each).and_yield(subscription)
-      expect(subscription)
+      allow(subscription)
         .to receive(:age_of_oldest_message).and_return(1000)
-      expect(subscription)
+      allow(subscription)
         .to receive(:all_topics_count).and_return(100)
       expect(subscription)
         .to receive_message_chain("queue.message_count").and_return(50)
