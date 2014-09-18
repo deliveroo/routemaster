@@ -10,6 +10,7 @@ gem 'unicorn'
 
 # application microframework
 gem 'sinatra'
+gem 'sinatra-initializers'
 
 # redirect to SSL, always
 gem 'rack-ssl'
@@ -40,6 +41,9 @@ gem 'rufus-scheduler', require: false
 
 # metric collection
 gem 'dogapi', require: false
+
+# Autoscaling
+gem 'hirefire-resource', require: false
 
 group :development do
   # SSL support for local development

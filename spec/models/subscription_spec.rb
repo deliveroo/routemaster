@@ -136,7 +136,7 @@ describe Routemaster::Models::Subscription do
     it 'should return the age of the oldest message' do
       sleep(1)
       expect(subscription.age_of_oldest_message)
-        .to be_within(10).of(1000)
+        .to be_within(20).of(1000)
     end
   end
 end

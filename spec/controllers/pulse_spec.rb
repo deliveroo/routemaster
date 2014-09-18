@@ -8,6 +8,11 @@ describe Routemaster::Controllers::Pulse do
   let(:perform) { get '/pulse' }
 
   context 'when all is fine' do
+
+    before do
+      allow(described_class).to receive(:_bunny_alive?).and_return(true)
+    end
+    
     it 'succeeds' do
       perform
       expect(last_response.status).to eq(204)
