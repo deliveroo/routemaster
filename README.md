@@ -6,7 +6,7 @@ representational state notification architectures.
 Routemaster aims to dispatch events with a median latency in the 50-100ms range,
 with no practical upper limit on throughput.
 
-![Build](https://api.travis-ci.org/HouseTrip/routemaster.svg?branch=master)
+[![Build](https://api.travis-ci.org/HouseTrip/routemaster.svg?branch=master)](https://travis-ci.org/HouseTrip/routemaster)
 
 
 #### Remote procedure call as an antipattern
@@ -177,14 +177,14 @@ push to a given topic will see their requests met with errors.
 
     >> POST /topics/:name
     >> {
-    >>   event: <type>,
+    >>   type:  <type>,
     >>   url:   <url>
     >> }
 
 `:name` is limited to 32 characters (lowercase letters and the underscore
 character).
 
-`<type>` is one of `created`, `updated`, `deleted`, or `noop`.
+`<type>` is one of `create`, `update`, `delete`, or `noop`.
 
 The use case `noop` is to broadcast information about all entities of a concept,
 e.g. to newly created/connected subscribers. For instance, when connecting a new
@@ -194,7 +194,7 @@ entity, this extra event can be sent for all currently existing entities.
 
 
 `<url>` is the authoritative URL for the entity corresponding to the event
-(maximum 1024 characters).
+(maximum 1024 characters, must use HTTPS scheme).
 
 The response is always empty (no body). Possible statuses (besides
 authentication-related):
@@ -251,14 +251,15 @@ Otherwise, they will be resent at the next interval.
     >> [
     >>   {
     >>     topic: <name>,
-    >>     event: <type>,
+    >>     type:  <type>,
     >>     url:   <url>,
     >>     t:     <t>
     >>   },
     >>   ...
     >> ]
 
-`<t>` is the timestamp at which the event was originally received.
+`<t>` is the timestamp at which the event was originally received, in
+milliseconds since the UTC Epoch.
 
 Possible response statuses:
 
