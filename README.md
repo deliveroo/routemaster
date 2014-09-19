@@ -15,8 +15,8 @@ Routemaster is designed on purpose to _not_ support RPC-style architectures, for
 instance by severely limiting payload contents.
 
 The rationale is that, much like it's all too easy to add non-RESTful routes to
-a web application, it's all too easy to damage a microservice architecture by
-building function across services, thus coupling them too tightly.
+a web application, it's all too easy to damage a resource-oriented architecture by
+spreading concerns across applications, thus coupling them too tightly.
 
 
 #### Leverage HTTP to scale
@@ -59,7 +59,7 @@ until they become reachable again.
 per domain concept, e.g. `properties`, `bookings`, `users`.
 
 Only one client may publish/push to a topic (and it should be the
-authoritative service for the concept).
+authoritative application for the concept).
 
 Each topic fans out to multiple *subscriptionss* which are where the outbound
 events pile in.
@@ -82,7 +82,7 @@ Environment variables:
 * For other settings check the ```.env``` files
 
 #### Development
-To get this service up and running you will need the following tools:
+To get this application up and running you will need the following tools:
 
 * redis
   * `brew install redis`
@@ -141,7 +141,7 @@ You can register your app to Routemaster and provide as a callback url for event
 
 #### Running it
 
-To run the Routemaster service locally you can use the **foreman** tool:
+To run the Routemaster application locally you can use the **foreman** tool:
 ```
 foreman start
 ```
@@ -188,7 +188,7 @@ character).
 
 The use case `noop` is to broadcast information about all entities of a concept,
 e.g. to newly created/connected subscribers. For instance, when connecting a new
-service for the first time, a typical use case is to perform an "initial sync".
+application for the first time, a typical use case is to perform an "initial sync".
 Given create, update, delete are only sent on changes in the lifecycle of the
 entity, this extra event can be sent for all currently existing entities.
 
@@ -320,9 +320,9 @@ We've decided to leave this choice up to you but we have added examples for the 
 
 You can if you wish just have these send to `stdout` if no credentials are set.
 
-It should be quick and easy to get this, or another service up and running in no time.
+It should be quick and easy to get this, or another application up and running in no time.
 
-- configure the service
+- configure the application
   - set the two environment variables `EXCEPTION_SERVICE` and `EXCEPTION_SERVICE_URL`
 
 - create a new logger service in `services/exception_loggers` named as set in `ENV['EXCEPTION_SERVICE']`
