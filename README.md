@@ -79,7 +79,7 @@ Environment variables:
 * `ROUTEMASTER_CLIENTS` - the allow UUIDs
   * only "demo" by default
 * `ROUTEMASTER_MONITORS`
-* For other settings check the ```.env``` files
+* For other settings check the `.env` files
 
 #### Development
 To get this application up and running you will need the following tools:
@@ -94,11 +94,12 @@ To get this application up and running you will need the following tools:
   * If you want to run it manually - `rabbitmq-server`
 
 Routemaster needs to have a RabbitMQ virtual host to connect to.
-By default this is going to be called routemaster.development
+By default this is going to be called `routemaster.development`.
 
-- Check if RabbitMQ is running by pointing your browser to http://localhost:15672/#/
+- Check if RabbitMQ is running by pointing your browser to [http://localhost:15672/#/](http://localhost:15672/#/)
 - Login with guest/guest
-- Go to admin => Virtual hosts => add a new virtual host called routemaster.development
+- Go to _Admin => Virtual Hosts_ and add a _New virtual host_ named `routemaster.development`
+- Click on the newly added virtual host and add the guest user with the default permissions
 
 Routemaster only accepts HTTPS calls.
 To get around this restriction on development we can create a tunnel such that
