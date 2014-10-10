@@ -61,7 +61,7 @@ per domain concept, e.g. `properties`, `bookings`, `users`.
 Only one client may publish/push to a topic (and it should be the
 authoritative application for the concept).
 
-Each topic fans out to multiple *subscriptionss* which are where the outbound
+Each topic fans out to multiple *subscriptions* which are where the outbound
 events pile in.
 Each pulling client (subscriber) has exactly one subscription queue which
 aggregates events from multiple topics.
