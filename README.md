@@ -112,19 +112,20 @@ sudo tunnels 127.0.0.1:443 127.0.0.1:80
 
 This command creates a tunnel between port 443 (the default SSL port) and your 80 port.
 
-This is not enough since you need to forward the calls arriving at port 80 to the actual routemaster port.
-We can use http://pow.cx/ to do that.
+This is not enough since you need to forward the calls arriving at port 80 to the actual routemaster port, the default is 15672.
+
+We can use [Pow](http://pow.cx/) to do that.
 
 - Install it here https://github.com/basecamp/pow
-- Configure Port Proxying to to forward requests arriving at http://localhost:80 to http://routemaster.dev:<routemaster_port>.
+- Configure Port Proxying to to forward requests arriving at http://localhost:80 to http://routemaster.dev:15672.
 
 This last step is as simple as creating a file with a port number in the .pow folder
 
 ```
-$ echo <routemaster_port> > ~/.pow/routemaster
+$ echo 15672 > ~/.pow/routemaster
 ```
 
-Now all your calls to `https://routemaster.dev` should correctly arrive to `http://127.0.0.1:<routemaster_port>`.
+Now all your calls to `https://routemaster.dev` should correctly arrive at `http://127.0.0.1:15672`.
 
 You will probably need Routemaster to contact your app on HTTPS to deliver events.
 To do that just repeat the POW step to add a Port Proxying to your app.
