@@ -16,10 +16,20 @@ describe Routemaster::Controllers::Topics do
       url:  'https://example.com/widgets/123'
     }}
     let(:payload) { data.to_json }
+    let(:logger)  { double(info: true) }
+
+    before do
+      allow_any_instance_of(described_class).to receive(:_log).and_return(logger)
+    end
 
     it 'responds ok' do
       perform
       expect(last_response).to be_ok
+    end
+
+    it 'logs the received event' do
+      expect_any_instance_of(described_class).to receive(:_log).and_return(logger)
+      perform
     end
 
     it 'pushes the event' do
