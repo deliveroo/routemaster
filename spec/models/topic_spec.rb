@@ -88,9 +88,16 @@ describe Routemaster::Models::Topic do
     end
     let(:event) { Routemaster::Models::Event.new(**options) }
 
+    before { allow(subject).to receive(:log_event) }
+
     it 'increments the topic counter' do
       expect{ subject.push(event) }
         .to change{ subject.get_count }.by(1)
+    end
+
+    it 'logs all events' do
+      expect(subject).to receive(:log_event).exactly(3).times
+      subject.push(event)
     end
   end
 end

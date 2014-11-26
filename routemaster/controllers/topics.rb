@@ -4,6 +4,8 @@ require 'sinatra'
 require 'json'
 
 class Routemaster::Controllers::Topics < Sinatra::Base
+  include Routemaster::Mixins::Log
+
   get '/topics' do
     content_type :json
     Routemaster::Models::Topic.all.map do |topic|
@@ -16,6 +18,10 @@ class Routemaster::Controllers::Topics < Sinatra::Base
   end
 
   post '/topics/:name' do
+    raw_data = request.body.read
+
+    _log.info { "Received event for #{raw_data}" }
+
     begin
       topic = Routemaster::Models::Topic.new(
         name:       params['name'],
@@ -28,7 +34,7 @@ class Routemaster::Controllers::Topics < Sinatra::Base
     end
 
     begin
-      event_data = JSON.parse(request.body.read)
+      event_data = JSON.parse(raw_data)
     rescue JSON::ParserError
       halt 400, 'misformated JSON'
     end
