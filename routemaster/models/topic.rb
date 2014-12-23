@@ -51,14 +51,8 @@ module Routemaster::Models
 
     def push(event)
       _assert event.kind_of?(Event), 'can only push Event'
-
-      log_event('Pushing event to redis', event)
       _redis.hset(_key, 'last_event', event.dump)
-
-      log_event('Pushed to redis, publishing to Rabbitmq', event)
       _exchange.publish(event.dump, persistent: true)
-
-      log_event('Published to Rabbitmq', event)
       increment_count
     end
 
@@ -77,10 +71,6 @@ module Routemaster::Models
     end
 
     private
-
-    def log_event(message, event)
-      _log.info { "#{message}: #{event.topic} - #{event.type} - #{event.url}" }
-    end
 
     def increment_count
       _redis.incr(topic_counter_name)
