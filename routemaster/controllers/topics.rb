@@ -16,6 +16,7 @@ class Routemaster::Controllers::Topics < Sinatra::Base
   end
 
   post '/topics/:name' do
+
     begin
       topic = Routemaster::Models::Topic.new(
         name:       params['name'],
@@ -33,15 +34,16 @@ class Routemaster::Controllers::Topics < Sinatra::Base
       halt 400, 'misformated JSON'
     end
 
-    if event_data.keys.sort != %w(type url)
+    if !event_data.has_key?('type') || !event_data.has_key?('url')
       halt 400, 'bad event'
     end
 
     begin
       event = Routemaster::Models::Event.new(
         topic: params['name'],
-        type:  event_data['type'],
-        url:   event_data['url']
+        type:  event_data.fetch('type'),
+        url:   event_data.fetch('url'),
+        timestamp: event_data.fetch('timestamp', nil)
       )
     rescue ArgumentError
       halt 400, 'bad event'
