@@ -30,6 +30,19 @@ describe Routemaster::Controllers::Topics do
       expect(last_event.url).to  eq('https://example.com/widgets/123')
     end
 
+    context 'when supplying a timestamp' do
+      let(:data) {{
+        type: 'create',
+        url:  'https://example.com/widgets/123',
+        timestamp: Time.now.to_f
+      }}
+
+      it 'responds ok' do
+        perform
+        expect(last_response).to be_ok
+      end
+    end
+
     describe '(error cases)' do
       it 'returns 400 on bad JSON' do
         payload.replace('whatever')
