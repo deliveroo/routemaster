@@ -1,6 +1,6 @@
 require 'dotenv'
-Dotenv.load!('.env.test')
 Dotenv.load!('.env')
+Dotenv.overload('.env.test')
 
 require 'pry'
 require 'pry-remote'

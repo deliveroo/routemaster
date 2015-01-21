@@ -14,3 +14,6 @@
 
 # Ignore CTags data
 tags
+
+# ignore local env configuration
+.env.local
