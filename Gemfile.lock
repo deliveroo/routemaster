@@ -12,7 +12,7 @@ GEM
   specs:
     addressable (2.3.6)
     amq-protocol (1.9.2)
-    bunny (1.4.0)
+    bunny (1.6.3)
       amq-protocol (>= 1.9.2)
     celluloid (0.15.2)
       timers (~> 1.1.0)
