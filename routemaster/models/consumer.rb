@@ -10,14 +10,14 @@ module Routemaster
     # thus abstracting the Bunny/RabbitMQ API.
     class Consumer
       include Routemaster::Mixins::Log
-      
+
       def initialize(subscription)
         @subscription = subscription
       end
 
-      
+
       def pop
-        info, props, payload = @subscription.queue.pop(ack: true)
+        info, props, payload = @subscription.queue.pop(manual_ack: true)
         return if info.nil? && props.nil? && payload.nil?
         Message.new(info, props, payload)
       end
