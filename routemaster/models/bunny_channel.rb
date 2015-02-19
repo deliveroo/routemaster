@@ -9,6 +9,13 @@ module Routemaster
 
       def method_missing(method, *args, &block)
         _channel.send(method, *args, &block)
+      rescue Timeout::Error
+        attempts_left ||= 2
+        raise if attempts_left < 1
+
+        attempts_left -= 1
+        disconnect
+        retry
       end
 
       def respond_to?(method, include_all = false)
