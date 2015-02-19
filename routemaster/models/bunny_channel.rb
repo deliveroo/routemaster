@@ -19,13 +19,16 @@ module Routemaster
         @_connection.close if @_connection
         @_connection = nil
       end
-      
+
       private
 
       def _channel
         if @_connection.nil? || @_connection.closed? || @_connection.closing?
           @_channel = nil
-          @_connection = Bunny.new(ENV['ROUTEMASTER_AMQP_URL']).start
+          @_connection = Bunny.new(
+            ENV['ROUTEMASTER_AMQP_URL'],
+            continuation_timeout: continuation_timeout
+          ).start
         end
 
         if @_channel.nil? || @_channel.closed?
@@ -33,6 +36,13 @@ module Routemaster
         end
 
         @_channel
+      end
+
+      def continuation_timeout
+        ENV.fetch(
+          'BUNNY_CONTINUATION_TIMEOUT',
+          Bunny::Session::DEFAULT_CONTINUATION_TIMEOUT
+        ).to_i
       end
     end
   end
