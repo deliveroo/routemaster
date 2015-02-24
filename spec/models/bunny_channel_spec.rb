@@ -63,36 +63,40 @@ describe Routemaster::Models::BunnyChannel do
     end
   end
 
-  context 'on timeout' do
-    context 'raises error only once' do
-      before do
-        @times_called = 0
+  [Timeout::Error, Bunny::ConnectionClosedError].each do |type_of_error|
+    context "on #{type_of_error}" do
+      context 'raises error only once' do
+        before do
+          times_called = 0
 
-        allow(Bunny).to receive(:new) do
-          @times_called += 1
+          allow(Bunny).to receive(:new) do
+            times_called += 1
 
-          if @times_called == 1
-            raise Timeout::Error
-          else
-            session
+            if times_called == 1
+              raise type_of_error, 'message'
+            else
+              session
+            end
           end
         end
+
+        it 'should disconnect before reconnecting' do
+          expect(subject).to receive(:disconnect).once
+          subject.mocked_method
+        end
+
+        it { expect { subject.mocked_method }.to_not raise_error }
       end
 
-      it 'should disconnect before reconnecting' do
-        expect(subject).to receive(:disconnect).once
-        subject.mocked_method
+      context 'after three timeouts' do
+        before do
+          allow(Bunny).to receive(:new).exactly(3).times.and_raise(
+            type_of_error.new('message')
+          )
+        end
+
+        it { expect { subject.mocked_method }.to raise_error(type_of_error) }
       end
-
-      it { expect { subject.mocked_method }.to_not raise_error }
-    end
-
-    context 'after three timeouts' do
-      before do
-        allow(Bunny).to receive(:new).exactly(3).times.and_raise(Timeout::Error)
-      end
-
-      it { expect { subject.mocked_method }.to raise_error(Timeout::Error) }
     end
   end
 end
