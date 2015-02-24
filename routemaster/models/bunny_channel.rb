@@ -9,7 +9,7 @@ module Routemaster
 
       def method_missing(method, *args, &block)
         _channel.send(method, *args, &block)
-      rescue Timeout::Error
+      rescue Timeout::Error, Bunny::ConnectionClosedError
         attempts_left ||= 2
         raise if attempts_left < 1
 
