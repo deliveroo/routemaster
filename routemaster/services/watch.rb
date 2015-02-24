@@ -3,7 +3,6 @@ require 'routemaster/mixins/assert'
 require 'routemaster/mixins/log_exception'
 require 'routemaster/models/subscription'
 require 'routemaster/services/receive'
-require 'core_ext/safe_thread'
 require 'core_ext/math'
 
 module Routemaster::Services

@@ -5,7 +5,6 @@ require 'spec/support/dummy'
 require 'routemaster/application'
 require 'routemaster/services/watch'
 require 'routemaster/models/subscription'
-require 'core_ext/safe_thread'
 require 'timeout'
 
 describe Routemaster::Services::Watch do
