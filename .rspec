@@ -1,3 +1,4 @@
 -I.
 --color
+--profile
 --format progress

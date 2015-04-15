@@ -1,6 +1,3 @@
-ENV['RACK_ENV'] = 'test'
-
-require 'rspec'
 require 'rack/test'
 
 # Makes Rack::Test think we always use SSL
@@ -15,7 +12,7 @@ RSpec.configure do |conf|
 end
 
 class AuthenticatedApp
-  def initialize(app, uid: uid)
+  def initialize(app, uid:)
     @uid = uid
     @app = app
   end

@@ -7,12 +7,11 @@ module Routemaster::Services::ExceptionLoggers
 
     def initialize
       require 'honeybadger'
-
-      ::Honeybadger.configure do |config|
-        config.api_key = ENV.fetch('HONEYBADGER_API_KEY')
-        config.development_environments = %w(development test)
-        config.environment_name = ENV.fetch('RACK_ENV', 'development')
-      end
+      honeybadger_config = ::Honeybadger::Config.new(
+        env: ENV['RACK_ENV'],
+        api_key: ENV.fetch('HONEYBADGER_API_KEY')
+      )
+      ::Honeybadger.start(honeybadger_config)
     rescue KeyError
       abort 'Please install and configure honeybadger (or equivalent service) first!'
     end
