@@ -14,7 +14,15 @@ describe Routemaster::Services::ExceptionLoggers::Honeybadger do
 
     before { Singleton.__init__(described_class) }
 
+    around do |example|
+      api_key = ENV['HONEYBADGER_API_KEY']
+      example.run
+      ENV['HONEYBADGER_API_KEY'] = api_key
+    end
+
     context 'when the api key is missing' do
+      before { ENV.delete 'HONEYBADGER_API_KEY' }
+
       it 'should raise exception' do
         STDERR.silence_stream do
           expect { subject.process(error) }.to raise_error(SystemExit)
@@ -23,9 +31,6 @@ describe Routemaster::Services::ExceptionLoggers::Honeybadger do
     end
 
     context 'when the configuration is set properly' do
-      before { ENV['HONEYBADGER_API_KEY'] = 'api_key_super_secret' }
-      after  { ENV.delete 'HONEYBADGER_API_KEY' }
-
       it 'should send a notification to Honeybadger' do
         expect(Honeybadger).to receive(:notify).with(error)
 
