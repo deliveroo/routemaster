@@ -12,7 +12,7 @@ RSpec.configure do |conf|
 end
 
 class AuthenticatedApp
-  def initialize(app, uid: _uid)
+  def initialize(app, uid:)
     @uid = uid
     @app = app
   end
