@@ -3,8 +3,8 @@
 **Routemaster** is an opinionated event bus over HTTP, supporting event-driven /
 representational state notification architectures.
 
-Routemaster aims to dispatch events with a median latency in the 50-100ms range,
-with no practical upper limit on throughput.
+Routemaster aims to dispatch events with a median latency in the 50 - 100ms
+range, with no practical upper limit on throughput.
 
 [![Build](https://api.travis-ci.org/HouseTrip/routemaster.svg?branch=master)](https://travis-ci.org/HouseTrip/routemaster)
 
