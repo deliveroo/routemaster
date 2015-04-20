@@ -44,7 +44,6 @@ GEM
     guard-rspec (4.3.1)
       guard (~> 2.1)
       rspec (>= 2.14, < 4.0)
-    hashie (3.3.1)
     hiredis (0.5.2)
     hirefire-resource (0.3.5)
     honeybadger (2.0.11)
@@ -95,10 +94,8 @@ GEM
     rufus-scheduler (3.0.9)
       tzinfo
     safe_yaml (1.0.4)
-    sentry-raven (0.9.4)
+    sentry-raven (0.13.1)
       faraday (>= 0.7.6)
-      hashie (>= 1.1.0)
-      uuidtools
     sinatra (1.4.6)
       rack (~> 1.4)
       rack-protection (~> 1.4)
@@ -118,7 +115,6 @@ GEM
       kgio (~> 2.6)
       rack
       raindrops (~> 0.7)
-    uuidtools (2.1.5)
     webmock (1.18.0)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
