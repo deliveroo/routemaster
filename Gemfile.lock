@@ -74,7 +74,7 @@ GEM
     pry-remote (0.1.8)
       pry (~> 0.9)
       slop (~> 3.0)
-    rack (1.6.1)
+    rack (1.6.2)
     rack-protection (1.5.3)
       rack
     rack-ssl (1.4.1)
