@@ -69,6 +69,11 @@ class Routemaster::Services::Deliver
     @_conn ||= Faraday.new(@subscription.callback) do |c|
       c.adapter Faraday.default_adapter
       c.basic_auth(@subscription.uuid, 'x')
+      if ENV.has_key?('DELIVERY_TIMEOUT')
+        c.options.timeout =
+          c.options.open_timeout =
+            ENV.fetch('DELIVERY_TIMEOUT').to_f
+      end
     end
   end
 end
