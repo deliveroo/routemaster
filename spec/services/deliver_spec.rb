@@ -85,7 +85,17 @@ describe Routemaster::Services::Deliver do
           stub_request(:post, callback_auth).to_return(status: 500)
         end
 
-        it 'raises an exception' do
+        it 'raises a CantDeliver exception' do
+          expect { perform }.to raise_error(described_class::CantDeliver)
+        end
+      end
+
+      context "when the callback times out" do
+        before do
+          stub_request(:post, callback_auth).to_timeout
+        end
+
+        it 'raises a CantDeliver exception' do
           expect { perform }.to raise_error(described_class::CantDeliver)
         end
       end
@@ -103,7 +113,7 @@ describe Routemaster::Services::Deliver do
         expect(a_request(:any, callback_auth)).not_to have_been_made
       end
 
-      it 'returns flasy' do
+      it 'returns falsy' do
         expect(perform).to eq(false)
       end
     end

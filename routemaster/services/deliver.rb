@@ -34,9 +34,14 @@ class Routemaster::Services::Deliver
     end
 
     # send data
-    response = _conn.post do |post|
-      post.headers['Content-Type'] = 'application/json'
-      post.body = data.to_json
+    response = begin
+      _conn.post do |post|
+        post.headers['Content-Type'] = 'application/json'
+        post.body = data.to_json
+      end
+    rescue Faraday::TimeoutError
+      _log.warn { "timed out delivering #{@buffer.length} events to '#{@subscription.subscriber}'" }
+      raise CantDeliver.new('delivery failure')
     end
 
     if response.success?
