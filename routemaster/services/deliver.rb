@@ -34,14 +34,9 @@ class Routemaster::Services::Deliver
     end
 
     # send data
-    response = begin
-      _conn.post do |post|
-        post.headers['Content-Type'] = 'application/json'
-        post.body = data.to_json
-      end
-    rescue Faraday::TimeoutError
-      _log.warn { "timed out delivering #{@buffer.length} events to '#{@subscription.subscriber}'" }
-      raise CantDeliver.new('delivery failure')
+    response = _conn.post do |post|
+      post.headers['Content-Type'] = 'application/json'
+      post.body = data.to_json
     end
 
     if response.success?
@@ -69,11 +64,6 @@ class Routemaster::Services::Deliver
     @_conn ||= Faraday.new(@subscription.callback) do |c|
       c.adapter Faraday.default_adapter
       c.basic_auth(@subscription.uuid, 'x')
-      if ENV.has_key?('DELIVERY_TIMEOUT')
-        c.options.timeout =
-          c.options.open_timeout =
-            ENV.fetch('DELIVERY_TIMEOUT').to_f
-      end
     end
   end
 end

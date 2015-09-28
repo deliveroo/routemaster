@@ -6,7 +6,6 @@ services:
 - rabbitmq
 script:
 - bundle exec rspec
-sudo: false
 install:
 - "./rebund/run download"
 - bundle install --path vendor/bundle
