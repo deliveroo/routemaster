@@ -80,7 +80,7 @@ GEM
       rack (>= 1.0)
     raindrops (0.15.0)
     rb-fsevent (0.9.7)
-    rb-inotify (0.9.6)
+    rb-inotify (0.9.7)
       ffi (>= 0.5.0)
     redis (3.2.2)
     rspec (3.4.0)
