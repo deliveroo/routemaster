@@ -21,11 +21,11 @@ describe Routemaster::Models::Subscription do
     end
 
     it 'rejects strings' do
-      expect { subject.timeout = '123' }.to raise_error
+      expect { subject.timeout = '123' }.to raise_error(ArgumentError)
     end
 
     it 'rejects negatives' do
-      expect { subject.timeout = -123 }.to raise_error
+      expect { subject.timeout = -123 }.to raise_error(ArgumentError)
     end
 
   end

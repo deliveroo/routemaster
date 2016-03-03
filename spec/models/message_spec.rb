@@ -12,7 +12,7 @@ describe Routemaster::Models::Message do
       url:   'https://example.com/widgets/123'
     ).dump
   }
-  
+
   before { allow(subject).to receive(:bunny).and_return(bunny) }
 
   subject { described_class.new(delivery_info, properties, payload) }
@@ -44,7 +44,7 @@ describe Routemaster::Models::Message do
     end
   end
 
-  describe 'event' do 
+  describe 'event' do
     it 'is nil for non-events' do
       payload.replace 'kill'
       expect(subject.event).to be_nil
@@ -79,7 +79,7 @@ describe Routemaster::Models::Message do
 
     it 'fails if nack has been called' do
       subject.public_send(other)
-      expect { subject.public_send(method) }.to raise_error
+      expect { subject.public_send(method) }.to raise_error(ArgumentError)
     end
   end
 

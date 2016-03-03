@@ -4,7 +4,7 @@ require 'routemaster/models/subscription'
 require 'core_ext/math'
 
 describe Routemaster::Services::Receive do
-  
+
   let(:subscription) {
     Routemaster::Models::Subscription.new(subscriber: 'alice')
   }
@@ -65,7 +65,7 @@ describe Routemaster::Services::Receive do
 
       it 'acks the message' do
         expect(messages.first).to receive(:ack)
-        expect { subject.run }.to raise_error
+        expect { subject.run }.to raise_error(Routemaster::Services::Receive::KillError)
       end
 
       it 'raises KillError' do
