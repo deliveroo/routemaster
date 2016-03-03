@@ -5,6 +5,7 @@ require 'rack/ssl'
 require 'routemaster/middleware/authentication'
 require 'routemaster/controllers/pulse'
 require 'routemaster/controllers/topics'
+require 'routemaster/controllers/health'
 require 'routemaster/controllers/subscription'
 require 'routemaster/mixins/log_exception'
 require 'hirefire-resource' if ENV['AUTOSCALE_WITH'] == 'hirefire'
@@ -20,6 +21,8 @@ class Routemaster::Application < Sinatra::Base
 
   use Rack::SSL
   use HireFire::Middleware if ENV['AUTOSCALE_WITH'] == 'hirefire'
+  use Routemaster::Controllers::Health
+
   use Routemaster::Middleware::Authentication
   use Routemaster::Controllers::Pulse
   use Routemaster::Controllers::Topics
