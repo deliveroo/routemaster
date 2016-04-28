@@ -8,6 +8,9 @@ range, with no practical upper limit on throughput.
 
 [![Build](https://api.travis-ci.org/HouseTrip/routemaster.svg?branch=master)](https://travis-ci.org/HouseTrip/routemaster)
 
+Routemaster comes with, and is automatically integration-tested against 
+a Ruby client,
+[routemaster-client](https://github.com/HouseTrip/routemaster-client).
 
 #### Remote procedure call as an antipattern
 
@@ -336,11 +339,6 @@ It should be quick and easy to get this, or another application up and running i
 
 ### Post-MVP Roadmap
 
-Client library:
-
-- `routemaster-client` gem to wrap publication is a Ruby API and provide a
-  mountable (Rack?) app to receive inbound events.
-
 Latency improvements:
 
 - Option to push events to subscribers over routermaster-initiated long-polling requests
@@ -354,6 +352,19 @@ Monitoring:
 
 - Separate monitoring application, with a UI, consuming the monitoring API and
   pushing to Statsd.
+
+Data payloads:
+
+- Some use cases for transmitting (partial) representations over the event bus
+  are valid (e.g. for audit trails, all intermediary representations must be
+  know).
+
+Support for sending-side autoscaling:
+
+- The _watch_ currently is single-threaded, and running it in parallel loses the
+  in-order delivery capability.
+  We plan to address this with (optional) subscribed locking in the _watch_.
+- Support for HireFire-based autoscaling of _watch_ processes.
 
 
 --------------------------------------------------------------------------------
