@@ -155,6 +155,26 @@ This will start both the **web** and **watch** processes. Keep in mind that the
 default web port that the **web** process will listen to is defined in the .env
 file.
 
+
+### Scaling Routemaster out
+
+1. Allowing Routemastear to _receive_ more events:<br>
+   This requires to scale the HTTP frontend. We recommend using
+   [HireFire](https://hirefire.io/) to auto-scale the _web_ process in the
+   Procfile.
+2. Allowing Routemaster to _deliver_ more events:<br>
+   This require running multiple instances of the _watch_ process.
+   No auto-scaling mechanism is currently provided, so we recommend running the
+   number of processes you'll require at peak.<br>
+   Note that:
+    - event delivery is bounded by the ability of subscribers to process them.
+      Poorly-written subscribers can cause timeouts in delivery, potentially
+      causing buffering overflows.
+    - if multiple _watch_ processes are run in parallel, there is no more
+      guarantee of in-order event delivery (currently).
+3. Allowing Routemaster to _buffer_ more events:<br>
+   This requires scaling the underlying RabbitMQ server.
+
 --------------------------------------------------------------------------------
 
 ### API
