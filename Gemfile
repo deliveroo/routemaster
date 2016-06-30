@@ -64,5 +64,5 @@ group :development do
   gem 'pry-remote'
 
   # testing against the client
-  gem 'routemaster-client', git: 'https://github.com/HouseTrip/routemaster_client.git'
+  gem 'routemaster-client'
 end
