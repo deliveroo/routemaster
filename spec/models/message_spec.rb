@@ -65,40 +65,4 @@ describe Routemaster::Models::Message do
       end
     end
   end
-
-  # shared_examples 'ack and nack' do |method, other|
-  #   it "#{method}s the message" do
-  #     expect(bunny).to receive(method)
-  #     subject.public_send(method)
-  #   end
-
-  #   it 'can be called twice' do
-  #     subject.public_send(method)
-  #     expect { subject.public_send(method) }.not_to raise_error
-  #   end
-
-  #   it 'acks only once' do
-  #     expect(bunny).to receive(method).once
-  #     2.times { subject.public_send(method) }
-  #   end
-
-  #   it 'passes for non-events' do
-  #     payload.replace 'kill'
-  #     expect(bunny).to receive(method)
-  #     subject.public_send(method)
-  #   end
-
-  #   it 'fails if nack has been called' do
-  #     subject.public_send(other)
-  #     expect { subject.public_send(method) }.to raise_error(ArgumentError)
-  #   end
-  # end
-
-  # describe '#ack' do
-  #   it_should_behave_like 'ack and nack', :ack, :nack
-  # end
-
-  # describe '#nack' do
-  #   it_should_behave_like 'ack and nack', :nack, :ack
-  # end
 end

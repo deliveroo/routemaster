@@ -3,9 +3,9 @@
 Routemaster runs as 2 processes (see `Procfile`):
 
 - `web`, which serves the HTTP API. In particular, it receives events and stores
-  them in RabbitMQ.
+  them in Redis.
 
-- `watch`, which listens to RabbitMQ for events and eventually dispatches them
+- `watch`, which listens to Redis for events and eventually dispatches them
   to subscribers over HTTP.
 
 ### Web process

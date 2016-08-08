@@ -92,18 +92,6 @@ To get this application up and running you will need the following tools:
   * `brew install redis`
   * Just let it run with default settings
   * If you want to run it manually - `redis-server`
-* RabbitMQ
-  * `brew install rabbitmq`
-  * Just let it run with default settings
-  * If you want to run it manually - `rabbitmq-server`
-
-Routemaster needs to have a RabbitMQ virtual host to connect to.
-By default this is going to be called `routemaster.development`.
-
-- Check if RabbitMQ is running by pointing your browser to [http://localhost:15672/#/](http://localhost:15672/#/)
-- Login with guest/guest
-- Go to _Admin => Virtual Hosts_ and add a _New virtual host_ named `routemaster.development`
-- Click on the newly added virtual host and add the guest user with the default permissions
 
 Routemaster only accepts HTTPS calls.
 To get around this restriction on development we can create a tunnel such that
@@ -156,9 +144,9 @@ default web port that the **web** process will listen to is defined in the .env
 file.
 
 
-### Scaling Routemaster out
+### Scaling Routemaster
 
-1. Allowing Routemastear to _receive_ more events:<br>
+1. Allowing Routemaster to _receive_ more events:<br>
    This requires to scale the HTTP frontend. We recommend using
    [HireFire](https://hirefire.io/) to auto-scale the _web_ process in the
    Procfile.
@@ -173,7 +161,7 @@ file.
     - if multiple _watch_ processes are run in parallel, there is no more
       guarantee of in-order event delivery (currently).
 3. Allowing Routemaster to _buffer_ more events:<br>
-   This requires scaling the underlying RabbitMQ server.
+   This requires scaling the underlying Redis server.
 
 --------------------------------------------------------------------------------
 
