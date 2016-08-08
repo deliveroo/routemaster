@@ -19,13 +19,13 @@ module Routemaster
       end
 
       def pop
-        # TODO: convert to Lua
-        uid = _redis.rpop(_new_uuids_key)
+        uid, payload = _lua_run(
+          'queue_pop',
+          keys: [_new_uuids_key, _pending_uuids_key, _payloads_key],
+          argv: [Routemaster.now])
+
         return if uid.nil?
 
-        _redis.zadd(_pending_uuids_key, Routemaster.now, uid)
-
-        payload = _redis.hget(_payloads_key, uid)
         if payload.nil?
           _log.error { "missing payload for message #{uid} in queue #{@subscription.subscriber}" }
           return
@@ -36,18 +36,14 @@ module Routemaster
 
       # Acknowledge a message, permanently removing it form the queue
       def ack(message)
-        # TODO: convert to Lua
-        _redis.multi do |m|
-          m.zrem(_pending_uuids_key, message.uid)
-          m.hdel(_payloads_key, message.uid)
-        end
+        _lua_run('ack', keys: [_pending_uuids_key, _payloads_key], argv: [message.uid])
+        self
       end
 
       # Negative acknowledge a message, re-queuing it for redelivery
       def nack(message)
-        # TODO: convert to Lua
-        return unless _redis.zrem(_pending_uuids_key, message.uid)
-        _redis.rpush(_new_uuids_key, message.uid)
+        _lua_run('nack', keys: [_new_uuids_key, _pending_uuids_key], argv: [message.uid])
+        self
       end
 
       def to_s
@@ -60,11 +56,14 @@ module Routemaster
 
       module ClassMethods
         def push(subscriptions, message)
-          # TODO: convert to Lua
-          subscriptions.each do |sub|
-            _redis.hset _payloads_key(sub), message.uid, message.payload
-            _redis.lpush _new_uuids_key(sub), message.uid
-          end
+          keys  = subscriptions.map { |sub|
+            [ _new_uuids_key(sub), _payloads_key(sub) ]
+          }.flatten
+          _lua_run(
+            'push',
+            keys: keys,
+            argv: [keys.length/2, message.uid, message.payload])
+          self
         end
 
         private
