@@ -8,8 +8,8 @@ module Routemaster
   module Services
     # Passes batches of events from a Subscription to a Deliver service
     class Receive
-      include Routemaster::Mixins::Log
-      include Routemaster::Mixins::Assert
+      include Mixins::Log
+      include Mixins::Assert
 
       attr_reader :subscription
 
@@ -71,9 +71,9 @@ module Routemaster
       def _deliver
         @batch.synchronize do
           begin
-            deliver = Routemaster::Services::Deliver.new(@subscription, @batch.events)
+            deliver = Deliver.new(@subscription, @batch.events)
             @batch.ack if deliver.run
-          rescue Routemaster::Services::Deliver::CantDeliver => e
+          rescue Deliver::CantDeliver => e
             @batch.nack
             _log_exception(e)
           end

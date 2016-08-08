@@ -6,7 +6,7 @@ module Routemaster
   module Models
     # Abstracts an ordered list of Message
     class Batch
-      include Routemaster::Mixins::Log
+      include Mixins::Log
       extend Forwardable
 
       def initialize(consumer)

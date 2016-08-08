@@ -10,31 +10,32 @@ require 'routemaster/controllers/subscription'
 require 'routemaster/mixins/log_exception'
 require 'hirefire-resource' if ENV['AUTOSCALE_WITH'] == 'hirefire'
 
-class Routemaster::Application < Sinatra::Base
-  register Sinatra::Initializers
-  include Routemaster::Mixins::LogException
+module Routemaster
+  class Application < Sinatra::Base
+    register Sinatra::Initializers
+    include Mixins::LogException
 
-  configure do
-    # Do capture any errors. We're logging them ourselves
-    set :raise_errors, false
+    configure do
+      # Do capture any errors. We're logging them ourselves
+      set :raise_errors, false
+    end
+
+    use Rack::SSL
+    use HireFire::Middleware if ENV['AUTOSCALE_WITH'] == 'hirefire'
+    use Controllers::Health
+
+    use Middleware::Authentication
+    use Controllers::Pulse
+    use Controllers::Topics
+    use Controllers::Subscription
+
+    not_found do
+      content_type 'text/plain'
+      body ''
+    end
+
+    error do
+      deliver_exception env['sinatra.error']
+    end
   end
-
-  use Rack::SSL
-  use HireFire::Middleware if ENV['AUTOSCALE_WITH'] == 'hirefire'
-  use Routemaster::Controllers::Health
-
-  use Routemaster::Middleware::Authentication
-  use Routemaster::Controllers::Pulse
-  use Routemaster::Controllers::Topics
-  use Routemaster::Controllers::Subscription
-
-  not_found do
-    content_type 'text/plain'
-    body ''
-  end
-
-  error do
-    deliver_exception env['sinatra.error']
-  end
-
 end

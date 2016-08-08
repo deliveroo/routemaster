@@ -7,7 +7,7 @@ module Routemaster
   module Models
     # Abstracts a message that transits on a queue
     class Message
-      include Routemaster::Mixins::Log
+      include Mixins::Log
 
       attr_reader :uid, :payload
       

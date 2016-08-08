@@ -7,14 +7,18 @@ rescue LoadError
   abort "Please install and configure exception service first!"
 end
 
-module Routemaster::Mixins::LogException
+module Routemaster
+  module Mixins
+    module LogException
 
-  protected
+      protected
 
-  def deliver_exception(exception)
-    # send the exception message to your choice of service!
-    service = ENV.fetch('EXCEPTION_SERVICE', 'print').camelize
-    Routemaster::Services::ExceptionLoggers.const_get(service).instance.process(exception)
+      def deliver_exception(exception)
+        # send the exception message to your choice of service!
+        service = ENV.fetch('EXCEPTION_SERVICE', 'print').camelize
+        Routemaster::Services::ExceptionLoggers.const_get(service).instance.process(exception)
+      end
+
+    end
   end
-
 end

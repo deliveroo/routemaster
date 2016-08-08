@@ -9,8 +9,8 @@ module Routemaster
     # Takes a Subscription and allows to push Messages in and pull them out in
     # order.
     class Consumer
-      include Routemaster::Mixins::Log
-      include Routemaster::Mixins::Redis
+      include Mixins::Log
+      include Mixins::Redis
 
       attr_reader :subscription
 
