@@ -37,12 +37,12 @@ describe Routemaster::Models::Consumer do
       expect(message).to be_kill
     end
 
-    it 'delivers multiple messages' do
-      10.times do
-        described_class.push [subscription], kill_message
+    it 'delivers multiple messages in order' do
+      10.times do |n|
+        described_class.push [subscription], Routemaster::Models::Message.new("msg#{n}")
       end
-      10.times do
-        expect(subject.pop).to be_kill
+      10.times do |n|
+        expect(subject.pop&.payload).to eq("msg#{n}")
       end
     end
 

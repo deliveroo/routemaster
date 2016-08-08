@@ -52,34 +52,26 @@ module Routemaster
         new(name: name, publisher: publisher)
       end
 
-      def push(event)
-        _assert event.kind_of?(Event), 'can only push Event'
-        message = Message.new(event.dump)
-        Consumer.push subscribers, message
-
-        _redis.hset(_key, 'last_event', event.dump)
-        increment_count
-      end
-
       def last_event
         raw = _redis.hget(_key, 'last_event')
         return if raw.nil?
         Event.load(raw)
       end
 
+      def last_event=(event)
+        _assert event.kind_of?(Event), 'can only save Event'
+        _redis.hset(_key, 'last_event', event.dump)
+      end
+
       def get_count
-        _redis.get(topic_counter_name).to_i
+        _redis.hget(_key, 'counter').to_i
+      end
+
+      def increment_count
+        _redis.hincrby(_key, 'counter', 1)
       end
 
       private
-
-      def increment_count
-        _redis.incr(topic_counter_name)
-      end
-
-      def topic_counter_name
-        "#{@name}_cumulative_count"
-      end
 
       def _key
         @_key ||= "topic/#{@name}"

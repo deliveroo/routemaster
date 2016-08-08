@@ -40,17 +40,18 @@ Redis keys:
 
 `topics`
 
-  A set of topic names.
+  The set of topic names.
+
+`subscription`
+
+  The set of subscriber UUIDs.
 
 `topic/{name}`
 
-  A metadata has about a topic. Hash keys:
-  - `publisher`: the UUID of the (singly authorized) publisher for that topic.
-  - `last_event`: a dump of the last event seend for this topic.
-
-`{topic}_cumulative_count`
-
-  The accumulated number of events for that topic.
+  A hash containing metadata has about a topic. Keys:
+  - `publisher`: the UUID of the (singly authorized) publisher
+  - `last_event`: a dump of the last event sent
+  - `counter`: the cumulative number of events received
 
 `subscribers/{topic}`
 

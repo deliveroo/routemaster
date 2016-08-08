@@ -1,5 +1,6 @@
 require 'routemaster/controllers'
 require 'routemaster/models/topic'
+require 'routemaster/services/ingest'
 require 'sinatra'
 require 'json'
 
@@ -51,7 +52,7 @@ module Routemaster
           halt 400, 'bad event'
         end
 
-        topic.push(event)
+        Services::Ingest.new(topic: topic, event: event).call
 
         halt :ok
       end
