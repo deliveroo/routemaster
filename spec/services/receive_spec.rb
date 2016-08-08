@@ -51,15 +51,15 @@ describe Routemaster::Services::Receive do
 
     before do
       messages_to_deliver = messages.dup
-      allow_any_instance_of(Routemaster::Models::Consumer).to receive(:pop) do
+      allow_any_instance_of(Routemaster::Models::Queue).to receive(:pop) do
         messages_to_deliver.pop
       end
 
-      allow_any_instance_of(Routemaster::Models::Consumer).to receive(:ack) do |_,msg|
+      allow_any_instance_of(Routemaster::Models::Queue).to receive(:ack) do |_,msg|
         acked_messages << msg
       end
 
-      allow_any_instance_of(Routemaster::Models::Consumer).to receive(:nack) do |_,msg|
+      allow_any_instance_of(Routemaster::Models::Queue).to receive(:nack) do |_,msg|
         nacked_messages << msg
       end
 

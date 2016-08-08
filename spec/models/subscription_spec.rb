@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/models/subscription'
 require 'routemaster/models/subscribers'
-require 'routemaster/models/consumer'
+require 'routemaster/models/queue'
 require 'routemaster/models/message'
 require 'routemaster/models/topic'
 
@@ -120,7 +120,7 @@ describe Routemaster::Models::Subscription do
       Routemaster::Models::Subscription.new(subscriber: 'alice')
     }
     let(:options) {[ subscription ]}
-    let(:consumer) { Routemaster::Models::Consumer.new(*options) }
+    let(:consumer) { Routemaster::Models::Queue.new(*options) }
     let(:event) {
       Routemaster::Models::Event.new(
         topic: 'widgets',
@@ -130,7 +130,7 @@ describe Routemaster::Models::Subscription do
     }
 
     before do
-      Routemaster::Models::Consumer.push [subscription], Routemaster::Models::Message.new(event.dump)
+      Routemaster::Models::Queue.push [subscription], Routemaster::Models::Message.new(event.dump)
     end
 
     it 'should return the age of the oldest message' do

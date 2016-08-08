@@ -1,6 +1,6 @@
 require 'routemaster/services'
 require 'routemaster/mixins/assert'
-require 'routemaster/models/consumer'
+require 'routemaster/models/queue'
 require 'routemaster/models/message'
 
 module Routemaster
@@ -18,7 +18,7 @@ module Routemaster
 
       def call
         message = Models::Message.new(@event.dump)
-        Models::Consumer.push(@topic.subscribers, message)
+        Models::Queue.push(@topic.subscribers, message)
         @topic.increment_count
         @topic.last_event = @event
         self

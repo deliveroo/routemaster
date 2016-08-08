@@ -2,7 +2,7 @@ require 'routemaster/models/base'
 require 'routemaster/models/event'
 require 'routemaster/models/user'
 require 'routemaster/models/message'
-require 'routemaster/models/consumer'
+require 'routemaster/models/queue'
 require 'routemaster/models/subscribers'
 require 'forwardable'
 

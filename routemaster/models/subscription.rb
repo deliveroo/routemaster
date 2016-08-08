@@ -1,7 +1,7 @@
 require 'routemaster/models/base'
 require 'routemaster/models/callback_url'
 require 'routemaster/models/user'
-require 'routemaster/models/consumer'
+require 'routemaster/models/queue'
 
 module Routemaster::Models
   class Subscription < Routemaster::Models::Base
@@ -75,7 +75,7 @@ module Routemaster::Models
     end
 
     def age_of_oldest_message
-      consumer = Routemaster::Models::Consumer.new(self)
+      consumer = Routemaster::Models::Queue.new(self)
       message = consumer.pop
       if message && message.event?
         age = Routemaster.now - message.event.timestamp

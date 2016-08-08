@@ -16,7 +16,7 @@ module Routemaster
     ]}
 
     let(:consumers) {
-      subscriptions.map { |s| Models::Consumer.new(s) }
+      subscriptions.map { |s| Models::Queue.new(s) }
     }
 
     let(:events) {[

@@ -1,10 +1,10 @@
 require 'spec_helper'
 require 'spec/support/persistence'
-require 'routemaster/models/consumer'
+require 'routemaster/models/queue'
 require 'routemaster/models/subscription'
 require 'core_ext/math'
 
-describe Routemaster::Models::Consumer do
+describe Routemaster::Models::Queue do
   let(:kill_message) {
     Routemaster::Models::Message.new('kill')
   }

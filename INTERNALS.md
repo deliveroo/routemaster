@@ -27,11 +27,11 @@ This process is built from 4 key classes:
 
 - The `Watch` service regularly polls for subscriptions and creates
   a `Receive` service for each;
-- The `Receive` service, for a given subscriptions, buffers events from a `Consumer` and creates
+- The `Receive` service, for a given subscriptions, buffers events from a `Queue` and creates
   `Deliver` services to send the to clients;
 - The `Deliver` service gracefully sends event batches over HTTP;
-- The `Consumer` model abstracts out RabbitMQ internals and provides a
-  asynchronous manner to receive `Event` instances.
+- The `Queue` model abstracts out queue management with Redis, providing a
+  syncronous means to push and pop message from a queue.
 
 
 ### Data layout

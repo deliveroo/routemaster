@@ -8,7 +8,7 @@ module Routemaster
     # Abstraction for a queue.
     # Takes a Subscription and allows to push Messages in and pull them out in
     # order.
-    class Consumer
+    class Queue
       include Mixins::Log
       include Mixins::Redis
 

@@ -1,7 +1,7 @@
 require 'routemaster/services'
 require 'routemaster/mixins/assert'
 require 'routemaster/models/batch'
-require 'routemaster/models/consumer'
+require 'routemaster/models/queue'
 require 'routemaster/services/deliver'
 
 module Routemaster
@@ -16,7 +16,7 @@ module Routemaster
       def initialize(subscription, max_events)
         @subscription = subscription
         @max_events   = max_events
-        @consumer     = Models::Consumer.new(@subscription)
+        @consumer     = Models::Queue.new(@subscription)
         @batch        = Models::Batch.new(@consumer)
         @last_count   = 1
 
