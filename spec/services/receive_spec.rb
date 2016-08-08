@@ -33,7 +33,7 @@ describe Routemaster::Services::Receive do
       topic: 'widgets', type: 'create',
       url: "https://example.com/widgets/#{id}",
     )
-    Routemaster::Models::Message.new(nil, nil, event.dump)
+    Routemaster::Models::Message.new(event.dump)
   end
 
 
@@ -46,10 +46,21 @@ describe Routemaster::Services::Receive do
   describe '#run' do
     let(:delivery) { FakeDeliver.new }
     let(:messages) { [] }
+    let(:acked_messages) { [] }
+    let(:nacked_messages) { [] }
 
     before do
+      messages_to_deliver = messages.dup
       allow_any_instance_of(Routemaster::Models::Consumer).to receive(:pop) do
-        messages.pop
+        messages_to_deliver.pop
+      end
+
+      allow_any_instance_of(Routemaster::Models::Consumer).to receive(:ack) do |_,msg|
+        acked_messages << msg
+      end
+
+      allow_any_instance_of(Routemaster::Models::Consumer).to receive(:nack) do |_,msg|
+        nacked_messages << msg
       end
 
       allow(Routemaster::Services::Deliver).to receive(:new) { |sub, events|
@@ -60,12 +71,12 @@ describe Routemaster::Services::Receive do
 
     context 'when receiving a kill message' do
       let(:messages) {[
-        Routemaster::Models::Message.new(nil, nil, 'kill')
+        Routemaster::Models::Message.new('kill')
       ]}
 
       it 'acks the message' do
-        expect(messages.first).to receive(:ack)
         expect { subject.run }.to raise_error(Routemaster::Services::Receive::KillError)
+        expect(acked_messages).to eq(messages)
       end
 
       it 'raises KillError' do
@@ -75,12 +86,12 @@ describe Routemaster::Services::Receive do
 
     context 'when receiving an unknown event' do
       let(:messages) {[
-        Routemaster::Models::Message.new(nil, nil, 'do you even')
+        Routemaster::Models::Message.new('do you even')
       ]}
 
       it 'acks the message' do
-        expect(messages.first).to receive(:ack)
         subject.run
+        expect(acked_messages).to eq(messages)
       end
 
       it 'schedules a delivery' do
@@ -100,15 +111,15 @@ describe Routemaster::Services::Receive do
 
       it 'acks the message on successful delivery' do
         delivery.results = [true, true, true]
-        messages.each { |m| expect(m).to receive(:ack) }
         subject.run
+        expect(acked_messages).to eq(messages.reverse)
       end
 
       it 'does not (n)ack on non-delivery' do
         delivery.results = [false, false, false]
-        expect(messages.first).not_to receive(:ack)
-        expect(messages.first).not_to receive(:nack)
         subject.run
+        expect(acked_messages).to be_empty
+        expect(nacked_messages).to be_empty
       end
 
       it 'delivers messages in batches' do
@@ -128,16 +139,19 @@ describe Routemaster::Services::Receive do
         end
 
         it 'nacks events' do
-          expect(messages.first).to receive(:nack)
           subject.run
+          expect(nacked_messages).to include(messages.first)
         end
       end
 
       context 'when receiving the maximum events' do
         it 'only processes the max' do
           max_events.replace([2])
-          expect(messages).to receive(:pop).twice.and_call_original
+          delivery.results = [true, true, true]
+          # expect(messages).to receive(:pop).twice.and_call_original
           subject.run
+          expect(acked_messages).to eq(messages.last(2).reverse)
+          expect(nacked_messages).to be_empty
         end
       end
     end

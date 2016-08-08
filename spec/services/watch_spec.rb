@@ -15,7 +15,7 @@ describe Routemaster::Services::Watch do
     let(:receiver) { double 'receiver-service', time_to_next_run: 0, batch_size: 0 }
     let(:subscriptions)  { [] }
 
-    let(:perform) { subject.run(5) }
+    let(:perform) { subject.run(2) }
     let(:app) { Routemaster::Application }
 
     around do |example|

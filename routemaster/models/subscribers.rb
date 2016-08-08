@@ -4,6 +4,7 @@ require 'routemaster/mixins/assert'
 require 'routemaster/mixins/log'
 
 module Routemaster::Models
+  # An enumerable collection of Subscription
   class Subscribers
     include Routemaster::Mixins::Redis
     include Routemaster::Mixins::Assert
@@ -19,9 +20,7 @@ module Routemaster::Models
       if _redis.sadd(_key, subscription.subscriber)
         _log.info { "new subscriber '#{subscription.subscriber}' to '#{@topic.name}'" }
       end
-
-      # bind the subscription's RabbitMQ queue to the topic's exchange
-      subscription.queue.bind(@topic.exchange)
+      self
     end
 
     # yields Subscriptions
@@ -29,6 +28,7 @@ module Routemaster::Models
       _redis.smembers(_key).each do |name|
         yield Subscription.new(subscriber: name)
       end
+      self
     end
 
     private

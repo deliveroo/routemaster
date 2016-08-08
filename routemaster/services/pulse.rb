@@ -1,15 +1,13 @@
 require 'routemaster/services'
 require 'routemaster/mixins/redis'
-require 'routemaster/mixins/bunny'
 require 'routemaster/mixins/log_exception'
 
 class Routemaster::Services::Pulse
   include Routemaster::Mixins::Redis
-  include Routemaster::Mixins::Bunny
   include Routemaster::Mixins::LogException
 
   def run
-    _redis_alive? && _bunny_alive?
+    _redis_alive?
   end
 
   private
@@ -18,13 +16,6 @@ class Routemaster::Services::Pulse
     _redis.ping
     true
   rescue Redis::CannotConnectError => e
-    deliver_exception(e)
-    false
-  end
-
-  def _bunny_alive?
-    bunny.connection.connected?
-  rescue Bunny::TCPConnectionFailed => e
     deliver_exception(e)
     false
   end

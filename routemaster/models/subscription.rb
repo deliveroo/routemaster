@@ -80,7 +80,7 @@ module Routemaster::Models
       if message && message.event?
         age = Routemaster.now - message.event.timestamp
       end
-      message.nack unless message.nil?
+      consumer.nack(message) unless message.nil?
       age || 0
     end
 
@@ -90,16 +90,7 @@ module Routemaster::Models
       _redis.smembers('subscriptions').each { |s| yield new(subscriber: s) }
     end
 
-    # ideally this would not be exposed, but binding topics
-    # and subscriptions requires accessing this.
-    # TODO: expose just a queue _name_ and add a Queue wrapper model
-    def queue ; _queue ; end
-
     private
-
-    def _queue
-      @_queue ||= bunny.queue(_bunny_name(@subscriber), durable: true, auto_delete: false)
-    end
 
     def _key
       @_key ||= "subscription/#{@subscriber}"

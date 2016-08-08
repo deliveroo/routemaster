@@ -34,3 +34,41 @@ This process is built from 4 key classes:
   asynchronous manner to receive `Event` instances.
 
 
+### Data layout
+
+Redis keys:
+
+`topics`
+
+  A set of topic names.
+
+`topic/{name}`
+
+  A metadata has about a topic. Hash keys:
+  - `publisher`: the UUID of the (singly authorized) publisher for that topic.
+  - `last_event`: a dump of the last event seend for this topic.
+
+`{topic}_cumulative_count`
+
+  The accumulated number of events for that topic.
+
+`subscribers/{topic}`
+
+  A set of subscriber UUIDs for a particular topic.
+
+`queue/new/{subscriber}`
+
+  A list of UIDs of messages to be delivered, in reception order.
+
+`queue/pending/{subscriber}`
+
+  A zset of UIDs of messages for which delivery is in progress, keyed by the
+  timestamp of the attempt.
+  This gets cleared when messages are acked or nacked.
+
+`queue/data/{subscriber}`
+
+  A hash of messages keyed by their UID. Includes new and unacked messages.
+
+Message UIDs are unique _per queue_, not globally.
+

@@ -9,10 +9,6 @@ describe Routemaster::Controllers::Pulse do
 
   context 'when all is fine' do
 
-    before do
-      allow(described_class).to receive(:_bunny_alive?).and_return(true)
-    end
-    
     it 'succeeds' do
       perform
       expect(last_response.status).to eq(204)
@@ -24,7 +20,7 @@ describe Routemaster::Controllers::Pulse do
     end
   end
 
-  context 'when the pulse serivce fails' do
+  context 'when the pulse service fails' do
     before { allow_any_instance_of(Routemaster::Services::Pulse).to receive(:run).and_return(false) }
 
     it 'returns 500' do

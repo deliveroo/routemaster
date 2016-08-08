@@ -19,9 +19,6 @@ gem 'rack-ssl'
 gem 'hiredis'
 gem 'redis', require: %w(redis redis/connection/hiredis)
 
-# message management
-gem 'bunny'
-
 # talkin' sweet HTTP
 gem 'faraday'
 gem 'faraday_middleware'

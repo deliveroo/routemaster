@@ -41,7 +41,7 @@ module Routemaster::Models
 
     def self.load(data)
       Marshal.load(Base64.decode64(data)).tap do |event|
-        _assert event.kind_of?(self), 'desirialized record not an Event'
+        _assert event.kind_of?(self), 'deserialized data not an Event'
       end
     end
 

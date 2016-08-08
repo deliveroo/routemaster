@@ -2,9 +2,8 @@ require 'spec_helper'
 require 'routemaster/models/message'
 
 describe Routemaster::Models::Message do
-  let(:bunny) { double 'bunny', ack: true, nack: true }
-  let(:delivery_info) { double 'delivery_info', delivery_tag: 'foo' }
   let(:properties) { double 'properties' }
+  let(:uid) { nil }
   let(:payload) {
     Routemaster::Models::Event.new(
       topic: 'widgets',
@@ -13,9 +12,7 @@ describe Routemaster::Models::Message do
     ).dump
   }
 
-  before { allow(subject).to receive(:bunny).and_return(bunny) }
-
-  subject { described_class.new(delivery_info, properties, payload) }
+  subject { described_class.new(payload, uid) }
 
   describe '#kill?' do
     it 'is true when payload is "kill"' do
@@ -44,7 +41,7 @@ describe Routemaster::Models::Message do
     end
   end
 
-  describe 'event' do
+  describe '#event' do
     it 'is nil for non-events' do
       payload.replace 'kill'
       expect(subject.event).to be_nil
@@ -55,39 +52,53 @@ describe Routemaster::Models::Message do
     end
   end
 
-  shared_examples 'ack and nack' do |method, other|
-    it "#{method}s the message" do
-      expect(bunny).to receive(method)
-      subject.public_send(method)
+  describe '#uid' do
+    it 'is generated' do
+      expect(subject.uid).to match /^\h{8}-\h{4}-\h{4}-\h{4}-\h{12}$/
     end
 
-    it 'can be called twice' do
-      subject.public_send(method)
-      expect { subject.public_send(method) }.not_to raise_error
-    end
+    context 'when specified' do
+      let(:uid) { 'abcd-1234' }
 
-    it 'acks only once' do
-      expect(bunny).to receive(method).once
-      2.times { subject.public_send(method) }
-    end
-
-    it 'passes for non-events' do
-      payload.replace 'kill'
-      expect(bunny).to receive(method)
-      subject.public_send(method)
-    end
-
-    it 'fails if nack has been called' do
-      subject.public_send(other)
-      expect { subject.public_send(method) }.to raise_error(ArgumentError)
+      it 'is honoured' do
+        expect(subject.uid).to eq('abcd-1234')
+      end
     end
   end
 
-  describe '#ack' do
-    it_should_behave_like 'ack and nack', :ack, :nack
-  end
+  # shared_examples 'ack and nack' do |method, other|
+  #   it "#{method}s the message" do
+  #     expect(bunny).to receive(method)
+  #     subject.public_send(method)
+  #   end
 
-  describe '#nack' do
-    it_should_behave_like 'ack and nack', :nack, :ack
-  end
+  #   it 'can be called twice' do
+  #     subject.public_send(method)
+  #     expect { subject.public_send(method) }.not_to raise_error
+  #   end
+
+  #   it 'acks only once' do
+  #     expect(bunny).to receive(method).once
+  #     2.times { subject.public_send(method) }
+  #   end
+
+  #   it 'passes for non-events' do
+  #     payload.replace 'kill'
+  #     expect(bunny).to receive(method)
+  #     subject.public_send(method)
+  #   end
+
+  #   it 'fails if nack has been called' do
+  #     subject.public_send(other)
+  #     expect { subject.public_send(method) }.to raise_error(ArgumentError)
+  #   end
+  # end
+
+  # describe '#ack' do
+  #   it_should_behave_like 'ack and nack', :ack, :nack
+  # end
+
+  # describe '#nack' do
+  #   it_should_behave_like 'ack and nack', :nack, :ack
+  # end
 end

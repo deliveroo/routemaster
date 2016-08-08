@@ -1,6 +1,8 @@
 require 'routemaster/models/base'
 require 'routemaster/models/event'
 require 'routemaster/models/user'
+require 'routemaster/models/message'
+require 'routemaster/models/consumer'
 require 'routemaster/models/subscribers'
 require 'forwardable'
 
@@ -51,8 +53,10 @@ module Routemaster::Models
 
     def push(event)
       _assert event.kind_of?(Event), 'can only push Event'
+      message = Message.new(event.dump)
+      Consumer.push subscribers, message
+
       _redis.hset(_key, 'last_event', event.dump)
-      _exchange.publish(event.dump, persistent: true)
       increment_count
     end
 
@@ -61,10 +65,6 @@ module Routemaster::Models
       return if raw.nil?
       Event.load(raw)
     end
-
-    # ideally this would not be exposed, but binding topics
-    # and subscriptions requires accessing this.
-    def exchange ; _exchange ; end
 
     def get_count
       _redis.get(topic_counter_name).to_i
@@ -82,10 +82,6 @@ module Routemaster::Models
 
     def _key
       @_key ||= "topic/#{@name}"
-    end
-
-    def _exchange
-      @_exchange ||= bunny.fanout(_bunny_name(@name), durable: true)
     end
 
     class Name < String

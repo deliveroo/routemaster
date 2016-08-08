@@ -6,19 +6,18 @@ require 'routemaster/services/deliver'
 
 module Routemaster
   module Services
-    # Passes events in a Subscription to the Deliver service.
+    # Passes batches of events from a Subscription to a Deliver service
     class Receive
-      include Routemaster::Mixins::Bunny
       include Routemaster::Mixins::Log
       include Routemaster::Mixins::Assert
 
       attr_reader :subscription
 
       def initialize(subscription, max_events)
-        @batch        = Models::Batch.new
         @subscription = subscription
         @max_events   = max_events
         @consumer     = Models::Consumer.new(@subscription)
+        @batch        = Models::Batch.new(@consumer)
         @last_count   = 1
 
         _assert(@max_events > 0)
@@ -38,13 +37,15 @@ module Routemaster
           
           if message && message.kill?
             _log.debug { 'received kill event' }
-            message.ack
+            @consumer.ack(message)
             raise KillError
           end
 
           if message.event?
             @batch.push(message)
             _deliver
+          else
+            @consumer.ack(message)
           end
         end
       end
