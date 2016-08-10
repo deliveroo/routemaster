@@ -59,4 +59,5 @@ end
 RSpec.configure do |config|
   config.before(:each) { RedisCleaner.instance.clean! }
   config.before(:each) { BunnyCleaner.instance.clean! }
+  config.after(:suite) { WebMock.disable! }
 end

@@ -21,6 +21,10 @@ describe Routemaster::Services::Deliver do
     subscription.callback = callback
   end
 
+  after do
+    WebMock.disable!
+  end
+
   describe '#run' do
     let(:perform) { subject.run }
 
