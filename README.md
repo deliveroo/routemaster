@@ -1,4 +1,5 @@
-## Routemaster
+## Routemaster [![Build](https://api.travis-ci.org/mezis/routemaster.svg?branch=master)](https://travis-ci.org/mezis/routemaster) [![Code Climate](https://codeclimate.com/github/mezis/routemaster/badges/gpa.svg)](https://codeclimate.com/github/mezis/routemaster) [![Test Coverage](https://codeclimate.com/github/mezis/routemaster/badges/coverage.svg)](https://codeclimate.com/github/mezis/routemaster/coverage)
+
 
 **Routemaster** is an opinionated event bus over HTTP, supporting event-driven /
 representational state notification architectures.
@@ -6,11 +7,10 @@ representational state notification architectures.
 Routemaster aims to dispatch events with a median latency in the 50 - 100ms
 range, with no practical upper limit on throughput.
 
-[![Build](https://api.travis-ci.org/HouseTrip/routemaster.svg?branch=master)](https://travis-ci.org/HouseTrip/routemaster)
 
 Routemaster comes with, and is automatically integration-tested against 
 a Ruby client,
-[routemaster-client](https://github.com/HouseTrip/routemaster-client).
+[routemaster-client](https://github.com/mezis/routemaster-client).
 
 #### Remote procedure call as an antipattern
 

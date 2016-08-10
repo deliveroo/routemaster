@@ -64,3 +64,7 @@ group :development do
   # testing against the client
   gem 'routemaster-client'
 end
+
+group :test do
+  gem 'codeclimate-test-reporter', require: nil
+end

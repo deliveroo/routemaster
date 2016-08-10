@@ -15,4 +15,5 @@ end
 
 RSpec.configure do |config|
   config.before(:each) { RedisCleaner.instance.clean! }
+  config.after(:suite) { WebMock.disable! }
 end

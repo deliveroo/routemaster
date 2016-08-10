@@ -6,3 +6,6 @@ services:
 - redis-server
 script:
 - bundle exec rspec
+addons:
+    code_climate:
+        repo_token: 19e0edac247d72941e640d1f9730aab96b2fec50e1c89caf18e7e111722d5dde
