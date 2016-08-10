@@ -19,7 +19,7 @@ module Routemaster
       end
 
       def pop
-        uid, payload = _lua_run(
+        uid, payload = _redis_lua_run(
           'queue_pop',
           keys: [_new_uuids_key, _pending_uuids_key, _payloads_key],
           argv: [Routemaster.now])
@@ -36,13 +36,13 @@ module Routemaster
 
       # Acknowledge a message, permanently removing it form the queue
       def ack(message)
-        _lua_run('ack', keys: [_pending_uuids_key, _payloads_key], argv: [message.uid])
+        _redis_lua_run('ack', keys: [_pending_uuids_key, _payloads_key], argv: [message.uid])
         self
       end
 
       # Negative acknowledge a message, re-queuing it for redelivery
       def nack(message)
-        _lua_run('nack', keys: [_new_uuids_key, _pending_uuids_key], argv: [message.uid])
+        _redis_lua_run('nack', keys: [_new_uuids_key, _pending_uuids_key], argv: [message.uid])
         self
       end
 
@@ -59,7 +59,7 @@ module Routemaster
           keys  = subscriptions.map { |sub|
             [ _new_uuids_key(sub), _payloads_key(sub) ]
           }.flatten
-          _lua_run(
+          _redis_lua_run(
             'push',
             keys: keys,
             argv: [keys.length/2, message.uid, message.payload])
