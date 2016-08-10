@@ -10,3 +10,6 @@ script:
 env:
   global:
     secure: Vwv8eJ9gU3iOAmRMUW5PEWm1PvzyH8Ph1FQzfnY4iPD4LEQH39wL+3gEw3iyp2QU/Toi3JFdm/nKRt2VM59MPLIqUgs9zjN7g+NLPrMDNjPdTq+Gz3d1x8OPtBu5C5DSmsxy+OPnhwG+q0Qf57tOypbsOXz9oJ49ajoRNaxwaHI=
+addons:
+    code_climate:
+        repo_token: 19e0edac247d72941e640d1f9730aab96b2fec50e1c89caf18e7e111722d5dde
