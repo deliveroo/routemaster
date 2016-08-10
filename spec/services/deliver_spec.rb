@@ -11,7 +11,6 @@ describe Routemaster::Services::Deliver do
   let(:buffer) { Array.new }
   let(:subscription) { Routemaster::Models::Subscription.new(subscriber: 'alice') }
   let(:callback) { 'https://alice.com/widgets' }
-  let(:callback_auth) { 'https://hello:x@alice.com/widgets' }
 
   subject { described_class.new(subscription, buffer) }
 
@@ -50,7 +49,7 @@ describe Routemaster::Services::Deliver do
           3.times { buffer.push make_event }
         end
         subscription.timeout = 0
-        stub_request(:post, callback_auth).to_return(status: 204, body: '')
+        stub_request(:post, callback).with(basic_auth: %w[hello x]).to_return(status: 204, body: '')
       end
 
       it 'passes' do
@@ -63,7 +62,7 @@ describe Routemaster::Services::Deliver do
 
       it 'POSTs to the callback' do
         perform
-        expect(a_request(:post, callback_auth)).to have_been_made
+        expect(a_request(:post, callback).with(basic_auth: %w[hello x])).to have_been_made
       end
 
       it 'sends valid JSON' do
@@ -86,7 +85,7 @@ describe Routemaster::Services::Deliver do
 
       context 'when the callback fails' do
         before do
-          stub_request(:post, callback_auth).to_return(status: 500)
+          stub_request(:post, callback).with(basic_auth: %w[hello x]).to_return(status: 500)
         end
 
         it 'raises an exception' do
@@ -104,7 +103,7 @@ describe Routemaster::Services::Deliver do
 
       it 'does not send events' do
         perform
-        expect(a_request(:any, callback_auth)).not_to have_been_made
+        expect(a_request(:any, callback)).not_to have_been_made
       end
 
       it 'returns flasy' do
@@ -117,12 +116,12 @@ describe Routemaster::Services::Deliver do
         subscription.timeout = 500
         subscription.max_events = 3
         3.times { buffer.push make_event }
-        stub_request(:post, callback_auth).to_return(status: 204, body: '')
+        stub_request(:post, callback).with(basic_auth: %w[hello x]).to_return(status: 204, body: '')
       end
 
       it 'makes a request' do
         perform
-        expect(a_request(:any, callback_auth)).to have_been_made
+        expect(a_request(:any, callback).with(basic_auth: %w[hello x])).to have_been_made
       end
 
       it 'returns truthy' do
