@@ -69,15 +69,15 @@ module Routemaster
         private
 
         def _payloads_key(subscription)
-          "queue/data/#{subscription.subscriber}"
+          "queue:data:#{subscription.subscriber}"
         end
 
         def _new_uuids_key(subscription)
-          "queue/new/#{subscription.subscriber}"
+          "queue:new:#{subscription.subscriber}"
         end
 
         def _pending_uuids_key(subscription)
-          "queue/pending/#{subscription.subscriber}"
+          "queue:pending:#{subscription.subscriber}"
         end
       end
       extend ClassMethods

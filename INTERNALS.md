@@ -36,7 +36,7 @@ This process is built from 4 key classes:
 
 ### Data layout
 
-Redis keys:
+All Redis keys are namespaced, under `rm:` by default.
 
 `topics`
 
@@ -46,28 +46,28 @@ Redis keys:
 
   The set of subscriber UUIDs.
 
-`topic/{name}`
+`topic:{name}`
 
   A hash containing metadata has about a topic. Keys:
   - `publisher`: the UUID of the (singly authorized) publisher
   - `last_event`: a dump of the last event sent
   - `counter`: the cumulative number of events received
 
-`subscribers/{topic}`
+`subscribers:{topic}`
 
   A set of subscriber UUIDs for a particular topic.
 
-`queue/new/{subscriber}`
+`queue:new:{subscriber}`
 
   A list of UIDs of messages to be delivered, in reception order.
 
-`queue/pending/{subscriber}`
+`queue:pending:{subscriber}`
 
   A zset of UIDs of messages for which delivery is in progress, keyed by the
   timestamp of the attempt.
   This gets cleared when messages are acked or nacked.
 
-`queue/data/{subscriber}`
+`queue:data:{subscriber}`
 
   A hash of messages keyed by their UID. Includes new and unacked messages.
 

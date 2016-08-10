@@ -41,13 +41,13 @@ module Routemaster
 
       def self.all
         _redis.smembers('topics').map do |n|
-          p = _redis.hget("topic/#{n}", 'publisher')
+          p = _redis.hget("topic:#{n}", 'publisher')
           new(name: n, publisher: p)
         end
       end
 
       def self.find(name)
-        publisher = _redis.hget("topic/#{name}", 'publisher')
+        publisher = _redis.hget("topic:#{name}", 'publisher')
         return if publisher.nil?
         new(name: name, publisher: publisher)
       end
@@ -74,7 +74,7 @@ module Routemaster
       private
 
       def _key
-        @_key ||= "topic/#{@name}"
+        @_key ||= "topic:#{@name}"
       end
 
       class Name < String

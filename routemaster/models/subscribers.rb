@@ -34,7 +34,7 @@ module Routemaster::Models
     private
 
     def _key
-      @_key ||= "subscribers/#{@topic.name}"
+      @_key ||= "subscribers:#{@topic.name}"
     end
   end
 end
