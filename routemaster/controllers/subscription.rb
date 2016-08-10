@@ -1,6 +1,7 @@
 require 'routemaster/controllers'
 require 'routemaster/models/topic'
 require 'routemaster/models/subscription'
+require 'routemaster/services/update_subscription_topics'
 require 'sinatra'
 
 module Routemaster
@@ -37,9 +38,10 @@ module Routemaster
           halt 400
         end
 
-        topics.each do |topic|
-          topic.subscribers.add(sub)
-        end
+        Services::UpdateSubscriptionTopics.new(
+          topics:       topics,
+          subscription: sub,
+        ).call
 
         halt 204
       end

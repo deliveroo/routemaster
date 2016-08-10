@@ -71,6 +71,10 @@ module Routemaster
         _redis.hincrby(_key, 'counter', 1)
       end
 
+      def inspect
+        "<#{self.class.name} name=#{@name}>"
+      end
+
       private
 
       def _key

@@ -66,7 +66,7 @@ module Routemaster::Models
 
     def topics
       Routemaster::Models::Topic.all.select do |t|
-        t.subscribers.map(&:subscriber).include?(self.subscriber)
+        t.subscribers.include?(self)
       end
     end
 
@@ -88,6 +88,10 @@ module Routemaster::Models
 
     def self.each
       _redis.smembers('subscriptions').each { |s| yield new(subscriber: s) }
+    end
+
+    def inspect
+      "<#{self.class.name} name=#{@name}>"
     end
 
     private

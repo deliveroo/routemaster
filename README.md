@@ -244,7 +244,9 @@ milliseconds (default 500). At most `<n>` events will be sent in each batch
 The `<uuid>` will be used as an HTTP Basic password to the client for
 authentication.
 
-The response is always empty. No side effect if already subscribed.
+The response is always empty. No side effect if already subscribed to a given
+topic.  If a previously subscribed topic is not listed, it will be unsubscribed.
+
 Possible statuses:
 
 - 204: Successfully subscribed to listed topics
