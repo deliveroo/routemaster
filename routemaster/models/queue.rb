@@ -56,9 +56,9 @@ module Routemaster
 
       module ClassMethods
         def push(subscriptions, message)
-          keys  = subscriptions.map { |sub|
+          keys  = subscriptions.flat_map { |sub|
             [ _new_uuids_key(sub), _payloads_key(sub) ]
-          }.flatten
+          }
           _redis_lua_run(
             'push',
             keys: keys,
