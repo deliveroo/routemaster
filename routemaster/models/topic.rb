@@ -91,7 +91,7 @@ module Routemaster::Models
     class Name < String
       def initialize(str)
         raise ArgumentError unless str.kind_of?(String)
-        raise ArgumentError unless str =~ /^[a-z_]{1,32}$/
+        raise ArgumentError unless str =~ /^[a-z_]{1,64}$/
         super
       end
     end
