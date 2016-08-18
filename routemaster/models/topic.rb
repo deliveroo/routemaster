@@ -41,13 +41,13 @@ module Routemaster
 
       def self.all
         _redis.smembers('topics').map do |n|
-          p = _redis.hget("topic:#{n}", 'publisher')
+            p = _redis.hget("topic:#{n}", 'publisher')
           new(name: n, publisher: p)
         end
       end
 
       def self.find(name)
-        publisher = _redis.hget("topic:#{name}", 'publisher')
+          publisher = _redis.hget("topic:#{name}", 'publisher')
         return if publisher.nil?
         new(name: name, publisher: publisher)
       end
@@ -58,33 +58,33 @@ module Routemaster
         Event.load(raw)
       end
 
-      def last_event=(event)
-        _assert event.kind_of?(Event), 'can only save Event'
-        _redis.hset(_key, 'last_event', event.dump)
-      end
+        def last_event=(event)
+          _assert event.kind_of?(Event), 'can only save Event'
+          _redis.hset(_key, 'last_event', event.dump)
+        end
 
       def get_count
-        _redis.hget(_key, 'counter').to_i
+          _redis.hget(_key, 'counter').to_i
       end
 
       def increment_count
-        _redis.hincrby(_key, 'counter', 1)
+          _redis.hincrby(_key, 'counter', 1)
       end
 
-      def inspect
-        "<#{self.class.name} name=#{@name}>"
+        def inspect
+          "<#{self.class.name} name=#{@name}>"
       end
 
-      private
+        private
 
       def _key
-        @_key ||= "topic:#{@name}"
+          @_key ||= "topic:#{@name}"
       end
 
       class Name < String
         def initialize(str)
           raise ArgumentError unless str.kind_of?(String)
-          raise ArgumentError unless str =~ /^[a-z_]{1,32}$/
+          raise ArgumentError unless str =~ /^[a-z_]{1,64}$/
           super
         end
       end
