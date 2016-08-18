@@ -28,19 +28,15 @@ module Routemaster::Models
     end
 
     def add(subscription)
-      _assert subscription.kind_of?(Subscription), "#{subscription} not a Subscription"
-      if _redis.sadd(_key, subscription.subscriber)
+      _change(:add, subscription) do
         _log.info { "new subscriber '#{subscription.subscriber}' to '#{@topic.name}'" }
       end
-      self
     end
 
     def remove(subscription)
-      _assert subscription.kind_of?(Subscription), "#{subscription} not a Subscription"
-      if _redis.srem(_key, subscription.subscriber)
+      _change(:rem, subscription) do
         _log.info { "removed subscriber '#{subscription.subscriber}' from '#{@topic.name}'" }
       end
-      self
     end
 
 
@@ -53,6 +49,12 @@ module Routemaster::Models
     end
 
     private
+
+    def _change(action, subscription)
+      _assert subscription.kind_of?(Subscription), "#{subscription} not a Subscription"
+      yield if _redis.public_send("s#{action}", _key, subscription.subscriber)
+      self
+    end
 
     def _key
       @_key ||= "subscribers:#{@topic.name}"
