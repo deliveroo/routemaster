@@ -35,17 +35,5 @@ describe Routemaster::Services::Pulse do
 
       include_examples 'logging'
     end
-
-    context 'when RabbitMQ is down' do
-      before do
-        allow(subject).to receive(:bunny).and_raise(Bunny::TCPConnectionFailed.new(1,2,3))
-      end
-
-      it 'returns false' do
-        expect(perform).to eq(false)
-      end
-
-      include_examples 'logging'
-    end
   end
 end

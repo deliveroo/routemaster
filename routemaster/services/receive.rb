@@ -1,24 +1,23 @@
 require 'routemaster/services'
 require 'routemaster/mixins/assert'
 require 'routemaster/models/batch'
-require 'routemaster/models/consumer'
+require 'routemaster/models/queue'
 require 'routemaster/services/deliver'
 
 module Routemaster
   module Services
-    # Passes events in a Subscription to the Deliver service.
+    # Passes batches of events from a Subscription to a Deliver service
     class Receive
-      include Routemaster::Mixins::Bunny
-      include Routemaster::Mixins::Log
-      include Routemaster::Mixins::Assert
+      include Mixins::Log
+      include Mixins::Assert
 
       attr_reader :subscription
 
       def initialize(subscription, max_events)
-        @batch        = Models::Batch.new
         @subscription = subscription
         @max_events   = max_events
-        @consumer     = Models::Consumer.new(@subscription)
+        @consumer     = Models::Queue.new(@subscription)
+        @batch        = Models::Batch.new(@consumer)
         @last_count   = 1
 
         _assert(@max_events > 0)
@@ -38,13 +37,15 @@ module Routemaster
           
           if message && message.kill?
             _log.debug { 'received kill event' }
-            message.ack
+            @consumer.ack(message)
             raise KillError
           end
 
           if message.event?
             @batch.push(message)
             _deliver
+          else
+            @consumer.ack(message)
           end
         end
       end
@@ -70,9 +71,9 @@ module Routemaster
       def _deliver
         @batch.synchronize do
           begin
-            deliver = Routemaster::Services::Deliver.new(@subscription, @batch.events)
+            deliver = Deliver.new(@subscription, @batch.events)
             @batch.ack if deliver.run
-          rescue Routemaster::Services::Deliver::CantDeliver => e
+          rescue Deliver::CantDeliver => e
             @batch.nack
             _log_exception(e)
           end

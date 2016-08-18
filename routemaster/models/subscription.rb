@@ -1,7 +1,7 @@
 require 'routemaster/models/base'
 require 'routemaster/models/callback_url'
 require 'routemaster/models/user'
-require 'routemaster/models/consumer'
+require 'routemaster/models/queue'
 
 module Routemaster::Models
   class Subscription < Routemaster::Models::Base
@@ -66,7 +66,7 @@ module Routemaster::Models
 
     def topics
       Routemaster::Models::Topic.all.select do |t|
-        t.subscribers.map(&:subscriber).include?(self.subscriber)
+        t.subscribers.include?(self)
       end
     end
 
@@ -75,12 +75,12 @@ module Routemaster::Models
     end
 
     def age_of_oldest_message
-      consumer = Routemaster::Models::Consumer.new(self)
+      consumer = Routemaster::Models::Queue.new(self)
       message = consumer.pop
       if message && message.event?
         age = Routemaster.now - message.event.timestamp
       end
-      message.nack unless message.nil?
+      consumer.nack(message) unless message.nil?
       age || 0
     end
 
@@ -90,16 +90,11 @@ module Routemaster::Models
       _redis.smembers('subscriptions').each { |s| yield new(subscriber: s) }
     end
 
-    # ideally this would not be exposed, but binding topics
-    # and subscriptions requires accessing this.
-    # TODO: expose just a queue _name_ and add a Queue wrapper model
-    def queue ; _queue ; end
+    def inspect
+      "<#{self.class.name} name=#{@name}>"
+    end
 
     private
-
-    def _queue
-      @_queue ||= bunny.queue(_bunny_name(@subscriber), durable: true, auto_delete: false)
-    end
 
     def _key
       @_key ||= "subscription/#{@subscriber}"

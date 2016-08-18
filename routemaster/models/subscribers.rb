@@ -4,6 +4,7 @@ require 'routemaster/mixins/assert'
 require 'routemaster/mixins/log'
 
 module Routemaster::Models
+  # An enumerable collection of Subscription
   class Subscribers
     include Routemaster::Mixins::Redis
     include Routemaster::Mixins::Assert
@@ -14,27 +15,47 @@ module Routemaster::Models
       @topic = topic
     end
 
-    def add(subscription)
-      _assert subscription.kind_of?(Subscription)
-      if _redis.sadd(_key, subscription.subscriber)
-        _log.info { "new subscriber '#{subscription.subscriber}' to '#{@topic.name}'" }
-      end
-
-      # bind the subscription's RabbitMQ queue to the topic's exchange
-      subscription.queue.bind(@topic.exchange)
+    def include?(subscription)
+      _redis.sismember(_key, subscription.subscriber)
     end
+
+    def replace(subscriptions)
+      new = subscriptions
+      old = to_a
+      (old - new).each { |sub| remove(sub) }
+      (new - old).each { |sub| add(sub) }
+      self
+    end
+
+    def add(subscription)
+      _change(:add, subscription)
+    end
+
+    def remove(subscription)
+      _change(:rem, subscription)
+    end
+
 
     # yields Subscriptions
     def each
       _redis.smembers(_key).each do |name|
         yield Subscription.new(subscriber: name)
       end
+      self
     end
 
     private
 
+    def _change(action, subscription)
+      _assert subscription.kind_of?(Subscription), "#{subscription} not a Subscription"
+      if _redis.public_send("s#{action}", _key, subscription.subscriber)
+        _log.info { "topic '#{@topic.name}': #{action} subscriber '#{subscription.subscriber}'" }
+      end
+      self
+    end
+
     def _key
-      @_key ||= "subscribers/#{@topic.name}"
+      @_key ||= "subscribers:#{@topic.name}"
     end
   end
 end

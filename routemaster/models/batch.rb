@@ -1,16 +1,16 @@
 require 'routemaster/models'
 require 'routemaster/models/message'
 require 'routemaster/mixins/log'
-require 'routemaster/mixins/bunny'
 
 module Routemaster
   module Models
     # Abstracts an ordered list of Message
     class Batch
-      include Routemaster::Mixins::Log
+      include Mixins::Log
       extend Forwardable
 
-      def initialize
+      def initialize(consumer)
+        @consumer = consumer
         @batch = []
         @monitor = Monitor.new
       end
@@ -24,7 +24,7 @@ module Routemaster
 
       def nack
         synchronize do
-          @batch.each(&:nack)
+          @batch.each { |msg| @consumer.nack(msg) }
           _flush
         end
         self
@@ -32,7 +32,7 @@ module Routemaster
 
       def ack  
         synchronize do
-          @batch.each(&:ack)
+          @batch.each { |msg| @consumer.ack(msg) }
           _flush
         end
         self

@@ -76,21 +76,4 @@ describe Routemaster::Models::Topic do
       expect(result).to be_nil
     end
   end
-
-  describe 'push' do
-
-    let(:options) do
-      {
-        topic: 'widgets',
-        type: 'create',
-        url: 'https://example.com/widgets/123'
-      }
-    end
-    let(:event) { Routemaster::Models::Event.new(**options) }
-
-    it 'increments the topic counter' do
-      expect{ subject.push(event) }
-        .to change{ subject.get_count }.by(1)
-    end
-  end
 end

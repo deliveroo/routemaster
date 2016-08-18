@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/models/subscription'
 require 'routemaster/models/subscribers'
-require 'routemaster/models/consumer'
+require 'routemaster/models/queue'
 require 'routemaster/models/message'
 require 'routemaster/models/topic'
 
@@ -55,7 +55,7 @@ describe Routemaster::Models::Subscription do
     end
   end
 
-  describe '.topics' do
+  describe '#topics' do
 
     let(:properties_topic) do
       Routemaster::Models::Topic.new(name: 'properties', publisher: 'demo')
@@ -78,7 +78,7 @@ describe Routemaster::Models::Subscription do
     end
   end
 
-  describe '.all_topics_count' do
+  describe '#all_topics_count' do
     let(:properties_topic) do
       Routemaster::Models::Topic.new({
         name: 'properties',
@@ -120,23 +120,27 @@ describe Routemaster::Models::Subscription do
       Routemaster::Models::Subscription.new(subscriber: 'alice')
     }
     let(:options) {[ subscription ]}
-    let(:consumer) { Routemaster::Models::Consumer.new(*options) }
+    let(:consumer) { Routemaster::Models::Queue.new(*options) }
     let(:event) {
       Routemaster::Models::Event.new(
         topic: 'widgets',
         type:  'create',
         url:   'https://example.com/widgets/123'
-      ).dump
+      )
     }
 
     before do
-      subscription.queue.publish(event)
+      Routemaster::Models::Queue.push [subscription], Routemaster::Models::Message.new(event.dump)
     end
 
     it 'should return the age of the oldest message' do
-      sleep(1)
-      expect(subscription.age_of_oldest_message)
-        .to be_within(20).of(1000)
+      sleep(250e-3)
+      expect(subscription.age_of_oldest_message).to be_within(50).of(250)
+    end
+
+    it 'does not dequeue the oldest message' do
+      subscription.age_of_oldest_message
+      expect(consumer.pop).to be_event
     end
   end
 end

@@ -6,15 +6,8 @@ require 'routemaster/models/subscription'
 describe Routemaster::Models::Subscribers do
   Subscription = Routemaster::Models::Subscription
 
-  let(:exchange) { double 'exchange' }
-  let(:topic) { double 'Topic', name: 'widgets', exchange: exchange }
+  let(:topic) { double 'Topic', name: 'widgets' }
   subject { described_class.new(topic) }
-
-  let(:queue) { double 'queue', bind: true }
-
-  before do
-    allow_any_instance_of(Subscription).to receive(:queue).and_return(queue)
-  end
 
   describe '#initialize' do
     it 'passes' do
@@ -48,10 +41,56 @@ describe Routemaster::Models::Subscribers do
       subject.add Subscription.new(subscriber: 'alice')
       expect(subject.count).to eq(2)
     end
+  end
 
-    it 'binds the queue to the exchange' do
-      expect(queue).to receive(:bind).with(exchange)
+  describe '#remove' do
+    before do
       subject.add Subscription.new(subscriber: 'alice')
+      subject.add Subscription.new(subscriber: 'bob')
+    end
+
+    it 'removes the subscriber' do
+      expect {
+        subject.remove Subscription.new(subscriber: 'bob')
+      }.to change {
+        subject.map(&:subscriber).sort
+      }.from(
+        %w[alice bob]
+      ).to (
+        %w[alice]
+      )
+    end
+
+    it 'works if absent' do
+      expect {
+        subject.remove Subscription.new(subscriber: 'charlie')
+      }.not_to change {
+        subject.map(&:subscriber).sort
+      }
+    end
+  end
+
+  describe '#replace' do
+    let(:names) { subject.map(&:subscriber).sort }
+
+    before do
+      subject.add Subscription.new(subscriber: 'alice')
+      subject.add Subscription.new(subscriber: 'bob')
+    end
+
+    it 'updates subscription list' do
+      expect {
+        subject.replace [
+          Subscription.new(subscriber: 'charlie'),
+          Subscription.new(subscriber: 'alice')
+        ]
+      }.to change {
+        subject.map(&:subscriber).sort
+      }.from(
+        %w[alice bob]
+      ).to(
+        %w[alice charlie]
+      )
     end
   end
 end

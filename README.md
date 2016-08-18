@@ -95,26 +95,6 @@ To get this application up and running you will need the following tools:
   * `brew install redis`
   * Just let it run with default settings
   * If you want to run it manually - `redis-server`
-* RabbitMQ
-  * `brew install rabbitmq`
-  * Just let it run with default settings
-  * If you want to run it manually - `rabbitmq-server`
-
-Routemaster needs to have a RabbitMQ virtual host to connect to.  By default
-this is going to be called `routemaster.development`.
-
-- Check if RabbitMQ is running by pointing your browser to [http://localhost:15672/#/](http://localhost:15672/#/)
-- Login with guest/guest
-- Go to _Admin => Virtual Hosts_ and add a _New virtual host_ named `routemaster.development`
-- Click on the newly added virtual host and add the guest user with the default permissions
-
-Alternatively:
-
-```bash
-rabbitmqctl add_vhost routemaster.development
-rabbitmqctl set_permissions -p routemaster.development guest ".*" ".*" ".*"
-
-```
 
 Routemaster only accepts HTTPS calls. To get around this restriction on
 development, please install [`puma-dev`](https://github.com/puma/puma-dev).
@@ -150,7 +130,7 @@ you can easily configure this in the `.env` file
 
 ### Scaling Routemaster out
 
-1. Allowing Routemastear to _receive_ more events:<br>
+1. Allowing Routemaster to _receive_ more events:<br>
    This requires to scale the HTTP frontend. We recommend using
    [HireFire](https://hirefire.io/) to auto-scale the _web_ process in the
    Procfile.
@@ -165,7 +145,7 @@ you can easily configure this in the `.env` file
     - if multiple _watch_ processes are run in parallel, there is no more
       guarantee of in-order event delivery (currently).
 3. Allowing Routemaster to _buffer_ more events:<br>
-   This requires scaling the underlying RabbitMQ server.
+   This requires scaling the underlying Redis server.
 
 --------------------------------------------------------------------------------
 
@@ -248,7 +228,9 @@ milliseconds (default 500). At most `<n>` events will be sent in each batch
 The `<uuid>` will be used as an HTTP Basic password to the client for
 authentication.
 
-The response is always empty. No side effect if already subscribed.
+The response is always empty. No side effect if already subscribed to a given
+topic.  If a previously subscribed topic is not listed, it will be unsubscribed.
+
 Possible statuses:
 
 - 204: Successfully subscribed to listed topics
