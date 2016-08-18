@@ -15,13 +15,34 @@ module Routemaster::Models
       @topic = topic
     end
 
+    def include?(subscription)
+      _redis.sismember(_key, subscription.subscriber)
+    end
+
+    def replace(subscriptions)
+      new = subscriptions
+      old = to_a
+      (old - new).each { |sub| remove(sub) }
+      (new - old).each { |sub| add(sub) }
+      self
+    end
+
     def add(subscription)
-      _assert subscription.kind_of?(Subscription)
+      _assert subscription.kind_of?(Subscription), "#{subscription} not a Subscription"
       if _redis.sadd(_key, subscription.subscriber)
         _log.info { "new subscriber '#{subscription.subscriber}' to '#{@topic.name}'" }
       end
       self
     end
+
+    def remove(subscription)
+      _assert subscription.kind_of?(Subscription), "#{subscription} not a Subscription"
+      if _redis.srem(_key, subscription.subscriber)
+        _log.info { "removed subscriber '#{subscription.subscriber}' from '#{@topic.name}'" }
+      end
+      self
+    end
+
 
     # yields Subscriptions
     def each

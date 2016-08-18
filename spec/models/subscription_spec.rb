@@ -55,7 +55,7 @@ describe Routemaster::Models::Subscription do
     end
   end
 
-  describe '.topics' do
+  describe '#topics' do
 
     let(:properties_topic) do
       Routemaster::Models::Topic.new(name: 'properties', publisher: 'demo')
@@ -78,7 +78,7 @@ describe Routemaster::Models::Subscription do
     end
   end
 
-  describe '.all_topics_count' do
+  describe '#all_topics_count' do
     let(:properties_topic) do
       Routemaster::Models::Topic.new({
         name: 'properties',
