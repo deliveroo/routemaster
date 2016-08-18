@@ -3,6 +3,7 @@ require 'singleton'
 require 'faraday'
 require 'rspec'
 require 'uri'
+require 'webmock'
 
 class RedisCleaner
   include Singleton
