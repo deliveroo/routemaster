@@ -8,7 +8,7 @@ Routemaster aims to dispatch events with a median latency in the 50 - 100ms
 range, with no practical upper limit on throughput.
 
 
-Routemaster comes with, and is automatically integration-tested against 
+Routemaster comes with, and is automatically integration-tested against
 a Ruby client,
 [routemaster-client](https://github.com/mezis/routemaster-client).
 
@@ -54,9 +54,9 @@ Routemaster will keep buffering, and keep trying to push events to subscribers
 until they become reachable again.
 
 
---------------------------------------------------------------------------------
 
-### Topics and Subscriptions
+Topics and Subscriptions
+---
 
 *Topics* are where the inbound events are sent. There should be one topic
 per domain concept, e.g. `properties`, `bookings`, `users`.
@@ -73,19 +73,25 @@ A subscriber can "catch up" event if it hasn't pulled events for a while
 (events get buffered in subscription queues).
 
 
---------------------------------------------------------------------------------
+Installing & Configuring
+===
 
-### Installing & Configuring
+In order to have routemaster receive connections from a receiver or emitter
+you'll need to add their identifier to the `ROUTEMASER_CLIENTS` environment
+variable.
 
-Environment variables:
+By default the bus will send events to `demo`, eg:
 
-* `ROUTEMASTER_CLIENTS` - the allowed UUIDs, separated by commas
-  * only "demo" by default
-  * e.g.: `app1,service2`
-* `ROUTEMASTER_MONITORS`
-* For other settings check the `.env` files
+```
+# Allowed UUIDs, separated by commas
+ROUTEMASER_CLIENTS=demo,my-service--6f1d6311-98a9-42ab-8da4-ed2d7d5b86c4`
+```
 
-#### Development
+For further configuration options please check the provided `.env` files
+
+Development
+---
+
 To get this application up and running you will need the following tools:
 
 * redis
@@ -97,66 +103,55 @@ To get this application up and running you will need the following tools:
   * Just let it run with default settings
   * If you want to run it manually - `rabbitmq-server`
 
-Routemaster needs to have a RabbitMQ virtual host to connect to.
-By default this is going to be called `routemaster.development`.
+Routemaster needs to have a RabbitMQ virtual host to connect to.  By default
+this is going to be called `routemaster.development`.
 
 - Check if RabbitMQ is running by pointing your browser to [http://localhost:15672/#/](http://localhost:15672/#/)
 - Login with guest/guest
 - Go to _Admin => Virtual Hosts_ and add a _New virtual host_ named `routemaster.development`
 - Click on the newly added virtual host and add the guest user with the default permissions
 
-Routemaster only accepts HTTPS calls.
-To get around this restriction on development we can create a tunnel such that
-the requests to our HTTPS port goes to the normal HTTP port.
-You can use the **tunnels** gem to do that.
+Alternatively:
+
+```bash
+rabbitmqctl add_vhost routemaster.development
+rabbitmqctl set_permissions -p routemaster.development guest ".*" ".*" ".*"
 
 ```
-gem install tunnels
-sudo tunnels 127.0.0.1:443 127.0.0.1:80
-```
 
-This command creates a tunnel between port 443 (the default SSL port) and your 80 port.
+Routemaster only accepts HTTPS calls. To get around this restriction on
+development, please install [`puma-dev`](https://github.com/puma/puma-dev).
 
-This is not enough since you need to forward the calls arriving at port 80 to the actual routemaster port, the default is 17890.
-
-We can use [Pow](http://pow.cx/) to do that.
-
-- Install it here https://github.com/basecamp/pow
-- Configure Port Proxying to to forward requests arriving at http://localhost:80 to http://routemaster.dev:17890.
-
-This last step is as simple as creating a file with a port number in the .pow folder
+Then proxy routemaster requests by running the following:
 
 ```
-$ echo 17890 > ~/.pow/routemaster
+$ echo 17890 > ~/.puma-dev/routemaster
 ```
 
 Now all your calls to `https://routemaster.dev` should correctly arrive at `http://127.0.0.1:17890`.
 
-You will probably need Routemaster to contact your app on HTTPS to deliver events.
-To do that just repeat the POW step to add a Port Proxying to your app.
+You will also need Routemaster to contact your app through HTTPS to deliver
+events.  Follow the same steps above to proxy your app requests, i.e. for a
+Rails app that would be
 
-`$ echo <your-app-port> > ~/.pow/<your-app-name>`
+`$ echo 3000 > ~/.puma-dev/myapp`
 
-which for rails will probably be
-
-`$ echo 3000 > ~/.pow/<your-app-name>`
-
-You can register your app to Routemaster and provide as a callback url for events
-`https://<your-app-name>.dev/<your-app-route>`
-
-
-#### Running it
+Running it
+---
 
 To run the Routemaster application locally you can use the **foreman** tool:
+
 ```
 foreman start
 ```
 This will start both the **web** and **watch** processes. Keep in mind that the
 default web port that the **web** process will listen to is defined in the .env
-file.
+file. By default routemaster log level is set to `DEBUG` if this is too chatty
+you can easily configure this in the `.env` file
 
 
-### Scaling Routemaster out
+Scaling Routemaster out
+===
 
 1. Allowing Routemastear to _receive_ more events:<br>
    This requires to scale the HTTP frontend. We recommend using
