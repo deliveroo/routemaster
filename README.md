@@ -12,7 +12,7 @@ Routemaster comes with, and is automatically integration-tested against
 a Ruby client,
 [routemaster-client](https://github.com/mezis/routemaster-client).
 
-#### Remote procedure call as an antipattern
+## Remote procedure call as an antipattern
 
 Routemaster is designed on purpose to _not_ support RPC-style architectures, for
 instance by severely limiting payload contents.
@@ -22,7 +22,7 @@ a web application, it's all too easy to damage a resource-oriented architecture 
 spreading concerns across applications, thus coupling them too tightly.
 
 
-#### Leverage HTTP to scale
+## Leverage HTTP to scale
 
 In web environments, the one type of server that scales well and can scale
 automatically with little effort is an HTTP server. As such, Routemaster heavily
@@ -45,7 +45,7 @@ Future versions of Routemaster may support (backwards-compatible) long-polling
 HTTP sessions to cancel out the latency cost.
 
 
-#### Persistence
+## Persistence
 
 The web is a harsh place. Subscribers may die, or be unreachable in many ways
 for various amounts of time.
@@ -55,8 +55,7 @@ until they become reachable again.
 
 
 
-Topics and Subscriptions
----
+## Topics and Subscriptions
 
 *Topics* are where the inbound events are sent. There should be one topic
 per domain concept, e.g. `properties`, `bookings`, `users`.
@@ -73,24 +72,22 @@ A subscriber can "catch up" event if it hasn't pulled events for a while
 (events get buffered in subscription queues).
 
 
-Installing & Configuring
-===
+# Installing & Configuring
 
 In order to have routemaster receive connections from a receiver or emitter
-you'll need to add their identifier to the `ROUTEMASER_CLIENTS` environment
+you'll need to add their identifier to the `ROUTEMASTER_CLIENTS` environment
 variable.
 
 By default the bus will send events to `demo`, eg:
 
 ```
 # Allowed UUIDs, separated by commas
-ROUTEMASER_CLIENTS=demo,my-service--6f1d6311-98a9-42ab-8da4-ed2d7d5b86c4`
+ROUTEMASTER_CLIENTS=demo,my-service--6f1d6311-98a9-42ab-8da4-ed2d7d5b86c4`
 ```
 
 For further configuration options please check the provided `.env` files
 
-Development
----
+## Development
 
 To get this application up and running you will need the following tools:
 
@@ -136,8 +133,7 @@ Rails app that would be
 
 `$ echo 3000 > ~/.puma-dev/myapp`
 
-Running it
----
+## Running it
 
 To run the Routemaster application locally you can use the **foreman** tool:
 
@@ -150,8 +146,9 @@ file. By default routemaster log level is set to `DEBUG` if this is too chatty
 you can easily configure this in the `.env` file
 
 
-Scaling Routemaster out
-===
+--------------------------------------------------------------------------------
+
+### Scaling Routemaster out
 
 1. Allowing Routemastear to _receive_ more events:<br>
    This requires to scale the HTTP frontend. We recommend using
