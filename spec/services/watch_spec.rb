@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'spec/support/persistence'
 require 'spec/support/events'
 require 'spec/support/dummy'
+require 'spec/support/env'
 require 'routemaster/application'
 require 'routemaster/services/watch'
 require 'routemaster/models/subscription'
@@ -18,11 +19,8 @@ describe Routemaster::Services::Watch do
     let(:perform) { subject.run(2) }
     let(:app) { Routemaster::Application }
 
-    around do |example|
-      old = ENV['EXCEPTION_SERVICE']
+    before do
       ENV['EXCEPTION_SERVICE'] = 'dummy'
-      example.run
-      ENV['EXCEPTION_SERVICE'] = old
     end
 
     shared_examples 'logging' do

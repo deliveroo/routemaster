@@ -69,8 +69,8 @@ module Routemaster
             topics: subscription.topics.map(&:name),
             events: {
               sent: subscription.all_topics_count,
-              queued: subscription.queue.message_count,
-              oldest: subscription.age_of_oldest_message
+              queued: subscription.queue.length,
+              oldest: subscription.queue.staleness,
             }
           }
         end

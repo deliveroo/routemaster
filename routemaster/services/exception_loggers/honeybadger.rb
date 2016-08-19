@@ -1,17 +1,20 @@
 require 'singleton'
 require 'routemaster/services'
+require 'routemaster/mixins/log'
 
 module Routemaster
   module Services
     module ExceptionLoggers
       class Honeybadger
         include Singleton
+        include Mixins::Log
 
         def initialize
           require 'honeybadger'
           honeybadger_config = ::Honeybadger::Config.new(
             env: ENV['RACK_ENV'],
-            api_key: ENV.fetch('HONEYBADGER_API_KEY')
+            api_key: ENV.fetch('HONEYBADGER_API_KEY'),
+            logger: _log,
           )
           ::Honeybadger.start(honeybadger_config)
         rescue KeyError
