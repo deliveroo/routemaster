@@ -74,14 +74,18 @@ module Routemaster::Models
       topics.reduce(0) { |sum, topic| sum += topic.get_count }
     end
 
-    def age_of_oldest_message
-      consumer = Routemaster::Models::Queue.new(self)
-      message = consumer.pop
-      if message && message.event?
-        age = Routemaster.now - message.event.timestamp
-      end
-      consumer.nack(message) unless message.nil?
-      age || 0
+    # def age_of_oldest_message
+    #   consumer = Routemaster::Models::Queue.new(self)
+    #   message = consumer.pop
+    #   if message && message.event?
+    #     age = Routemaster.now - message.event.timestamp
+    #   end
+    #   consumer.nack(message) unless message.nil?
+    #   age || 0
+    # end
+
+    def queue
+      @queue ||= Routemaster::Models::Queue.new(self)
     end
 
     extend Enumerable
@@ -91,7 +95,7 @@ module Routemaster::Models
     end
 
     def inspect
-      "<#{self.class.name} name=#{@name}>"
+      "<#{self.class.name} subscriber=#{@subscriber}>"
     end
 
     private

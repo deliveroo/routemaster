@@ -1,16 +1,14 @@
 require 'spec_helper'
 require 'routemaster/services/pulse'
 require 'spec/support/dummy'
+require 'spec/support/env'
 
 describe Routemaster::Services::Pulse do
   describe '#run' do
     let(:perform) { subject.run }
 
-    around do |example|
-      @old = ENV['EXCEPTION_SERVICE']
+    before do
       ENV['EXCEPTION_SERVICE'] = 'dummy'
-      example.run
-      ENV['EXCEPTION_SERVICE'] = @old
     end
 
     it 'returns true' do

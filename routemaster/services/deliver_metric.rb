@@ -1,12 +1,9 @@
-require 'routemaster/mixins'
+require 'routemaster/services'
 
 module Routemaster
   module Services
-    module DeliverMetric
-
-      protected
-
-      def deliver(name, value, tags = [])
+    class DeliverMetric
+      def initialize
         service = ENV.fetch('METRIC_COLLECTION_SERVICE', 'print')
 
         begin
@@ -15,10 +12,15 @@ module Routemaster
           abort "Please install and configure metrics collection service first!"
         end
 
-        # send the exception message to your choice of service!
-        service = service.camelize
-        MetricsCollectors.const_get(service)
-          .instance.perform(name, value, tags)
+        @collector =
+          case service
+          when 'print' then MetricsCollectors::Print.instance
+          when 'datadog' then MetricsCollectors::Datadog.instance
+          end
+      end
+
+      def call(name, value, tags = [])
+        @collector.perform(name, value, tags)
       end
     end
   end

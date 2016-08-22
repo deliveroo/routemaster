@@ -46,6 +46,20 @@ module Routemaster
         self
       end
 
+      def length
+        _redis.hlen(_payloads_key)
+      end
+
+      def staleness
+        age = 0
+        message = pop
+        if message
+          age = Routemaster.now - message.event.timestamp if message.event?
+          nack message
+        end
+        age
+      end
+
       def to_s
         "subscriber:#{@subscription.subscriber} id:0x#{object_id.to_s(16)}"
       end

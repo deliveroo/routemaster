@@ -114,33 +114,10 @@ describe Routemaster::Models::Subscription do
     end
   end
 
-  describe '.age_of_oldest_message' do
-
-    let(:subscription) {
-      Routemaster::Models::Subscription.new(subscriber: 'alice')
-    }
-    let(:options) {[ subscription ]}
-    let(:consumer) { Routemaster::Models::Queue.new(*options) }
-    let(:event) {
-      Routemaster::Models::Event.new(
-        topic: 'widgets',
-        type:  'create',
-        url:   'https://example.com/widgets/123'
-      )
-    }
-
-    before do
-      Routemaster::Models::Queue.push [subscription], Routemaster::Models::Message.new(event.dump)
-    end
-
-    it 'should return the age of the oldest message' do
-      sleep(250e-3)
-      expect(subscription.age_of_oldest_message).to be_within(50).of(250)
-    end
-
-    it 'does not dequeue the oldest message' do
-      subscription.age_of_oldest_message
-      expect(consumer.pop).to be_event
+  describe '#queue' do
+    it 'is mine' do
+      expect(subject.queue.subscription).to eq(subject)
     end
   end
+
 end

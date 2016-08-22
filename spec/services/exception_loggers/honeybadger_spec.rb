@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'honeybadger'
 require 'routemaster/application'
 require 'routemaster/mixins/log'
 require 'routemaster/mixins/log_exception'
@@ -7,18 +6,14 @@ require 'routemaster/services/exception_loggers/honeybadger'
 require 'core_ext/silence_stream'
 
 describe Routemaster::Services::ExceptionLoggers::Honeybadger do
+  # predeclare so we can test loading
+  ::Honeybadger ||= Module.new
 
   describe '#process' do
     subject { described_class.instance }
     let(:error) {  StandardError.new('error message') }
 
     before { Singleton.__init__(described_class) }
-
-    around do |example|
-      api_key = ENV['HONEYBADGER_API_KEY']
-      example.run
-      ENV['HONEYBADGER_API_KEY'] = api_key
-    end
 
     context 'when the api key is missing' do
       before { ENV.delete 'HONEYBADGER_API_KEY' }

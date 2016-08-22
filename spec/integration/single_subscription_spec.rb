@@ -95,7 +95,7 @@ describe 'integration' do
 
   WatchProcess = SubProcess.new(
     name:    'watch',
-    command: 'ruby -I. watch.rb',
+    command: './bin/watch',
     start:   /INFO: starting watch service/,
     stop:    /INFO: watch completed/
   )

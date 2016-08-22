@@ -1,3 +1,6 @@
+#!/usr/bin/env ruby
+
+require_relative '../config/bootstrap.rb'
 require 'routemaster/services/watch'
 require 'routemaster/mixins/log'
 

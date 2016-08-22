@@ -96,4 +96,46 @@ describe Routemaster::Models::Queue do
       expect(subject.pop).to be_nil
     end
   end
+
+  describe '#length' do
+    it 'is zero at rest' do
+      expect(subject.length).to eq(0)
+    end
+
+    it 'counts new and un-acked messages' do
+      5.times { |n| described_class.push [subscription], Routemaster::Models::Message.new("msg#{n}") }
+      2.times { subject.pop }
+      expect(subject.length).to eq(5)
+    end
+  end
+
+  describe '#staleness' do
+
+    let(:subscription) {
+      Routemaster::Models::Subscription.new(subscriber: 'alice')
+    }
+    let(:options) {[ subscription ]}
+    let(:queue) { Routemaster::Models::Queue.new(*options) }
+    let(:event) {
+      Routemaster::Models::Event.new(
+        topic: 'widgets',
+        type:  'create',
+        url:   'https://example.com/widgets/123'
+      )
+    }
+
+    before do
+      Routemaster::Models::Queue.push [subscription], Routemaster::Models::Message.new(event.dump)
+    end
+
+    it 'should return the age of the oldest message' do
+      sleep(250e-3)
+      expect(queue.staleness).to be_within(50).of(250)
+    end
+
+    it 'does not dequeue the oldest message' do
+      queue.staleness
+      expect(queue.pop).to be_event
+    end
+  end
 end

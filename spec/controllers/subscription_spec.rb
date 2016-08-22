@@ -35,11 +35,11 @@ describe Routemaster::Controllers::Subscription do
       allow(Routemaster::Models::Subscription)
         .to receive(:each).and_yield(subscription)
       allow(subscription)
-        .to receive(:age_of_oldest_message).and_return(1000)
+        .to receive_message_chain('queue.staleness').and_return(1000)
       allow(subscription)
         .to receive(:all_topics_count).and_return(100)
       expect(subscription)
-        .to receive_message_chain("queue.message_count").and_return(50)
+        .to receive_message_chain('queue.length').and_return(50)
 
       perform
       resp = JSON(last_response.body)
