@@ -36,9 +36,13 @@ module Routemaster
         end
 
         # send data
-        response = _conn.post do |post|
-          post.headers['Content-Type'] = 'application/json'
-          post.body = data.to_json
+        begin
+          response = _conn.post do |post|
+            post.headers['Content-Type'] = 'application/json'
+            post.body = data.to_json
+          end
+        rescue Faraday::Error::ClientError => e
+          raise CantDeliver.new("delivery failure (#{e.class.name}: #{e.message})")
         end
 
         if response.success?
@@ -47,7 +51,7 @@ module Routemaster
         end
 
         _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscription.subscriber}'" }
-        raise CantDeliver.new('delivery failure')
+        raise CantDeliver.new("delivery failure (HTTP #{response.status})")
       end
 
 

@@ -3,7 +3,7 @@ require 'routemaster/services/deliver'
 require 'routemaster/models/subscription'
 require 'spec/support/persistence'
 require 'spec/support/events'
-require 'webmock/rspec'
+require 'spec/support/webmock'
 require 'timecop'
 
 
@@ -91,6 +91,14 @@ describe Routemaster::Services::Deliver do
         it 'raises an exception' do
           expect { perform }.to raise_error(described_class::CantDeliver)
         end
+      end
+
+      context 'when the connection fails' do
+        before do
+          allow_any_instance_of(Net::HTTP).to receive(:request).and_raise(SocketError)
+        end
+
+        it { expect { perform }.to raise_error(described_class::CantDeliver) }
       end
     end
 
