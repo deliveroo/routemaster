@@ -4,7 +4,7 @@ require 'routemaster/mixins/assert'
 
 module Routemaster
   module Models
-    # Abstract base calss for messages that transits on a queue
+    # Abstract base class for messages that transits on a queue
     class Message
       include Mixins::Log
       include Mixins::Assert
