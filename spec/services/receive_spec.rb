@@ -29,11 +29,10 @@ describe Routemaster::Services::Receive do
   end
 
   def make_message(id)
-    event = Routemaster::Models::Event.new(
+    Routemaster::Models::Event.new(
       topic: 'widgets', type: 'create',
       url: "https://example.com/widgets/#{id}",
     )
-    Routemaster::Models::Message.new(event.dump)
   end
 
 
@@ -71,7 +70,7 @@ describe Routemaster::Services::Receive do
 
     context 'when receiving a kill message' do
       let(:messages) {[
-        Routemaster::Models::Message.new('kill')
+        Routemaster::Models::Message::Kill.new
       ]}
 
       it 'acks the message' do
@@ -86,7 +85,7 @@ describe Routemaster::Services::Receive do
 
     context 'when receiving an unknown event' do
       let(:messages) {[
-        Routemaster::Models::Message.new('do you even')
+        Routemaster::Models::Message::Ping.new
       ]}
 
       it 'acks the message' do

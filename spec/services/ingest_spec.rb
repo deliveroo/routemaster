@@ -36,9 +36,9 @@ module Routemaster
 
     it 'pushes to all subscribers' do
       perform
-      expect(consumers[0].pop&.event).to eq(events.first)
-      expect(consumers[1].pop&.event).to be_nil
-      expect(consumers[2].pop&.event).to eq(events.first)
+      expect(consumers[0].pop).to eq(events.first)
+      expect(consumers[1].pop).to be_nil
+      expect(consumers[2].pop).to eq(events.first)
     end
 
     it 'increments the topic event count' do

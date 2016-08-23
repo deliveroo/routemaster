@@ -3,7 +3,7 @@ require 'routemaster/controllers/health'
 require 'spec/support/rack_test'
 require 'json'
 
-describe Routemaster::Controllers::Health do
+describe Routemaster::Controllers::Health, type: :controller do
   let(:app) { described_class }
   let(:perform) { get '/health/ping' }
 

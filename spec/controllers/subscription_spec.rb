@@ -4,7 +4,7 @@ require 'spec/support/rack_test'
 require 'spec/support/persistence'
 require 'json'
 
-describe Routemaster::Controllers::Subscription do
+describe Routemaster::Controllers::Subscription, type: :controller do
   let(:uid) { 'charlie' }
   let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
 

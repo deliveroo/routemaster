@@ -20,6 +20,9 @@ gem 'hiredis'
 gem 'redis', require: %w(redis redis/connection/hiredis)
 gem 'redis-namespace'
 
+# fast, redis-compatible serialisation
+gem 'msgpack'
+
 # talkin' sweet HTTP
 gem 'faraday'
 gem 'faraday_middleware'

@@ -46,9 +46,9 @@ module Routemaster
             topic: params['name'],
             type:  event_data.fetch('type'),
             url:   event_data.fetch('url'),
-            timestamp: event_data.fetch('timestamp', nil)
+            timestamp: event_data['timestamp'] || Routemaster.now
           )
-        rescue ArgumentError
+        rescue ArgumentError => e
           halt 400, 'bad event'
         end
 
