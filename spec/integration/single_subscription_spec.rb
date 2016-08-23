@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'spec/support/persistence'
+require 'spec/support/webmock'
 require 'routemaster/client'
 require 'pathname'
 require 'routemaster/models/subscription'
@@ -128,11 +129,7 @@ describe 'integration' do
 
   Processes = [ServerTunnelProcess, ClientTunnelProcess, WatchProcess, WebProcess, ClientProcess]
 
-  before do
-    if defined?(WebMock)
-      WebMock.disable!
-    end
-  end
+  before { WebMock.disable! }
 
   shared_examples 'start and stop' do
     before { subject.start }

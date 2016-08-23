@@ -3,7 +3,6 @@ require 'singleton'
 require 'faraday'
 require 'rspec'
 require 'uri'
-require 'webmock'
 
 class RedisCleaner
   include Singleton
@@ -16,5 +15,4 @@ end
 
 RSpec.configure do |config|
   config.before(:each) { RedisCleaner.instance.clean! }
-  config.after(:suite) { WebMock.disable! }
 end
