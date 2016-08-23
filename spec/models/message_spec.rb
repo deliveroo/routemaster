@@ -8,7 +8,7 @@ describe Routemaster::Models::Message do
 
   describe '#uid' do
     it 'is generated' do
-      expect(subject.uid).to match /^\h{8}-\h{4}-\h{4}-\h{4}-\h{12}$/
+      expect(subject.uid).to match  /^[a-z0-9]{25}$/
     end
 
     context 'when specified' do

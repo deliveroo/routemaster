@@ -12,7 +12,7 @@ module Routemaster
       attr_reader :uid, :timestamp
       
       def initialize(**options)
-        @uid       = options.fetch(:uid) { SecureRandom.uuid }
+        @uid       = options.fetch(:uid) { SecureRandom.hex(16).to_i(16).to_s(36).rjust(25,'0') }
         @timestamp = options.fetch(:timestamp) { Routemaster.now }
         @status    = nil
 
