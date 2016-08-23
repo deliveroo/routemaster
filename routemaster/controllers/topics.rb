@@ -1,12 +1,15 @@
 require 'routemaster/controllers'
 require 'routemaster/models/topic'
 require 'routemaster/services/ingest'
+require 'routemaster/mixins/log'
 require 'sinatra'
 require 'json'
 
 module Routemaster
   module Controllers
     class Topics < Sinatra::Base
+      include Routemaster::Mixins::Log
+
       get '/topics' do
         content_type :json
         Routemaster::Models::Topic.all.map do |topic|
@@ -49,6 +52,8 @@ module Routemaster
             timestamp: event_data['timestamp'] || Routemaster.now
           )
         rescue ArgumentError => e
+          _log.warn { "failed to parse event" }
+          _log_exception(e)
           halt 400, 'bad event'
         end
 
