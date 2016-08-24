@@ -1,4 +1,4 @@
-## Routemaster [![Build](https://api.travis-ci.org/mezis/routemaster.svg?branch=master)](https://travis-ci.org/mezis/routemaster) [![Code Climate](https://codeclimate.com/github/mezis/routemaster/badges/gpa.svg)](https://codeclimate.com/github/mezis/routemaster) [![Test Coverage](https://codeclimate.com/github/mezis/routemaster/badges/coverage.svg)](https://codeclimate.com/github/mezis/routemaster/coverage)
+## Routemaster [![Build](https://api.travis-ci.org/deliveroo/routemaster.svg?branch=master)](https://travis-ci.org/deliveroo/routemaster) [![Code Climate](https://codeclimate.com/github/deliveroo/routemaster/badges/gpa.svg)](https://codeclimate.com/github/deliveroo/routemaster) [![Test Coverage](https://codeclimate.com/github/deliveroo/routemaster/badges/coverage.svg)](https://codeclimate.com/github/deliveroo/routemaster/coverage)
 
 
 **Routemaster** is an opinionated event bus over HTTP, supporting event-driven /
@@ -10,7 +10,7 @@ range, with no practical upper limit on throughput.
 
 Routemaster comes with, and is automatically integration-tested against
 a Ruby client,
-[routemaster-client](https://github.com/mezis/routemaster-client).
+[routemaster-client](https://github.com/deliveroo/routemaster-client).
 
 ## Remote procedure call as an antipattern
 
