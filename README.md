@@ -1,5 +1,12 @@
 ## Routemaster [![Build](https://api.travis-ci.org/deliveroo/routemaster.svg?branch=master)](https://travis-ci.org/deliveroo/routemaster) [![Code Climate](https://codeclimate.com/github/deliveroo/routemaster/badges/gpa.svg)](https://codeclimate.com/github/deliveroo/routemaster) [![Test Coverage](https://codeclimate.com/github/deliveroo/routemaster/badges/coverage.svg)](https://codeclimate.com/github/deliveroo/routemaster/coverage)
 
+[Intro](#the-basics)
+| [Rationale](#rationale)
+| [Installing](#installing--configuring)
+| [Configuration](#advanced-configuration)
+| [API](#api)
+| [Sources of inspiration](#sources-of-inspiration)
+
 
 **Routemaster** is an opinionated event bus over HTTP, supporting event-driven /
 representational state notification architectures.
@@ -12,17 +19,42 @@ Routemaster comes with, and is automatically integration-tested against
 a Ruby client,
 [routemaster-client](https://github.com/deliveroo/routemaster-client).
 
-## Remote procedure call as an antipattern
+For advanced bus consumers,
+[routemaster-drain](https://github.com/deliveroo/routemaster-drain) can perform
+filtering of event stream
+preemptive caching of resources.
+
+## The basics
+
+Routemaster lets publisher push events into topics, and subscribers receive
+events about topics they've subscribed to.
+
+Pushing, receiving, and subscribing all happen over HTTP.
+
+![](https://www.dropbox.com/s/qbn1srjjcb8t0vh/Screenshot%202016-08-25%2016.41.54.png?raw=1)
+
+
+## Rationale
+
+We built Routemaster because existing buses for distributed architecture aren't
+satisfactory to us; either they're too complex to host and maintain, don't
+support key features (persistence), or provide too much rope to hang ourselves
+with.
+
+### Remote procedure call as an antipattern
 
 Routemaster is designed on purpose to _not_ support RPC-style architectures, for
 instance by severely limiting payload contents.
+
+It _only_ supports notifying consumers about lifecycle (CRUD) changes to
+resources, and strongly suggests that consumers obtain their JSON out-of-band.
 
 The rationale is that, much like it's all too easy to add non-RESTful routes to
 a web application, it's all too easy to damage a resource-oriented architecture by
 spreading concerns across applications, thus coupling them too tightly.
 
 
-## Leverage HTTP to scale
+### Leverage HTTP to scale
 
 In web environments, the one type of server that scales well and can scale
 automatically with little effort is an HTTP server. As such, Routemaster heavily
@@ -45,7 +77,7 @@ Future versions of Routemaster may support (backwards-compatible) long-polling
 HTTP sessions to cancel out the latency cost.
 
 
-## Persistence
+### Persistence
 
 The web is a harsh place. Subscribers may die, or be unreachable in many ways
 for various amounts of time.
@@ -55,7 +87,7 @@ until they become reachable again.
 
 
 
-## Topics and Subscriptions
+### Topics and Subscriptions
 
 *Topics* are where the inbound events are sent. There should be one topic
 per domain concept, e.g. `properties`, `bookings`, `users`.
@@ -72,7 +104,9 @@ A subscriber can "catch up" event if it hasn't pulled events for a while
 (events get buffered in subscription queues).
 
 
-# Installing & Configuring
+--------------------------------------------------------------------------------
+
+## Installing & Configuring
 
 In order to have routemaster receive connections from a receiver or emitter
 you'll need to add their identifier to the `ROUTEMASTER_CLIENTS` environment
@@ -87,7 +121,7 @@ ROUTEMASTER_CLIENTS=demo,my-service--6f1d6311-98a9-42ab-8da4-ed2d7d5b86c4`
 
 For further configuration options please check the provided `.env` files
 
-## Development
+### Development
 
 To get this application up and running you will need the following tools:
 
@@ -113,20 +147,89 @@ Rails app that would be
 
 `$ echo 3000 > ~/.puma-dev/myapp`
 
-## Running it
-
 To run the Routemaster application locally you can use the **foreman** tool:
 
 ```
 foreman start
 ```
-This will start both the **web** and **watch** processes. Keep in mind that the
-default web port that the **web** process will listen to is defined in the .env
-file. By default routemaster log level is set to `DEBUG` if this is too chatty
-you can easily configure this in the `.env` file
+
+This will start both the web server and ancillary processes. Keep in mind that
+the default web port that the **web** process will listen to is defined in the
+`.env` file. By default routemaster log level is set to `DEBUG` if this is too
+chatty you can easily configure this in the `.env` file
+
 
 
 --------------------------------------------------------------------------------
+
+## Advanced configuration
+
+### Monitoring
+
+Routermaster provides monitoring endpoints:
+
+    >> GET /topics
+    << [
+    <<   {
+    <<     name:      <topic>,
+    <<     publisher: <username>,
+    <<     events:    <count>
+    <<   }, ...
+    << ]
+
+`<count>` is the total number of events ever sent on a given topic.
+
+    >> GET /subscriptions
+    << [
+    <<   {
+    <<     subscriber: <username>,
+    <<     callback:   <url>,
+    <<     topics:     [<name>, ...],
+    <<     events: {
+    <<       sent:       <sent_count>,
+    <<       queued:     <queue_size>,
+    <<       oldest:     <staleness>,
+    <<     }
+    <<   }, ...
+    << ]
+
+- `<name>`: the names of all topics routed into this subscriptions queue.
+- `<sent_count>`: total number of events ever sent on this topic.
+- `<queue_size>`: current number of events in the subscription queue.
+- `<oldest>`: timestamp (seconds since epoch) of the oldest pending event.
+
+
+Monitoring resources can be queries by clients with a UUID included in `ROUTEMASTER_MONITORS`.
+
+Routemaster does not, and will not include an UI for monitoring, as that would
+complexify its codebase too much (it's a separate concern, really).
+
+
+### Metrics
+
+Routemaster can report various metrics to a third party services by setting the
+`METRIC_COLLECTION_SERVICE` variable to one of:
+
+- `print` (will log metrics to standard output; the default)
+- [`datadog`](https://www.datadoghq.com) (requires the `DATADOG_API_KEY` and
+  `DATADOG_APP_KEY` to be set)
+
+The metrics `subscription.queue.size` and `subscription.queue.staleness` will be
+reported every 5 seconds.
+
+
+### Exception reporting
+
+Routemaster can send exception traces to a 3rd party by setting the
+`EXCEPTION_SERVICE` variable to one of:
+
+- `print` (will log exceptions to standard output; the default)
+- [`sentry`](https://getsentry.com/welcome/)
+- [`honeybadger`](https://www.honeybadger.io)
+
+For the latter two, you will need to provide the reporting endpoint in
+`EXCEPTION_SERVICE_URL`
+
 
 ### Scaling Routemaster out
 
@@ -147,11 +250,12 @@ you can easily configure this in the `.env` file
 3. Allowing Routemaster to _buffer_ more events:<br>
    This requires scaling the underlying Redis server.
 
+
 --------------------------------------------------------------------------------
 
-### API
+## API
 
-#### Authentication, security.
+### Authentication, security.
 
 All requests over non-SSL connections will be met with a 308 Permanent Redirect.
 
@@ -162,7 +266,7 @@ The list of allowed clients is part of the configuration, and is passed as a
 comma-separated list to the `ROUTEMASTER_CLIENTS` environment variable.
 
 
-#### Publication (creating topics)
+### Publication (creating topics)
 
 There is no need to explicitely create topics; they will be when pushing the
 first event to the bus.
@@ -171,7 +275,7 @@ first event to the bus.
 push to a given topic will see their requests met with errors.
 
 
-#### Pushing
+### Pushing
 
     >> POST /topics/:name
     >> {
@@ -204,7 +308,7 @@ authentication-related):
   topic.
 
 
-#### Subscription
+### Subscription
 
 Subscription implicitly creates a queue for the client, which starts
 accumulating events.
@@ -270,68 +374,7 @@ Possible response statuses:
 
 --------------------------------------------------------------------------------
 
-### Monitoring
-
-Routermaster provides monitoring endpoints:
-
-    >> GET /topics
-    << [
-    <<   {
-    <<     name:      <topic>,
-    <<     publisher: <username>,
-    <<     events:    <count>
-    <<   }, ...
-    << ]
-
-`<count>` is the total number of events ever sent on a given topic.
-
-    >> GET /subscriptions
-    << [
-    <<   {
-    <<     subscriber: <username>,
-    <<     callback:   <url>,
-    <<     topics:     [<name>, ...],
-    <<     events: {
-    <<       sent:       <sent_count>,
-    <<       queued:     <queue_size>,
-    <<       oldest:     <staleness>,
-    <<     }
-    <<   }, ...
-    << ]
-
-- `<name>`: the names of all topics routed into this subscriptions queue.
-- `<sent_count>`: total number of events ever sent on this topic.
-- `<queue_size>`: current number of events in the subscription queue.
-- `<oldest>`: timestamp (seconds since epoch) of the oldest pending event.
-
-
-Monitoring resources can be queries by clients with a UUID included in `ROUTEMASTER_MONITORS`.
-
-Routemaster does not, and will not include an UI for monitoring, as that would
-complexify its codebase too much (it's a separate concern, really).
-
---------------------------------------------------------------------------------
-
-### Exception Logging
-
-We've decided to leave this choice up to you but we have added examples for the following:
-- [Sentry](https://getsentry.com/welcome/)
-- [Honeybadger](https://www.honeybadger.io)
-
-You can if you wish just have these send to `stdout` if no credentials are set.
-
-It should be quick and easy to get this, or another application up and running in no time.
-
-- configure the application
-  - set the two environment variables `EXCEPTION_SERVICE` and `EXCEPTION_SERVICE_URL`
-
-- create a new logger service in `services/exception_loggers` named as set in `ENV['EXCEPTION_SERVICE']`
-  - This new service will make the call with necessary params to the `EXCEPTION_SERVICE_URL`
-
-
---------------------------------------------------------------------------------
-
-### Post-MVP Roadmap
+## Post-MVP Roadmap
 
 Latency improvements:
 
@@ -363,7 +406,7 @@ Support for sending-side autoscaling:
 
 --------------------------------------------------------------------------------
 
-### Sources of inspiration
+## Sources of inspiration
 
 - [RestMQ](http://restmq.com/)
 - [Apache Kafka](https://kafka.apache.org/documentation.html#introduction)
