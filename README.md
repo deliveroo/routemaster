@@ -164,47 +164,6 @@ chatty you can easily configure this in the `.env` file
 
 ## Advanced configuration
 
-### Monitoring
-
-Routermaster provides monitoring endpoints:
-
-    >> GET /topics
-    << [
-    <<   {
-    <<     name:      <topic>,
-    <<     publisher: <username>,
-    <<     events:    <count>
-    <<   }, ...
-    << ]
-
-`<count>` is the total number of events ever sent on a given topic.
-
-    >> GET /subscriptions
-    << [
-    <<   {
-    <<     subscriber: <username>,
-    <<     callback:   <url>,
-    <<     topics:     [<name>, ...],
-    <<     events: {
-    <<       sent:       <sent_count>,
-    <<       queued:     <queue_size>,
-    <<       oldest:     <staleness>,
-    <<     }
-    <<   }, ...
-    << ]
-
-- `<name>`: the names of all topics routed into this subscriptions queue.
-- `<sent_count>`: total number of events ever sent on this topic.
-- `<queue_size>`: current number of events in the subscription queue.
-- `<oldest>`: timestamp (seconds since epoch) of the oldest pending event.
-
-
-Monitoring resources can be queries by clients with a UUID included in `ROUTEMASTER_MONITORS`.
-
-Routemaster does not, and will not include an UI for monitoring, as that would
-complexify its codebase too much (it's a separate concern, really).
-
-
 ### Metrics
 
 Routemaster can report various metrics to a third party services by setting the
@@ -370,6 +329,47 @@ Possible response statuses:
 - 200, 204: Event batch is ackownledged, and will be deleted from the
   subscription queue.
 - Anything else: failure, batch to be sent again later.
+
+
+### Monitoring
+
+Routermaster provides monitoring endpoints:
+
+    >> GET /topics
+    << [
+    <<   {
+    <<     name:      <topic>,
+    <<     publisher: <username>,
+    <<     events:    <count>
+    <<   }, ...
+    << ]
+
+`<count>` is the total number of events ever sent on a given topic.
+
+    >> GET /subscriptions
+    << [
+    <<   {
+    <<     subscriber: <username>,
+    <<     callback:   <url>,
+    <<     topics:     [<name>, ...],
+    <<     events: {
+    <<       sent:       <sent_count>,
+    <<       queued:     <queue_size>,
+    <<       oldest:     <staleness>,
+    <<     }
+    <<   }, ...
+    << ]
+
+- `<name>`: the names of all topics routed into this subscriptions queue.
+- `<sent_count>`: total number of events ever sent on this topic.
+- `<queue_size>`: current number of events in the subscription queue.
+- `<oldest>`: timestamp (seconds since epoch) of the oldest pending event.
+
+
+Monitoring resources can be queries by clients with a UUID included in `ROUTEMASTER_MONITORS`.
+
+Routemaster does not, and will not include an UI for monitoring, as that would
+complexify its codebase too much (it's a separate concern, really).
 
 
 --------------------------------------------------------------------------------
