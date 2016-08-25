@@ -4,6 +4,7 @@ require 'routemaster/models/user'
 require 'routemaster/models/message'
 require 'routemaster/models/queue'
 require 'routemaster/models/subscribers'
+require 'routemaster/services/codec'
 require 'forwardable'
 
 module Routemaster
@@ -55,12 +56,12 @@ module Routemaster
       def last_event
         raw = _redis.hget(_key, 'last_event')
         return if raw.nil?
-        Event.load(raw)
+        Services::Codec.new.load(raw, nil)
       end
 
       def last_event=(event)
         _assert event.kind_of?(Event), 'can only save Event'
-        _redis.hset(_key, 'last_event', event.dump)
+        _redis.hset(_key, 'last_event', Services::Codec.new.dump(event))
       end
 
       def get_count

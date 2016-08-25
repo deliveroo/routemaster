@@ -8,7 +8,7 @@ class Rack::Test::Session
 end
 
 RSpec.configure do |conf|
-  conf.include Rack::Test::Methods
+  conf.include Rack::Test::Methods, type: :controller
 end
 
 class AuthenticatedApp

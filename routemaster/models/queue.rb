@@ -2,6 +2,7 @@ require 'routemaster/models'
 require 'routemaster/models/message'
 require 'routemaster/mixins/log'
 require 'routemaster/mixins/redis'
+require 'routemaster/services/codec'
 
 module Routemaster
   module Models
@@ -31,7 +32,7 @@ module Routemaster
           return
         end
 
-        Message.new(payload, uid)
+        Services::Codec.new.load(payload, uid)
       end
 
       # Acknowledge a message, permanently removing it form the queue
@@ -54,7 +55,7 @@ module Routemaster
         age = 0
         message = pop
         if message
-          age = Routemaster.now - message.event.timestamp if message.event?
+          age = Routemaster.now - message.timestamp
           nack message
         end
         age
@@ -70,13 +71,14 @@ module Routemaster
 
       module ClassMethods
         def push(subscriptions, message)
+          payload = Services::Codec.new.dump(message)
           keys  = subscriptions.flat_map { |sub|
             [ _new_uuids_key(sub), _payloads_key(sub) ]
           }
           _redis_lua_run(
             'push',
             keys: keys,
-            argv: [keys.length/2, message.uid, message.payload])
+            argv: [keys.length/2, message.uid, payload])
           self
         end
 

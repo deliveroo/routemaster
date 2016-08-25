@@ -35,13 +35,13 @@ module Routemaster
             break count
           end
           
-          if message && message.kill?
+          if message.kind_of?(Models::Message::Kill)
             _log.debug { 'received kill event' }
             @consumer.ack(message)
             raise KillError
           end
 
-          if message.event?
+          if message.kind_of?(Models::Event)
             @batch.push(message)
             _deliver
           else

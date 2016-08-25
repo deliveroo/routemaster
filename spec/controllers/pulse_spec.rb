@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'routemaster/controllers/pulse'
 require 'spec/support/rack_test'
 
-describe Routemaster::Controllers::Pulse do
+describe Routemaster::Controllers::Pulse, type: :controller do
   let(:app) { described_class }
 
   let(:perform) { get '/pulse' }

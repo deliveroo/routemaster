@@ -29,11 +29,6 @@ describe Routemaster::Models::Event do
       options[:url] = 'https://example.com/widgets/123?wut'
       expect { subject }.to raise_error(ArgumentError)
     end
-
-    it 'adds timestamps' do
-      t = subject.timestamp / 1_000
-      expect(t).to be_within(10).of(Time.now.utc.to_i)
-    end
   end
 
   describe '#==' do

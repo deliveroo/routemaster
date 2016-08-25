@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'routemaster/application'
 require 'spec/support/rack_test'
 
-describe Routemaster::Application do
+describe Routemaster::Application, type: :controller do
 
   described_class.class_eval do
     get '/fail' do

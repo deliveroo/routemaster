@@ -6,7 +6,7 @@ require 'core_ext/math'
 
 describe Routemaster::Models::Queue do
   let(:kill_message) {
-    Routemaster::Models::Message.new('kill')
+    Routemaster::Models::Message::Kill.new
   }
   let(:subscription) {
     Routemaster::Models::Subscription.new(subscriber: 'alice')
@@ -33,16 +33,15 @@ describe Routemaster::Models::Queue do
     it 'returns a queued message' do
       described_class.push [subscription], kill_message
       message = subject.pop
-      expect(message).to be_a_kind_of(Routemaster::Models::Message)
-      expect(message).to be_kill
+      expect(message).to be_a_kind_of(Routemaster::Models::Message::Kill)
     end
 
     it 'delivers multiple messages in order' do
       10.times do |n|
-        described_class.push [subscription], Routemaster::Models::Message.new("msg#{n}")
+        described_class.push [subscription], Routemaster::Models::Message::Ping.new(data: "msg#{n}")
       end
       10.times do |n|
-        expect(subject.pop&.payload).to eq("msg#{n}")
+        expect(subject.pop.data).to eq("msg#{n}")
       end
     end
 
@@ -86,13 +85,13 @@ describe Routemaster::Models::Queue do
 
     it 'requeues the message' do
       subject.nack(message)
-      expect(subject.pop).to be_kill
+      expect(subject.pop).to eq(message)
     end
 
     it 'requeues just once' do
       subject.nack(message)
       subject.nack(message)
-      expect(subject.pop).to be_kill
+      expect(subject.pop).to eq(message)
       expect(subject.pop).to be_nil
     end
   end
@@ -103,7 +102,7 @@ describe Routemaster::Models::Queue do
     end
 
     it 'counts new and un-acked messages' do
-      5.times { |n| described_class.push [subscription], Routemaster::Models::Message.new("msg#{n}") }
+      5.times { |n| described_class.push [subscription], Routemaster::Models::Message::Ping.new(data: "msg#{n}") }
       2.times { subject.pop }
       expect(subject.length).to eq(5)
     end
@@ -125,7 +124,7 @@ describe Routemaster::Models::Queue do
     }
 
     before do
-      Routemaster::Models::Queue.push [subscription], Routemaster::Models::Message.new(event.dump)
+      Routemaster::Models::Queue.push [subscription], event
     end
 
     it 'should return the age of the oldest message' do
@@ -135,7 +134,7 @@ describe Routemaster::Models::Queue do
 
     it 'does not dequeue the oldest message' do
       queue.staleness
-      expect(queue.pop).to be_event
+      expect(queue.pop).to be_a_kind_of(Routemaster::Models::Event)
     end
   end
 end

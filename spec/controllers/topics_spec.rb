@@ -3,7 +3,7 @@ require 'routemaster/controllers/topics'
 require 'spec/support/rack_test'
 require 'spec/support/persistence'
 
-describe Routemaster::Controllers::Topics do
+describe Routemaster::Controllers::Topics, type: :controller do
   let(:uid) { 'joe-user' }
   let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
   let(:topic_name) { 'widgets' }
@@ -35,6 +35,19 @@ describe Routemaster::Controllers::Topics do
         type: 'create',
         url:  'https://example.com/widgets/123',
         timestamp: Time.now.to_f
+      }}
+
+      it 'responds ok' do
+        perform
+        expect(last_response).to be_ok
+      end
+    end
+
+    context 'when supplying a null timestamp' do
+      let(:data) {{
+        type: 'create',
+        url:  'https://example.com/widgets/123',
+        timestamp: nil
       }}
 
       it 'responds ok' do

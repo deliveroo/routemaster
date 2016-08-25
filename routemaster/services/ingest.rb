@@ -17,8 +17,7 @@ module Routemaster
       end
 
       def call
-        message = Models::Message.new(@event.dump)
-        Models::Queue.push(@topic.subscribers, message)
+        Models::Queue.push(@topic.subscribers, @event)
         @topic.increment_count
         @topic.last_event = @event
         self

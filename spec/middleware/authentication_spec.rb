@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'routemaster/middleware/authentication'
 require 'spec/support/rack_test'
 
-describe Routemaster::Middleware::Authentication do
+describe Routemaster::Middleware::Authentication, type: :controller do
   class Demo
     def call(env)
       [200, {}, env.fetch('REMOTE_USER', '')]
