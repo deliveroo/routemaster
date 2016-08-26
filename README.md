@@ -21,8 +21,7 @@ a Ruby client,
 
 For advanced bus consumers,
 [routemaster-drain](https://github.com/deliveroo/routemaster-drain) can perform
-filtering of event stream
-preemptive caching of resources.
+filtering of event stream and preemptive caching of resources.
 
 ## The basics
 
@@ -33,10 +32,12 @@ Pushing, receiving, and subscribing all happen over HTTP.
 
 ![](https://www.dropbox.com/s/qbn1srjjcb8t0vh/Screenshot%202016-08-25%2016.41.54.png?raw=1)
 
+Events are (by default) delivered in ordered batches, ie. a given HTTP request
+to a subscriber contains several events, from all subscribed topics.
 
 ## Rationale
 
-We built Routemaster because existing buses for distributed architecture aren't
+We built Routemaster because existing buses for distributed architectures aren't
 satisfactory to us; either they're too complex to host and maintain, don't
 support key features (persistence), or provide too much rope to hang ourselves
 with.
