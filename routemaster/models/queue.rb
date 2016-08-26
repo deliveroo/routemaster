@@ -21,7 +21,7 @@ module Routemaster
 
       def pop
         uid, payload = _redis_lua_run(
-          'queue_pop',
+          'pop',
           keys: [_new_uuids_key, _pending_uuids_key, _payloads_key],
           argv: [Routemaster.now])
 
@@ -49,6 +49,15 @@ module Routemaster
         end
         
         Services::Codec.new.load(payload, uid)
+      end
+
+      # Remove up to `count` oldest messages from the queue, and return the
+      # count actually removed.
+      def drop(count = 1)
+        _redis_lua_run(
+          'drop',
+          keys: [_new_uuids_key, _payloads_key], 
+          argv: [count]).to_i
       end
 
       # Acknowledge a message, permanently removing it form the queue

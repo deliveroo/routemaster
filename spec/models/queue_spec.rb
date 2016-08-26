@@ -82,6 +82,34 @@ describe Routemaster::Models::Queue do
     end
   end
 
+  describe '#drop' do
+    context 'when empty' do
+      it { expect(subject.drop(10)).to eq(0) }
+    end
+
+    context 'with queued messages' do
+      let(:messages) {[
+        Routemaster::Models::Message::Ping.new(data: "msg1"),
+        Routemaster::Models::Message::Ping.new(data: "msg2"),
+        Routemaster::Models::Message::Ping.new(data: "msg3"),
+      ]}
+
+      before do
+        messages.each do |msg|
+          described_class.push [subscription], msg
+        end
+      end
+
+      it 'removes messages' do
+        expect { subject.drop(2) }.to change { subject.length }.from(3).to(1)
+      end
+
+      it 'returns the right count' do
+        expect(subject.drop(4)).to eql(3)
+      end
+    end
+  end
+
   describe '#ack' do
     let(:message) { subject.pop }
 
@@ -153,8 +181,8 @@ describe Routemaster::Models::Queue do
     end
 
     it 'should return the age of the oldest message' do
-      sleep(250e-3)
-      expect(queue.staleness).to be_within(50).of(250)
+      sleep(150e-3)
+      expect(queue.staleness).to be_within(50).of(150)
     end
 
     it 'does not dequeue the oldest message' do
