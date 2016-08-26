@@ -57,6 +57,31 @@ describe Routemaster::Models::Queue do
     end
   end
 
+  describe '#peek' do
+    context 'when empty' do
+      it { expect(subject.peek).to be_nil }
+    end
+
+    context 'with queued messages' do
+      let(:messages) {[
+        Routemaster::Models::Message::Ping.new(data: "msg1"),
+        Routemaster::Models::Message::Ping.new(data: "msg2"),
+      ]}
+
+      before do
+        messages.each do |msg|
+          described_class.push [subscription], msg
+        end
+      end
+
+      it 'returns the oldest message' do
+        expect(subject.peek).to eq(messages.first)
+      end
+
+      it 'does not dequeue'
+    end
+  end
+
   describe '#ack' do
     let(:message) { subject.pop }
 

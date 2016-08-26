@@ -35,6 +35,22 @@ module Routemaster
         Services::Codec.new.load(payload, uid)
       end
 
+      def peek
+        uid, payload = _redis_lua_run(
+          'peek',
+          keys: [_new_uuids_key, _payloads_key], 
+          argv: [])
+
+        return if uid.nil?
+
+        if payload.nil?
+          _log.error { "missing payload for message #{uid} in queue #{@subscription.subscriber}" }
+          return
+        end
+        
+        Services::Codec.new.load(payload, uid)
+      end
+
       # Acknowledge a message, permanently removing it form the queue
       def ack(message)
         _redis_lua_run('ack', keys: [_pending_uuids_key, _payloads_key], argv: [message.uid])
@@ -52,13 +68,9 @@ module Routemaster
       end
 
       def staleness
-        age = 0
-        message = pop
-        if message
-          age = Routemaster.now - message.timestamp
-          nack message
-        end
-        age
+        message = peek
+        return 0 unless message
+        Routemaster.now - message.timestamp
       end
 
       def to_s
