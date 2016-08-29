@@ -1,6 +1,6 @@
 require 'routemaster/services'
 require 'routemaster/models/database'
-require 'routemaster/models/subscription'
+require 'routemaster/models/subscriber'
 require 'routemaster/mixins/log'
 require 'ostruct'
 
@@ -23,7 +23,7 @@ module Routemaster
         _log.info { 'auto-drop: starting' }
         return false unless @database.too_full?
         messages_removed = 0
-        queues = Models::Subscription.map(&:queue)
+        queues = Models::Subscriber.map(&:queue)
 
         # loop through queues, removing messages
         until @database.empty_enough?

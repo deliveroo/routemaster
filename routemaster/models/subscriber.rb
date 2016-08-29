@@ -4,7 +4,7 @@ require 'routemaster/models/user'
 require 'routemaster/models/queue'
 
 module Routemaster::Models
-  class Subscription < Routemaster::Models::Base
+  class Subscriber < Routemaster::Models::Base
     TIMEOUT_RANGE = 0..3_600_000
     DEFAULT_TIMEOUT = 500
     DEFAULT_MAX_EVENTS = 100
@@ -13,15 +13,15 @@ module Routemaster::Models
 
     def initialize(subscriber:)
       @subscriber = User.new(subscriber)
-      if _redis.sadd('subscriptions', @subscriber)
-        _log.info { "new subscription by '#{@subscriber}'" }
+      if _redis.sadd('subscribers', @subscriber)
+        _log.info { "new subscriber by '#{@subscriber}'" }
       end
     end
 
     def destroy
       topics.each { |t| t.subscribers.remove(self) }
       _redis.del(_key)
-      _redis.srem('subscriptions', @subscriber)
+      _redis.srem('subscribers', @subscriber)
     end
 
     def callback=(value)
@@ -67,7 +67,7 @@ module Routemaster::Models
     end
 
     def to_s
-      "subscription for '#{@subscriber}'"
+      "subscriber for '#{@subscriber}'"
     end
 
     def topics
@@ -87,11 +87,11 @@ module Routemaster::Models
     extend Enumerable
 
     def self.each
-      _redis.smembers('subscriptions').each { |s| yield new(subscriber: s) }
+      _redis.smembers('subscribers').each { |s| yield new(subscriber: s) }
     end
 
     def self.find(name)
-      return unless _redis.sismember('subscriptions', name) 
+      return unless _redis.sismember('subscribers', name) 
       new(subscriber: name)
     end
 
@@ -102,7 +102,7 @@ module Routemaster::Models
     private
 
     def _key
-      @_key ||= "subscription:#{@subscriber}"
+      @_key ||= "subscriber:#{@subscriber}"
     end
   end
 end

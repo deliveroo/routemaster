@@ -52,7 +52,7 @@ All Redis keys are namespaced, under `rm:` by default.
   - `publisher`: the UUID of the (singly authorized) publisher
   - `counter`: the cumulative number of events received
 
-`subscription:{subscriber}`
+`subscriber:{uuid}`
 
   A hash of subscription medatata. Keys:
   - `callback`: the URL to send events to.

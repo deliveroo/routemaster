@@ -1,5 +1,5 @@
 require 'routemaster/services'
-require 'routemaster/models/subscription'
+require 'routemaster/models/subscriber'
 require 'routemaster/services/deliver_metric'
 
 module Routemaster
@@ -15,17 +15,17 @@ module Routemaster
       end
 
       def call
-        Routemaster::Models::Subscription.each do |subscription|
+        Routemaster::Models::Subscriber.each do |subscriber|
           @dispatcher.call(
-            'subscription.queue.size',
-            subscription.queue.length,
-            @tags + ["subscription:#{subscription.subscriber}"]
+            'subscriber.queue.size',
+            subscriber.queue.length,
+            @tags + ["subscriber:#{subscriber.subscriber}"]
           )
 
           @dispatcher.call(
-            'subscription.queue.staleness',
-            subscription.queue.staleness,
-            @tags + ["subscription:#{subscription.subscriber}"]
+            'subscriber.queue.staleness',
+            subscriber.queue.staleness,
+            @tags + ["subscriber:#{subscriber.subscriber}"]
           )
         end
       end

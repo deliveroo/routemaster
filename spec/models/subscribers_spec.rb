@@ -1,10 +1,10 @@
 require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/models/subscribers'
-require 'routemaster/models/subscription'
+require 'routemaster/models/subscriber'
 
 describe Routemaster::Models::Subscribers do
-  Subscription = Routemaster::Models::Subscription
+  Subscriber = Routemaster::Models::Subscriber
 
   let(:topic) { double 'Topic', name: 'widgets' }
   subject { described_class.new(topic) }
@@ -22,36 +22,36 @@ describe Routemaster::Models::Subscribers do
   end
 
   describe '#each' do
-    it 'yields subscriptions' do
-      subject.add Subscription.new(subscriber: 'bob')
+    it 'yields subscribers' do
+      subject.add Subscriber.new(subscriber: 'bob')
       expect(subject.count).to eq(1)
-      expect(subject.first).to be_a_kind_of(Subscription)
+      expect(subject.first).to be_a_kind_of(Subscriber)
     end
   end
 
   describe '#add' do
     it 'adds the subscriber' do
-      subject.add Subscription.new(subscriber: 'bob')
+      subject.add Subscriber.new(subscriber: 'bob')
       expect(subject.first.subscriber).to eq('bob')
     end
 
     it 'behaves like a set' do
-      subject.add Subscription.new(subscriber: 'alice')
-      subject.add Subscription.new(subscriber: 'bob')
-      subject.add Subscription.new(subscriber: 'alice')
+      subject.add Subscriber.new(subscriber: 'alice')
+      subject.add Subscriber.new(subscriber: 'bob')
+      subject.add Subscriber.new(subscriber: 'alice')
       expect(subject.count).to eq(2)
     end
   end
 
   describe '#remove' do
     before do
-      subject.add Subscription.new(subscriber: 'alice')
-      subject.add Subscription.new(subscriber: 'bob')
+      subject.add Subscriber.new(subscriber: 'alice')
+      subject.add Subscriber.new(subscriber: 'bob')
     end
 
     it 'removes the subscriber' do
       expect {
-        subject.remove Subscription.new(subscriber: 'bob')
+        subject.remove Subscriber.new(subscriber: 'bob')
       }.to change {
         subject.map(&:subscriber).sort
       }.from(
@@ -63,7 +63,7 @@ describe Routemaster::Models::Subscribers do
 
     it 'works if absent' do
       expect {
-        subject.remove Subscription.new(subscriber: 'charlie')
+        subject.remove Subscriber.new(subscriber: 'charlie')
       }.not_to change {
         subject.map(&:subscriber).sort
       }
@@ -74,15 +74,15 @@ describe Routemaster::Models::Subscribers do
     let(:names) { subject.map(&:subscriber).sort }
 
     before do
-      subject.add Subscription.new(subscriber: 'alice')
-      subject.add Subscription.new(subscriber: 'bob')
+      subject.add Subscriber.new(subscriber: 'alice')
+      subject.add Subscriber.new(subscriber: 'bob')
     end
 
-    it 'updates subscription list' do
+    it 'updates subscriber list' do
       expect {
         subject.replace [
-          Subscription.new(subscriber: 'charlie'),
-          Subscription.new(subscriber: 'alice')
+          Subscriber.new(subscriber: 'charlie'),
+          Subscriber.new(subscriber: 'alice')
         ]
       }.to change {
         subject.map(&:subscriber).sort

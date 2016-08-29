@@ -7,16 +7,16 @@ require 'routemaster/services/codec'
 module Routemaster
   module Models
     # Abstraction for a queue.
-    # Takes a Subscription and allows to push Messages in and pull them out in
+    # Takes a Subscriber and allows to push Messages in and pull them out in
     # order.
     class Queue
       include Mixins::Log
       include Mixins::Redis
 
-      attr_reader :subscription
+      attr_reader :subscriber
 
-      def initialize(subscription)
-        @subscription = subscription
+      def initialize(subscriber)
+        @subscriber = subscriber
       end
 
       def pop
@@ -28,7 +28,7 @@ module Routemaster
         return if uid.nil?
 
         if payload.nil?
-          _log.error { "missing payload for message #{uid} in queue #{@subscription.subscriber}" }
+          _log.error { "missing payload for message #{uid} in queue #{@subscriber.subscriber}" }
           return
         end
 
@@ -44,7 +44,7 @@ module Routemaster
         return if uid.nil?
 
         if payload.nil?
-          _log.error { "missing payload for message #{uid} in queue #{@subscription.subscriber}" }
+          _log.error { "missing payload for message #{uid} in queue #{@subscriber.subscriber}" }
           return
         end
         
@@ -83,7 +83,7 @@ module Routemaster
       end
 
       def to_s
-        "subscriber:#{@subscription.subscriber} id:0x#{object_id.to_s(16)}"
+        "subscriber:#{@subscriber.subscriber} id:0x#{object_id.to_s(16)}"
       end
 
       def inspect
@@ -91,9 +91,9 @@ module Routemaster
       end
 
       module ClassMethods
-        def push(subscriptions, message)
+        def push(subscribers, message)
           payload = Services::Codec.new.dump(message)
-          keys  = subscriptions.flat_map { |sub|
+          keys  = subscribers.flat_map { |sub|
             [ _new_uuids_key(sub), _payloads_key(sub) ]
           }
           _redis_lua_run(
@@ -105,16 +105,16 @@ module Routemaster
 
         private
 
-        def _payloads_key(subscription)
-          "queue:data:#{subscription.subscriber}"
+        def _payloads_key(subscriber)
+          "queue:data:#{subscriber.subscriber}"
         end
 
-        def _new_uuids_key(subscription)
-          "queue:new:#{subscription.subscriber}"
+        def _new_uuids_key(subscriber)
+          "queue:new:#{subscriber.subscriber}"
         end
 
-        def _pending_uuids_key(subscription)
-          "queue:pending:#{subscription.subscriber}"
+        def _pending_uuids_key(subscriber)
+          "queue:pending:#{subscriber.subscriber}"
         end
       end
       extend ClassMethods
@@ -123,7 +123,7 @@ module Routemaster
 
       %w[payloads new_uuids pending_uuids].each do |m|
         define_method "_#{m}_key" do
-          self.class.send(__method__, @subscription)
+          self.class.send(__method__, @subscriber)
         end
       end
     end

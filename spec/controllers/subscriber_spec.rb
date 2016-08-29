@@ -1,15 +1,15 @@
 require 'spec_helper'
-require 'routemaster/controllers/subscription'
+require 'routemaster/controllers/subscriber'
 require 'spec/support/rack_test'
 require 'spec/support/persistence'
 require 'json'
 
-describe Routemaster::Controllers::Subscription, type: :controller do
+describe Routemaster::Controllers::Subscriber, type: :controller do
   let(:uid) { 'charlie' }
   let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
 
-  let(:subscription) do
-    Routemaster::Models::Subscription.new(subscriber: 'charlie')
+  let(:subscriber) do
+    Routemaster::Models::Subscriber.new(subscriber: 'charlie')
   end
 
   let(:topic) do
@@ -19,23 +19,23 @@ describe Routemaster::Controllers::Subscription, type: :controller do
     )
   end
 
-  describe 'GET /subscriptions' do
-    let(:perform) { get "/subscriptions" }
+  describe 'GET /subscribers' do
+    let(:perform) { get "/subscribers" }
 
     it 'responds' do
       perform
       expect(last_response.status).to eq(200)
     end
 
-    it 'lists all subscriptions with required data points' do
-      topic.subscribers.add(subscription)
-      allow(Routemaster::Models::Subscription)
-        .to receive(:each).and_yield(subscription)
-      allow(subscription)
+    it 'lists all subscribers with required data points' do
+      topic.subscribers.add(subscriber)
+      allow(Routemaster::Models::Subscriber)
+        .to receive(:each).and_yield(subscriber)
+      allow(subscriber)
         .to receive_message_chain('queue.staleness').and_return(1000)
-      allow(subscription)
+      allow(subscriber)
         .to receive(:all_topics_count).and_return(100)
-      expect(subscription)
+      expect(subscriber)
         .to receive_message_chain('queue.length').and_return(50)
 
       perform
@@ -56,7 +56,7 @@ describe Routemaster::Controllers::Subscription, type: :controller do
     end
   end
 
-  describe 'post /subscription' do
+  describe 'post /subscriber' do
     let(:payload) {{
       topics:   %w(widgets),
       callback: 'https://app.example.com/events',
@@ -64,7 +64,7 @@ describe Routemaster::Controllers::Subscription, type: :controller do
     }}
     let(:raw_payload) { payload.to_json }
     let(:perform) do
-      post '/subscription', raw_payload, 'CONTENT_TYPE' => 'application/json'
+      post '/subscriber', raw_payload, 'CONTENT_TYPE' => 'application/json'
     end
 
     it 'returns 204 with correct payload' do
@@ -108,26 +108,26 @@ describe Routemaster::Controllers::Subscription, type: :controller do
       expect(last_response.status).to eq(204)
     end
 
-    it 'sets the subscription callback' do
+    it 'sets the subscriber callback' do
       perform
-      expect(subscription.callback).to eq('https://app.example.com/events')
+      expect(subscriber.callback).to eq('https://app.example.com/events')
     end
 
-    it 'sets the subscription uuid' do
+    it 'sets the subscriber uuid' do
       perform
-      expect(subscription.uuid).to eq('alice')
+      expect(subscriber.uuid).to eq('alice')
     end
 
-    it 'sets the subscription timeout' do
+    it 'sets the subscriber timeout' do
       payload[:timeout] = 675
       perform
-      expect(subscription.timeout).to eq(675)
+      expect(subscriber.timeout).to eq(675)
     end
 
-    it 'sets the subscription max' do
+    it 'sets the subscriber max' do
       payload[:max] = 512
       perform
-      expect(subscription.max_events).to eq(512)
+      expect(subscriber.max_events).to eq(512)
     end
   end
 
@@ -139,8 +139,8 @@ describe Routemaster::Controllers::Subscription, type: :controller do
       it { expect(perform.status).to eq(404) }
     end
 
-    context 'when the subscription exists' do
-      before { subscription }
+    context 'when the subscriber exists' do
+      before { subscriber }
       it { expect(perform.status).to eq(204) }
     end
   end
@@ -153,8 +153,8 @@ describe Routemaster::Controllers::Subscription, type: :controller do
       it { expect(perform.status).to eq(404) }
     end
 
-    context 'when only the subscription exists' do
-      before { subscription }
+    context 'when only the subscriber exists' do
+      before { subscriber }
       it { expect(perform.status).to eq(404) }
     end
 
@@ -164,12 +164,12 @@ describe Routemaster::Controllers::Subscription, type: :controller do
     end
 
     context 'when not subscribed' do
-      before { topic ; subscription }
+      before { topic ; subscriber }
       it { expect(perform.status).to eq(404) }
     end
 
-    context 'when the subscription exists' do
-      before { topic.subscribers.add subscription }
+    context 'when the subscriber exists' do
+      before { topic.subscribers.add subscriber }
       it { expect(perform.status).to eq(204) }
     end
   end

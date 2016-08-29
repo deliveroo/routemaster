@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'routemaster/services/deliver'
-require 'routemaster/models/subscription'
+require 'routemaster/models/subscriber'
 require 'spec/support/persistence'
 require 'spec/support/events'
 require 'spec/support/webmock'
@@ -9,15 +9,15 @@ require 'timecop'
 
 describe Routemaster::Services::Deliver do
   let(:buffer) { Array.new }
-  let(:subscription) { Routemaster::Models::Subscription.new(subscriber: 'alice') }
+  let(:subscriber) { Routemaster::Models::Subscriber.new(subscriber: 'alice') }
   let(:callback) { 'https://alice.com/widgets' }
 
-  subject { described_class.new(subscription, buffer) }
+  subject { described_class.new(subscriber, buffer) }
 
   before do
     WebMock.enable!
-    subscription.uuid = 'hello'
-    subscription.callback = callback
+    subscriber.uuid = 'hello'
+    subscriber.callback = callback
   end
 
   after do
@@ -48,7 +48,7 @@ describe Routemaster::Services::Deliver do
         Timecop.travel(-600) do
           3.times { buffer.push make_event }
         end
-        subscription.timeout = 0
+        subscriber.timeout = 0
         stub_request(:post, callback).with(basic_auth: %w[hello x]).to_return(status: 204, body: '')
       end
 
@@ -104,8 +104,8 @@ describe Routemaster::Services::Deliver do
 
     context 'when there are recent events but less than the buffer size' do
       before do
-        subscription.timeout = 500
-        subscription.max_events = 100
+        subscriber.timeout = 500
+        subscriber.max_events = 100
         3.times { buffer.push make_event }
       end
 
@@ -121,8 +121,8 @@ describe Routemaster::Services::Deliver do
 
     context 'when there are many recent events' do
       before do
-        subscription.timeout = 500
-        subscription.max_events = 3
+        subscriber.timeout = 500
+        subscriber.max_events = 3
         3.times { buffer.push make_event }
         stub_request(:post, callback).with(basic_auth: %w[hello x]).to_return(status: 204, body: '')
       end

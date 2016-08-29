@@ -1,16 +1,16 @@
 require 'spec_helper'
 require 'routemaster/services/receive'
-require 'routemaster/models/subscription'
+require 'routemaster/models/subscriber'
 require 'core_ext/math'
 
 describe Routemaster::Services::Receive do
 
-  let(:subscription) {
-    Routemaster::Models::Subscription.new(subscriber: 'alice')
+  let(:subscriber) {
+    Routemaster::Models::Subscriber.new(subscriber: 'alice')
   }
 
   let(:max_events) { [10] }
-  let(:options) {[ subscription, max_events.first ]}
+  let(:options) {[ subscriber, max_events.first ]}
 
   subject { described_class.new(*options) }
 

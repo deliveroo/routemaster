@@ -1,18 +1,18 @@
 require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/models/queue'
-require 'routemaster/models/subscription'
+require 'routemaster/models/subscriber'
 require 'core_ext/math'
 
 describe Routemaster::Models::Queue do
   let(:kill_message) {
     Routemaster::Models::Message::Kill.new
   }
-  let(:subscription) {
-    Routemaster::Models::Subscription.new(subscriber: 'alice')
+  let(:subscriber) {
+    Routemaster::Models::Subscriber.new(subscriber: 'alice')
   }
 
-  let(:options) {[ subscription ]}
+  let(:options) {[ subscriber ]}
 
   subject { described_class.new(*options) }
 
@@ -22,7 +22,7 @@ describe Routemaster::Models::Queue do
       expect { subject }.not_to raise_error
     end
 
-    it 'requires subscription:' do
+    it 'requires subscriber:' do
       options.clear
       expect { subject }.to raise_error(ArgumentError)
     end
@@ -31,14 +31,14 @@ describe Routemaster::Models::Queue do
 
   describe '#pop' do
     it 'returns a queued message' do
-      described_class.push [subscription], kill_message
+      described_class.push [subscriber], kill_message
       message = subject.pop
       expect(message).to be_a_kind_of(Routemaster::Models::Message::Kill)
     end
 
     it 'delivers multiple messages in order' do
       10.times do |n|
-        described_class.push [subscription], Routemaster::Models::Message::Ping.new(data: "msg#{n}")
+        described_class.push [subscriber], Routemaster::Models::Message::Ping.new(data: "msg#{n}")
       end
       10.times do |n|
         expect(subject.pop.data).to eq("msg#{n}")
@@ -46,7 +46,7 @@ describe Routemaster::Models::Queue do
     end
 
     it 'returns nil after the last message' do
-      described_class.push [subscription], kill_message
+      described_class.push [subscriber], kill_message
       subject.pop
       expect(subject.pop).to be_nil
     end
@@ -70,7 +70,7 @@ describe Routemaster::Models::Queue do
 
       before do
         messages.each do |msg|
-          described_class.push [subscription], msg
+          described_class.push [subscriber], msg
         end
       end
 
@@ -96,7 +96,7 @@ describe Routemaster::Models::Queue do
 
       before do
         messages.each do |msg|
-          described_class.push [subscription], msg
+          described_class.push [subscriber], msg
         end
       end
 
@@ -114,7 +114,7 @@ describe Routemaster::Models::Queue do
     let(:message) { subject.pop }
 
     before do
-      described_class.push [subscription], kill_message
+      described_class.push [subscriber], kill_message
     end
 
     it 'does not requeue' do
@@ -133,7 +133,7 @@ describe Routemaster::Models::Queue do
     let(:message) { subject.pop }
 
     before do
-      described_class.push [subscription], kill_message
+      described_class.push [subscriber], kill_message
     end
 
     it 'requeues the message' do
@@ -155,7 +155,7 @@ describe Routemaster::Models::Queue do
     end
 
     it 'counts new and un-acked messages' do
-      5.times { |n| described_class.push [subscription], Routemaster::Models::Message::Ping.new(data: "msg#{n}") }
+      5.times { |n| described_class.push [subscriber], Routemaster::Models::Message::Ping.new(data: "msg#{n}") }
       2.times { subject.pop }
       expect(subject.length).to eq(5)
     end
@@ -163,10 +163,10 @@ describe Routemaster::Models::Queue do
 
   describe '#staleness' do
 
-    let(:subscription) {
-      Routemaster::Models::Subscription.new(subscriber: 'alice')
+    let(:subscriber) {
+      Routemaster::Models::Subscriber.new(subscriber: 'alice')
     }
-    let(:options) {[ subscription ]}
+    let(:options) {[ subscriber ]}
     let(:queue) { Routemaster::Models::Queue.new(*options) }
     let(:event) {
       Routemaster::Models::Event.new(
@@ -177,7 +177,7 @@ describe Routemaster::Models::Queue do
     }
 
     before do
-      Routemaster::Models::Queue.push [subscription], event
+      Routemaster::Models::Queue.push [subscriber], event
     end
 
     it 'should return the age of the oldest message' do

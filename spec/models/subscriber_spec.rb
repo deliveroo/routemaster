@@ -1,12 +1,12 @@
 require 'spec_helper'
 require 'spec/support/persistence'
-require 'routemaster/models/subscription'
+require 'routemaster/models/subscriber'
 require 'routemaster/models/subscribers'
 require 'routemaster/models/queue'
 require 'routemaster/models/message'
 require 'routemaster/models/topic'
 
-describe Routemaster::Models::Subscription do
+describe Routemaster::Models::Subscriber do
   let(:topic) { Routemaster::Models::Topic.new(name: 'widgets', publisher: 'alice') }
   let(:redis) { Object.new.extend(Routemaster::Mixins::Redis)._redis }
   subject { described_class.new(subscriber: 'bob') }
@@ -69,11 +69,11 @@ describe Routemaster::Models::Subscription do
 
   describe '.each' do
 
-    it 'does not yield when no subscriptions are present' do
+    it 'does not yield when no subscribers are present' do
       expect { |b| described_class.each(&b) }.not_to yield_control
     end
 
-    it 'yields subscriptions' do
+    it 'yields subscribers' do
       a = described_class.new(subscriber: 'alice')
       b = described_class.new(subscriber: 'bob')
 
@@ -142,7 +142,7 @@ describe Routemaster::Models::Subscription do
 
   describe '#queue' do
     it 'is mine' do
-      expect(subject.queue.subscription).to eq(subject)
+      expect(subject.queue.subscriber).to eq(subject)
     end
   end
 

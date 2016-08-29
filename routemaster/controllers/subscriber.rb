@@ -1,18 +1,18 @@
 require 'routemaster/controllers'
 require 'routemaster/models/topic'
-require 'routemaster/models/subscription'
-require 'routemaster/services/update_subscription_topics'
+require 'routemaster/models/subscriber'
+require 'routemaster/services/update_subscriber_topics'
 require 'routemaster/controllers/parser'
 require 'sinatra/base'
 
 module Routemaster
   module Controllers
-    class Subscription < Sinatra::Base
+    class Subscriber < Sinatra::Base
       register Parser
 
       VALID_KEYS = %w(topics callback uuid max timeout)
 
-      post '/subscription', parse: :json do
+      post %r{^/(subscription|subscriber)$}, parse: :json do
         # TODO: log this
         halt 400 if (data.keys - VALID_KEYS).any?
         halt 400 unless data['topics'].kind_of?(Array)
@@ -24,7 +24,7 @@ module Routemaster
         halt 404 unless topics.all?
 
         begin
-          sub = Models::Subscription.new(subscriber: request.env['REMOTE_USER'])
+          sub = Models::Subscriber.new(subscriber: request.env['REMOTE_USER'])
           sub.callback   = data['callback']
           sub.uuid       = data['uuid']
           sub.timeout    = data['timeout'] if data['timeout']
@@ -34,21 +34,21 @@ module Routemaster
           halt 400
         end
 
-        Services::UpdateSubscriptionTopics.new(
+        Services::UpdateSubscriberTopics.new(
           topics:       topics,
-          subscription: sub,
+          subscriber: sub,
         ).call
 
         halt 204
       end
 
       delete '/subscriber' do
-        _load_subscription.destroy
+        _load_subscriber.destroy
         halt 204
       end
 
       delete '/subscriber/topics/:name' do
-        sub = _load_subscription
+        sub = _load_subscriber
         topic = Models::Topic.find(params['name'])
         if topic.nil?
           halt 404, 'topic not found'
@@ -60,7 +60,7 @@ module Routemaster
         halt 204
       end
 
-      # GET /subscriptions
+      # GET /subscribers
       # [
       #   {
       #     subscriber: <username>,
@@ -74,17 +74,17 @@ module Routemaster
       #   }, ...
       # ]
 
-      get '/subscriptions' do
+      get %r{^/(subscriptions|subscribers)$} do
         content_type :json
-        payload = Models::Subscription.map do |subscription|
+        payload = Models::Subscriber.map do |subscriber|
           {
-            subscriber: subscription.subscriber,
-            callback: subscription.callback,
-            topics: subscription.topics.map(&:name),
+            subscriber: subscriber.subscriber,
+            callback: subscriber.callback,
+            topics: subscriber.topics.map(&:name),
             events: {
-              sent: subscription.all_topics_count,
-              queued: subscription.queue.length,
-              oldest: subscription.queue.staleness,
+              sent: subscriber.all_topics_count,
+              queued: subscriber.queue.length,
+              oldest: subscriber.queue.staleness,
             }
           }
         end
@@ -93,8 +93,8 @@ module Routemaster
 
       private
 
-      def _load_subscription
-        sub = Models::Subscription.find(request.env['REMOTE_USER'])
+      def _load_subscriber
+        sub = Models::Subscriber.find(request.env['REMOTE_USER'])
         sub or halt 404, 'subscriber not found'
       end
     end

@@ -2,21 +2,21 @@ require 'spec_helper'
 require 'spec/support/events'
 require 'spec/support/persistence'
 require 'routemaster/services/ingest'
-require 'routemaster/models/subscription'
+require 'routemaster/models/subscriber'
 require 'routemaster/models/topic'
 
 module Routemaster
   describe Services::Ingest do
     let(:topic) { Models::Topic.new(name: 'widgets', publisher: nil) }
 
-    let(:subscriptions) {[
-      Models::Subscription.new(subscriber: 'foo'),
-      Models::Subscription.new(subscriber: 'bar'),
-      Models::Subscription.new(subscriber: 'qux'),
+    let(:subscribers) {[
+      Models::Subscriber.new(subscriber: 'foo'),
+      Models::Subscriber.new(subscriber: 'bar'),
+      Models::Subscriber.new(subscriber: 'qux'),
     ]}
 
     let(:consumers) {
-      subscriptions.map { |s| Models::Queue.new(s) }
+      subscribers.map { |s| Models::Queue.new(s) }
     }
 
     let(:events) {[
@@ -30,8 +30,8 @@ module Routemaster
     end
 
     before do
-      topic.subscribers.add subscriptions[0]
-      topic.subscribers.add subscriptions[2]
+      topic.subscribers.add subscribers[0]
+      topic.subscribers.add subscribers[2]
     end
 
     it 'pushes to all subscribers' do
