@@ -1,4 +1,5 @@
 require 'routemaster/models'
+require 'routemaster/models/subscription'
 require 'routemaster/mixins/redis'
 require 'routemaster/mixins/assert'
 require 'routemaster/mixins/log'
@@ -16,7 +17,7 @@ module Routemaster::Models
     end
 
     def include?(subscriber)
-      _redis.sismember(_key, subscriber.name)
+      Subscription.exists?(subscriber: subscriber, topic: @topic)
     end
 
     def replace(subscribers)
@@ -28,34 +29,20 @@ module Routemaster::Models
     end
 
     def add(subscriber)
-      _change(:add, subscriber)
+      Subscription.new(subscriber: subscriber, topic: @topic).save
     end
 
     def remove(subscriber)
-      _change(:rem, subscriber)
+      Subscription.new(subscriber: subscriber, topic: @topic).destroy
     end
 
 
     # yields Subscribers
     def each
-      _redis.smembers(_key).each do |name|
-        yield Subscriber.new(name: name)
+      Subscription.where(topic: @topic).each do |s|
+        yield s.subscriber
       end
       self
-    end
-
-    private
-
-    def _change(action, subscriber)
-      _assert subscriber.kind_of?(Subscriber), "#{subscriber} not a Subscriber"
-      if _redis.public_send("s#{action}", _key, subscriber.name)
-        _log.info { "topic '#{@topic.name}': #{action} subscriber '#{subscriber.name}'" }
-      end
-      self
-    end
-
-    def _key
-      @_key ||= "subscribers:#{@topic.name}"
     end
   end
 end
