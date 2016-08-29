@@ -22,7 +22,6 @@ module Routemaster
       end
 
       post '/topics/:name' do
-
         begin
           topic = Routemaster::Models::Topic.new(
             name:       params['name'],
@@ -60,6 +59,13 @@ module Routemaster
         Services::Ingest.new(topic: topic, event: event).call
 
         halt :ok
+      end
+
+      delete '/topics/:name' do
+        topic = Routemaster::Models::Topic.find(params[:name])
+        halt 404 if topic.nil?
+        topic.destroy
+        halt 204
       end
     end
   end
