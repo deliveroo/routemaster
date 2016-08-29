@@ -26,7 +26,6 @@ module Routemaster::Models
     end
 
     def callback=(value)
-      # TODO: test the callback with an empty event batch
       _redis.hset(_key, 'callback', CallbackURL.new(value))
     end
 
@@ -76,7 +75,7 @@ module Routemaster::Models
     end
 
     def all_topics_count
-      topics.reduce(0) { |sum, topic| sum += topic.get_count }
+      topics.reduce(0) { |sum, topic| sum + topic.get_count }
     end
 
     def queue

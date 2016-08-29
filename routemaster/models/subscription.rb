@@ -19,20 +19,12 @@ module Routemaster
       end
 
       def save
-        res = _redis.multi do |m|
-          m.sadd _key_topic, @subscriber.name
-          m.sadd _key_subscriber, @topic.name
-        end
-        _log.info { "'#{@subscriber.name}' subscribed to '#{@topic.name}'" } if res.any?
+        _log.info { "'#{@subscriber.name}' subscribed to '#{@topic.name}'" } if _persist(__method__)
         self
       end
 
       def destroy
-        res = _redis.multi do |m|
-          m.srem _key_topic, @subscriber.name
-          m.srem _key_subscriber, @topic.name
-        end
-        _log.info { "'#{@subscriber.name}' unsubscribed from '#{@topic.name}'" } if res.any?
+        _log.info { "'#{@subscriber.name}' unsubscribed from '#{@topic.name}'" } if _persist(__method__)
         self
       end
 
@@ -87,6 +79,19 @@ module Routemaster
 
       def _key_topic
         self.class.send(__method__, @topic)
+      end
+
+      # returns whether a side effect did happen
+      def _persist(op)
+        method = {
+          save:     :sadd,
+          destroy:  :srem,
+        }[op]
+
+        _redis.multi { |m|
+          m.public_send method, _key_topic, @subscriber.name
+          m.public_send method, _key_subscriber, @topic.name
+        }.any?
       end
     end
   end

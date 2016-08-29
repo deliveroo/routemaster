@@ -13,9 +13,13 @@ module Routemaster
       VALID_KEYS = %w(topics callback uuid max timeout)
 
       post %r{^/(subscription|subscriber)$}, parse: :json do
-        # TODO: log this
-        halt 400 if (data.keys - VALID_KEYS).any?
-        halt 400 unless data['topics'].kind_of?(Array)
+        if (data.keys - VALID_KEYS).any?
+          halt 400, 'bad data in payload'
+        end
+
+        unless data['topics'].kind_of?(Array)
+          halt 400, 'need an array of topics'
+        end
 
         topics = data['topics'].map do |name|
           Models::Topic.find(name) ||
@@ -30,8 +34,7 @@ module Routemaster
           sub.timeout    = data['timeout'] if data['timeout']
           sub.max_events = data['max']     if data['max']
         rescue ArgumentError => e
-          # TODO: log this.
-          halt 400
+          halt 400, e.message
         end
 
         Services::UpdateSubscriberTopics.new(
