@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/services/update_subscriber_topics'
 require 'routemaster/models/subscriber'
+require 'routemaster/models/subscription'
 require 'routemaster/models/topic'
 
 describe Routemaster::Services::UpdateSubscriberTopics do
@@ -28,8 +29,8 @@ describe Routemaster::Services::UpdateSubscriberTopics do
 
   context 'when topics already are subscribed' do
     before do
-      topic_a.subscribers.add subscriber
-      topic_b.subscribers.add subscriber
+      Routemaster::Models::Subscription.new(topic: topic_a, subscriber: subscriber).save
+      Routemaster::Models::Subscription.new(topic: topic_b, subscriber: subscriber).save
     end
 
     it 'can remove all subscribers' do

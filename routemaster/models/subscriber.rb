@@ -2,6 +2,7 @@ require 'routemaster/models/base'
 require 'routemaster/models/callback_url'
 require 'routemaster/models/user'
 require 'routemaster/models/queue'
+require 'routemaster/models/subscription'
 
 module Routemaster::Models
   class Subscriber < Routemaster::Models::Base
@@ -19,7 +20,7 @@ module Routemaster::Models
     end
 
     def destroy
-      topics.each { |t| t.subscribers.remove(self) }
+      Subscription.where(subscriber: self).each(&:destroy)
       _redis.del(_key)
       _redis.srem('subscribers', @name)
     end
@@ -71,9 +72,7 @@ module Routemaster::Models
     end
 
     def topics
-      Routemaster::Models::Topic.all.select do |t|
-        t.subscribers.include?(self)
-      end
+      Subscription.where(subscriber: self).map(&:topic)
     end
 
     def all_topics_count

@@ -3,6 +3,7 @@ require 'spec/support/events'
 require 'spec/support/persistence'
 require 'routemaster/services/ingest'
 require 'routemaster/models/subscriber'
+require 'routemaster/models/subscription'
 require 'routemaster/models/topic'
 
 module Routemaster
@@ -30,8 +31,8 @@ module Routemaster
     end
 
     before do
-      topic.subscribers.add subscribers[0]
-      topic.subscribers.add subscribers[2]
+      Routemaster::Models::Subscription.new(topic: topic, subscriber: subscribers[0]).save
+      Routemaster::Models::Subscription.new(topic: topic, subscriber: subscribers[2]).save
     end
 
     it 'pushes to all subscribers' do

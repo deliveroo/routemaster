@@ -48,15 +48,18 @@ module Routemaster
       end
 
       delete '/subscriber/topics/:name' do
-        sub = _load_subscriber
+        subscriber = _load_subscriber
         topic = Models::Topic.find(params['name'])
         if topic.nil?
           halt 404, 'topic not found'
         end
-        unless topic.subscribers.include?(sub)
+
+        subscription = Models::Subscription.find(topic: topic, subscriber: subscriber)
+        if subscription.nil?
           halt 404, 'not subscribed'
         end
-        topic.subscribers.remove(sub)
+
+        subscription.destroy
         halt 204
       end
 

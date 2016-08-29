@@ -28,7 +28,8 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
     end
 
     it 'lists all subscribers with required data points' do
-      topic.subscribers.add(subscriber)
+      Routemaster::Models::Subscription.new(subscriber: subscriber, topic: topic).save
+
       allow(Routemaster::Models::Subscriber)
         .to receive(:each).and_yield(subscriber)
       allow(subscriber)
@@ -169,7 +170,7 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
     end
 
     context 'when the subscriber exists' do
-      before { topic.subscribers.add subscriber }
+      before { Routemaster::Models::Subscription.new(subscriber: subscriber, topic: topic).save }
       it { expect(perform.status).to eq(204) }
     end
   end

@@ -1,7 +1,6 @@
 require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/models/subscriber'
-require 'routemaster/models/subscribers'
 require 'routemaster/models/queue'
 require 'routemaster/models/message'
 require 'routemaster/models/topic'
@@ -23,7 +22,7 @@ describe Routemaster::Models::Subscriber do
     let(:perform) do
       subject.callback = 'https://example.com'
       subject.uuid = '0e959830-6de3-11e6-8b8f-572d810770de'
-      topic.subscribers.add subject
+      Routemaster::Models::Subscription.new(topic: topic, subscriber: subject).save
       subject.destroy
     end
 
@@ -92,10 +91,8 @@ describe Routemaster::Models::Subscriber do
     end
 
     before do
-      subscriber1 = Routemaster::Models::Subscribers.new(properties_topic)
-      subscriber1.add(subject)
-      subscriber2 = Routemaster::Models::Subscribers.new(property_photos_topic)
-      subscriber2.add(subject)
+      Routemaster::Models::Subscription.new(topic: properties_topic, subscriber: subject).save
+      Routemaster::Models::Subscription.new(topic: property_photos_topic, subscriber: subject).save
     end
 
     it 'returns an array of associated topics' do
@@ -119,10 +116,8 @@ describe Routemaster::Models::Subscriber do
     end
 
     before do
-      subscriber1 = Routemaster::Models::Subscribers.new(properties_topic)
-      subscriber1.add(subject)
-      subscriber2 = Routemaster::Models::Subscribers.new(property_photos_topic)
-      subscriber2.add(subject)
+      Routemaster::Models::Subscription.new(topic: properties_topic, subscriber: subject).save
+      Routemaster::Models::Subscription.new(topic: property_photos_topic, subscriber: subject).save
     end
 
     it 'should sum the cumulative totals for all associated topics' do
