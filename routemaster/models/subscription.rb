@@ -91,7 +91,7 @@ module Routemaster::Models
     private
 
     def _key
-      @_key ||= "subscription/#{@subscriber}"
+      @_key ||= "subscription:#{@subscriber}"
     end
   end
 end
