@@ -18,6 +18,12 @@ module Routemaster::Models
       end
     end
 
+    def destroy
+      topics.each { |t| t.subscribers.remove(self) }
+      _redis.del(_key)
+      _redis.srem('subscriptions', @subscriber)
+    end
+
     def callback=(value)
       # TODO: test the callback with an empty event batch
       _redis.hset(_key, 'callback', CallbackURL.new(value))
@@ -82,6 +88,11 @@ module Routemaster::Models
 
     def self.each
       _redis.smembers('subscriptions').each { |s| yield new(subscriber: s) }
+    end
+
+    def self.find(name)
+      return unless _redis.sismember('subscriptions', name) 
+      new(subscriber: name)
     end
 
     def inspect

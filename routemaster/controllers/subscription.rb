@@ -42,6 +42,24 @@ module Routemaster
         halt 204
       end
 
+      delete '/subscriber' do
+        _load_subscription.destroy
+        halt 204
+      end
+
+      delete '/subscriber/topics/:name' do
+        sub = _load_subscription
+        topic = Models::Topic.find(params['name'])
+        if topic.nil?
+          halt 404, 'topic not found'
+        end
+        unless topic.subscribers.include?(sub)
+          halt 404, 'not subscribed'
+        end
+        topic.subscribers.remove(sub)
+        halt 204
+      end
+
       # GET /subscriptions
       # [
       #   {
@@ -71,6 +89,13 @@ module Routemaster
           }
         end
         payload.to_json
+      end
+
+      private
+
+      def _load_subscription
+        sub = Models::Subscription.find(request.env['REMOTE_USER'])
+        sub or halt 404, 'subscriber not found'
       end
     end
   end
