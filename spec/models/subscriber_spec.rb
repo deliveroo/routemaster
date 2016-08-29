@@ -9,7 +9,7 @@ require 'routemaster/models/topic'
 describe Routemaster::Models::Subscriber do
   let(:topic) { Routemaster::Models::Topic.new(name: 'widgets', publisher: 'alice') }
   let(:redis) { Object.new.extend(Routemaster::Mixins::Redis)._redis }
-  subject { described_class.new(subscriber: 'bob') }
+  subject { described_class.new(name: 'bob') }
 
   describe '#initialize' do
     it 'passes' do
@@ -74,8 +74,8 @@ describe Routemaster::Models::Subscriber do
     end
 
     it 'yields subscribers' do
-      a = described_class.new(subscriber: 'alice')
-      b = described_class.new(subscriber: 'bob')
+      a = described_class.new(name: 'alice')
+      b = described_class.new(name: 'bob')
 
       expect { |b| described_class.each(&b) }.to yield_control.twice
     end

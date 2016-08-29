@@ -23,7 +23,7 @@ describe Routemaster::Models::Subscribers do
 
   describe '#each' do
     it 'yields subscribers' do
-      subject.add Subscriber.new(subscriber: 'bob')
+      subject.add Subscriber.new(name: 'bob')
       expect(subject.count).to eq(1)
       expect(subject.first).to be_a_kind_of(Subscriber)
     end
@@ -31,29 +31,29 @@ describe Routemaster::Models::Subscribers do
 
   describe '#add' do
     it 'adds the subscriber' do
-      subject.add Subscriber.new(subscriber: 'bob')
-      expect(subject.first.subscriber).to eq('bob')
+      subject.add Subscriber.new(name: 'bob')
+      expect(subject.first.name).to eq('bob')
     end
 
     it 'behaves like a set' do
-      subject.add Subscriber.new(subscriber: 'alice')
-      subject.add Subscriber.new(subscriber: 'bob')
-      subject.add Subscriber.new(subscriber: 'alice')
+      subject.add Subscriber.new(name: 'alice')
+      subject.add Subscriber.new(name: 'bob')
+      subject.add Subscriber.new(name: 'alice')
       expect(subject.count).to eq(2)
     end
   end
 
   describe '#remove' do
     before do
-      subject.add Subscriber.new(subscriber: 'alice')
-      subject.add Subscriber.new(subscriber: 'bob')
+      subject.add Subscriber.new(name: 'alice')
+      subject.add Subscriber.new(name: 'bob')
     end
 
     it 'removes the subscriber' do
       expect {
-        subject.remove Subscriber.new(subscriber: 'bob')
+        subject.remove Subscriber.new(name: 'bob')
       }.to change {
-        subject.map(&:subscriber).sort
+        subject.map(&:name).sort
       }.from(
         %w[alice bob]
       ).to (
@@ -63,29 +63,29 @@ describe Routemaster::Models::Subscribers do
 
     it 'works if absent' do
       expect {
-        subject.remove Subscriber.new(subscriber: 'charlie')
+        subject.remove Subscriber.new(name: 'charlie')
       }.not_to change {
-        subject.map(&:subscriber).sort
+        subject.map(&:name).sort
       }
     end
   end
 
   describe '#replace' do
-    let(:names) { subject.map(&:subscriber).sort }
+    let(:names) { subject.map(&:name).sort }
 
     before do
-      subject.add Subscriber.new(subscriber: 'alice')
-      subject.add Subscriber.new(subscriber: 'bob')
+      subject.add Subscriber.new(name: 'alice')
+      subject.add Subscriber.new(name: 'bob')
     end
 
     it 'updates subscriber list' do
       expect {
         subject.replace [
-          Subscriber.new(subscriber: 'charlie'),
-          Subscriber.new(subscriber: 'alice')
+          Subscriber.new(name: 'charlie'),
+          Subscriber.new(name: 'alice')
         ]
       }.to change {
-        subject.map(&:subscriber).sort
+        subject.map(&:name).sort
       }.from(
         %w[alice bob]
       ).to(

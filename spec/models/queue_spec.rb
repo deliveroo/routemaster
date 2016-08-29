@@ -9,7 +9,7 @@ describe Routemaster::Models::Queue do
     Routemaster::Models::Message::Kill.new
   }
   let(:subscriber) {
-    Routemaster::Models::Subscriber.new(subscriber: 'alice')
+    Routemaster::Models::Subscriber.new(name: 'alice')
   }
 
   let(:options) {[ subscriber ]}
@@ -164,7 +164,7 @@ describe Routemaster::Models::Queue do
   describe '#staleness' do
 
     let(:subscriber) {
-      Routemaster::Models::Subscriber.new(subscriber: 'alice')
+      Routemaster::Models::Subscriber.new(name: 'alice')
     }
     let(:options) {[ subscriber ]}
     let(:queue) { Routemaster::Models::Queue.new(*options) }

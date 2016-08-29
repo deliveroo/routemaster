@@ -67,8 +67,8 @@ module Routemaster
         @receivers ||= {}
         new_receivers = {}
         Models::Subscriber.each do |subscriber|
-          new_receivers[subscriber.subscriber] = @receivers.fetch(subscriber.subscriber) {
-            _log.info { "watch detected new subscriber for '#{subscriber.subscriber}'" }
+          new_receivers[subscriber.name] = @receivers.fetch(subscriber.name) {
+            _log.info { "watch detected new subscriber for '#{subscriber.name}'" }
             Receive.new(subscriber, @max_events)
           }
         end

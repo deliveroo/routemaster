@@ -28,7 +28,7 @@ module Routemaster
         return if uid.nil?
 
         if payload.nil?
-          _log.error { "missing payload for message #{uid} in queue #{@subscriber.subscriber}" }
+          _log.error { "missing payload for message #{uid} in queue #{@subscriber.name}" }
           return
         end
 
@@ -44,7 +44,7 @@ module Routemaster
         return if uid.nil?
 
         if payload.nil?
-          _log.error { "missing payload for message #{uid} in queue #{@subscriber.subscriber}" }
+          _log.error { "missing payload for message #{uid} in queue #{@subscriber.name}" }
           return
         end
         
@@ -83,7 +83,7 @@ module Routemaster
       end
 
       def to_s
-        "subscriber:#{@subscriber.subscriber} id:0x#{object_id.to_s(16)}"
+        "subscriber:#{@subscriber.name} id:0x#{object_id.to_s(16)}"
       end
 
       def inspect
@@ -106,15 +106,15 @@ module Routemaster
         private
 
         def _payloads_key(subscriber)
-          "queue:data:#{subscriber.subscriber}"
+          "queue:data:#{subscriber.name}"
         end
 
         def _new_uuids_key(subscriber)
-          "queue:new:#{subscriber.subscriber}"
+          "queue:new:#{subscriber.name}"
         end
 
         def _pending_uuids_key(subscriber)
-          "queue:pending:#{subscriber.subscriber}"
+          "queue:pending:#{subscriber.name}"
         end
       end
       extend ClassMethods

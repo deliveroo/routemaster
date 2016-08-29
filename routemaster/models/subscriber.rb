@@ -9,19 +9,19 @@ module Routemaster::Models
     DEFAULT_TIMEOUT = 500
     DEFAULT_MAX_EVENTS = 100
 
-    attr_reader :subscriber
+    attr_reader :name
 
-    def initialize(subscriber:)
-      @subscriber = User.new(subscriber)
-      if _redis.sadd('subscribers', @subscriber)
-        _log.info { "new subscriber by '#{@subscriber}'" }
+    def initialize(name:)
+      @name = User.new(name)
+      if _redis.sadd('subscribers', @name)
+        _log.info { "new subscriber by '#{@name}'" }
       end
     end
 
     def destroy
       topics.each { |t| t.subscribers.remove(self) }
       _redis.del(_key)
-      _redis.srem('subscribers', @subscriber)
+      _redis.srem('subscribers', @name)
     end
 
     def callback=(value)
@@ -67,7 +67,7 @@ module Routemaster::Models
     end
 
     def to_s
-      "subscriber for '#{@subscriber}'"
+      "subscriber for '#{@name}'"
     end
 
     def topics
@@ -87,22 +87,22 @@ module Routemaster::Models
     extend Enumerable
 
     def self.each
-      _redis.smembers('subscribers').each { |s| yield new(subscriber: s) }
+      _redis.smembers('subscribers').each { |s| yield new(name: s) }
     end
 
     def self.find(name)
       return unless _redis.sismember('subscribers', name) 
-      new(subscriber: name)
+      new(name: name)
     end
 
     def inspect
-      "<#{self.class.name} subscriber=#{@subscriber}>"
+      "<#{self.class.name} subscriber=#{@name}>"
     end
 
     private
 
     def _key
-      @_key ||= "subscriber:#{@subscriber}"
+      @_key ||= "subscriber:#{@name}"
     end
   end
 end

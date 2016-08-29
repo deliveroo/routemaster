@@ -9,7 +9,7 @@ require 'timecop'
 
 describe Routemaster::Services::Deliver do
   let(:buffer) { Array.new }
-  let(:subscriber) { Routemaster::Models::Subscriber.new(subscriber: 'alice') }
+  let(:subscriber) { Routemaster::Models::Subscriber.new(name: 'alice') }
   let(:callback) { 'https://alice.com/widgets' }
 
   subject { described_class.new(subscriber, buffer) }

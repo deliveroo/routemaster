@@ -5,7 +5,7 @@ require 'routemaster/models/subscriber'
 require 'routemaster/models/topic'
 
 describe Routemaster::Services::UpdateSubscriberTopics do
-  let(:subscriber) { Routemaster::Models::Subscriber.new(subscriber: 'alice') }
+  let(:subscriber) { Routemaster::Models::Subscriber.new(name: 'alice') }
   let(:topic_a) { Routemaster::Models::Topic.new(name: 'topic_a', publisher: 'bob') }
   let(:topic_b) { Routemaster::Models::Topic.new(name: 'topic_b', publisher: 'bob') }
   let(:topic_c) { Routemaster::Models::Topic.new(name: 'topic_c', publisher: 'bob') }

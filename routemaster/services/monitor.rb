@@ -19,13 +19,13 @@ module Routemaster
           @dispatcher.call(
             'subscriber.queue.size',
             subscriber.queue.length,
-            @tags + ["subscriber:#{subscriber.subscriber}"]
+            @tags + ["subscriber:#{subscriber.name}"]
           )
 
           @dispatcher.call(
             'subscriber.queue.staleness',
             subscriber.queue.staleness,
-            @tags + ["subscriber:#{subscriber.subscriber}"]
+            @tags + ["subscriber:#{subscriber.name}"]
           )
         end
       end

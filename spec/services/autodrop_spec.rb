@@ -11,7 +11,7 @@ describe Routemaster::Services::Autodrop do
 
   let(:subs) do
     [0,1,2].map { |n|
-      Routemaster::Models::Subscriber.new(subscriber: "sub#{n}")
+      Routemaster::Models::Subscriber.new(name: "sub#{n}")
     }
   end
 

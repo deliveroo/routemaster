@@ -16,7 +16,7 @@ module Routemaster::Models
     end
 
     def include?(subscriber)
-      _redis.sismember(_key, subscriber.subscriber)
+      _redis.sismember(_key, subscriber.name)
     end
 
     def replace(subscribers)
@@ -39,7 +39,7 @@ module Routemaster::Models
     # yields Subscribers
     def each
       _redis.smembers(_key).each do |name|
-        yield Subscriber.new(subscriber: name)
+        yield Subscriber.new(name: name)
       end
       self
     end
@@ -48,8 +48,8 @@ module Routemaster::Models
 
     def _change(action, subscriber)
       _assert subscriber.kind_of?(Subscriber), "#{subscriber} not a Subscriber"
-      if _redis.public_send("s#{action}", _key, subscriber.subscriber)
-        _log.info { "topic '#{@topic.name}': #{action} subscriber '#{subscriber.subscriber}'" }
+      if _redis.public_send("s#{action}", _key, subscriber.name)
+        _log.info { "topic '#{@topic.name}': #{action} subscriber '#{subscriber.name}'" }
       end
       self
     end

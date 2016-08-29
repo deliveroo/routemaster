@@ -10,9 +10,9 @@ module Routemaster
     let(:topic) { Models::Topic.new(name: 'widgets', publisher: nil) }
 
     let(:subscribers) {[
-      Models::Subscriber.new(subscriber: 'foo'),
-      Models::Subscriber.new(subscriber: 'bar'),
-      Models::Subscriber.new(subscriber: 'qux'),
+      Models::Subscriber.new(name: 'foo'),
+      Models::Subscriber.new(name: 'bar'),
+      Models::Subscriber.new(name: 'qux'),
     ]}
 
     let(:consumers) {

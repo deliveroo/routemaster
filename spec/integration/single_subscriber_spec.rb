@@ -191,7 +191,7 @@ describe 'integration' do
           callback: 'https://127.0.0.1:17894/events'
         )
 
-        sub = Routemaster::Models::Subscriber.new(subscriber: 'demo')
+        sub = Routemaster::Models::Subscriber.new(name: 'demo')
         expect(sub.callback).to eq('https://127.0.0.1:17894/events')
       end
       

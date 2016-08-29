@@ -22,7 +22,7 @@ module Routemaster
       def run
         return false unless @buffer.any?
         return false unless _should_deliver?(@buffer)
-        _log.debug { "starting delivery to '#{@subscriber.subscriber}'" }
+        _log.debug { "starting delivery to '#{@subscriber.name}'" }
 
 
         # assemble data
@@ -46,11 +46,11 @@ module Routemaster
         end
 
         if response.success?
-          _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.subscriber}'" }
+          _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
           return true
         end
 
-        _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.subscriber}'" }
+        _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
         raise CantDeliver.new("delivery failure (HTTP #{response.status})")
       end
 

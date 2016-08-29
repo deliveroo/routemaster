@@ -6,7 +6,7 @@ require 'core_ext/math'
 describe Routemaster::Services::Receive do
 
   let(:subscriber) {
-    Routemaster::Models::Subscriber.new(subscriber: 'alice')
+    Routemaster::Models::Subscriber.new(name: 'alice')
   }
 
   let(:max_events) { [10] }

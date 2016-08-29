@@ -24,7 +24,7 @@ module Routemaster
         halt 404 unless topics.all?
 
         begin
-          sub = Models::Subscriber.new(subscriber: request.env['REMOTE_USER'])
+          sub = Models::Subscriber.new(name: request.env['REMOTE_USER'])
           sub.callback   = data['callback']
           sub.uuid       = data['uuid']
           sub.timeout    = data['timeout'] if data['timeout']
@@ -35,7 +35,7 @@ module Routemaster
         end
 
         Services::UpdateSubscriberTopics.new(
-          topics:       topics,
+          topics:     topics,
           subscriber: sub,
         ).call
 
@@ -78,7 +78,7 @@ module Routemaster
         content_type :json
         payload = Models::Subscriber.map do |subscriber|
           {
-            subscriber: subscriber.subscriber,
+            subscriber: subscriber.name,
             callback: subscriber.callback,
             topics: subscriber.topics.map(&:name),
             events: {

@@ -5,8 +5,8 @@ describe Routemaster::Services::Monitor do
   let(:deliver) { instance_double 'Routemaster::Services::DeliverMetric' }
 
   before do
-    Routemaster::Models::Subscriber.new(subscriber: 'alice')
-    Routemaster::Models::Subscriber.new(subscriber: 'bob')
+    Routemaster::Models::Subscriber.new(name: 'alice')
+    Routemaster::Models::Subscriber.new(name: 'bob')
     allow_any_instance_of(Routemaster::Models::Queue).to receive(:length).and_return(1337)
     allow_any_instance_of(Routemaster::Models::Queue).to receive(:staleness).and_return(7331)
   end

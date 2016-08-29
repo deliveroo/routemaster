@@ -11,8 +11,8 @@ require 'timeout'
 describe Routemaster::Services::Watch do
 
   describe '#run' do
-    let(:subscriber_a) { double 'subscriber-a', subscriber: 'alice' }
-    let(:subscriber_b) { double 'subscriber-b', subscriber: 'bob' }
+    let(:subscriber_a) { double 'subscriber-a', name: 'alice' }
+    let(:subscriber_b) { double 'subscriber-b', name: 'bob' }
     let(:receiver) { double 'receiver-service', time_to_next_run: 0, batch_size: 0 }
     let(:subscribers)  { [] }
 

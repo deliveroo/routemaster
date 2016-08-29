@@ -9,7 +9,7 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
   let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
 
   let(:subscriber) do
-    Routemaster::Models::Subscriber.new(subscriber: 'charlie')
+    Routemaster::Models::Subscriber.new(name: 'charlie')
   end
 
   let(:topic) do
