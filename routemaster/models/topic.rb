@@ -32,6 +32,13 @@ module Routemaster
         end
       end
 
+      def destroy
+        _redis.multi do |m|
+          m.srem('topics', name)
+          m.del(_key)
+        end
+      end
+
       def subscribers
         @_subscribers ||= Subscribers.new(self)
       end

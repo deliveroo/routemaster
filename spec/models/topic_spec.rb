@@ -26,6 +26,18 @@ describe Routemaster::Models::Topic do
     end
   end
 
+  describe '#destroy' do
+    it 'removes the topic' do
+      subject.destroy
+      expect(described_class.find('widgets')).to be_nil
+    end
+
+    it 'is idempotent' do
+      subject.destroy
+      expect { subject.destroy }.not_to raise_error
+    end
+  end
+
 
   describe 'marshalling' do
     let(:result) { Marshal.load(Marshal.dump(subject)) }

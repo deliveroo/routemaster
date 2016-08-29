@@ -7,11 +7,37 @@ require 'routemaster/models/message'
 require 'routemaster/models/topic'
 
 describe Routemaster::Models::Subscription do
+  let(:topic) { Routemaster::Models::Topic.new(name: 'widgets', publisher: 'alice') }
+  let(:redis) { Object.new.extend(Routemaster::Mixins::Redis)._redis }
   subject { described_class.new(subscriber: 'bob') }
 
   describe '#initialize' do
     it 'passes' do
       expect { subject }.not_to raise_error
+    end
+  end
+
+  describe '#destroy' do
+    before { topic }
+
+    let(:perform) do
+      subject.callback = 'https://example.com'
+      subject.uuid = '0e959830-6de3-11e6-8b8f-572d810770de'
+      topic.subscribers.add subject
+      subject.destroy
+    end
+
+    it 'passes' do
+      expect { perform }.not_to raise_error
+    end
+
+    it 'removes' do
+      perform
+      expect(described_class.find('alice')).to be_nil 
+    end
+
+    it 'cleans up' do
+      expect { subject.destroy }.not_to change { redis.keys }
     end
   end
 

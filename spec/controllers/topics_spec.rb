@@ -127,7 +127,30 @@ describe Routemaster::Controllers::Topics, type: :controller do
         }
       )
     end
+  end
 
+  describe 'DELETE /topic/:name' do
+    let(:perform) { delete "/topics/#{topic_name}" }
+
+    context 'at rest' do
+      it 'returns 404' do
+        expect(perform.status).to eq(404)
+      end
+    end
+
+    context 'with a topic' do
+      before { topic }
+
+      it 'returns 204' do
+        expect(perform.status).to eq(204)
+      end
+
+      it 'deletes the topic' do
+        expect { perform }.to change { 
+          Routemaster::Models::Topic.find(topic_name)&.name
+        }.to(nil)
+      end
+    end
   end
 
 end
