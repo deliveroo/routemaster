@@ -332,6 +332,16 @@ Possible response statuses:
 - Anything else: failure, batch to be sent again later.
 
 
+### Unsubscribing
+
+Subscribers can either unregister themselves altogether, or just for one topic:
+
+    >> DELETE /subscribers
+
+    >> DELETE /subscriber/:topic
+
+
+
 ### Monitoring
 
 Routermaster provides monitoring endpoints:
