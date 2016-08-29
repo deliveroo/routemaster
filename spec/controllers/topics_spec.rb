@@ -23,11 +23,16 @@ describe Routemaster::Controllers::Topics, type: :controller do
     end
 
     it 'pushes the event' do
+      ingest = double 'ingest'
+      expect(ingest).to receive(:call)
+      expect(Routemaster::Services::Ingest).to receive(:new) { |options|
+        topic = options[:topic]
+        event = options[:event]
+        expect(topic.name).to eq(topic_name)
+        expect(event.type).to eq('create')
+        expect(event.url).to  eq('https://example.com/widgets/123')
+      }.and_return(ingest)
       perform
-      last_event = topic.last_event
-      expect(last_event).not_to be_nil
-      expect(last_event.type).to eq('create')
-      expect(last_event.url).to  eq('https://example.com/widgets/123')
     end
 
     context 'when supplying a timestamp' do
