@@ -6,9 +6,10 @@
 -- KEYS[2]: hash of UUIDs -> payloads
 --
 local uid = redis.call('LINDEX', KEYS[1], -1)
-if uid == nil then
+if uid then
+  local payload = redis.call('HGET', KEYS[2], uid)
+  return { uid, payload }
+else
   return nil
 end
 
-local payload = redis.call('HGET', KEYS[2], uid)
-return { uid, payload }
