@@ -47,7 +47,7 @@ module Routemaster::Models
 
     def max_events=(value)
       _assert value.kind_of?(Fixnum)
-      _assert (value > 0)
+      _assert value > 0
       _redis.hset(_key, 'max_events', value)
     end
 

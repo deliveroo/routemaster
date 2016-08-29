@@ -19,12 +19,12 @@ module Routemaster
       end
 
       def save
-        _log.info { "'#{@subscriber.name}' subscribed to '#{@topic.name}'" } if _persist(__method__)
+        _persist(:sadd, 'subscribed to')
         self
       end
 
       def destroy
-        _log.info { "'#{@subscriber.name}' unsubscribed from '#{@topic.name}'" } if _persist(__method__)
+        _persist(:srem, 'unsubscribed from')
         self
       end
 
@@ -81,17 +81,16 @@ module Routemaster
         self.class.send(__method__, @topic)
       end
 
-      # returns whether a side effect did happen
-      def _persist(op)
-        method = {
-          save:     :sadd,
-          destroy:  :srem,
-        }[op]
+      def _persist(op, msg)
+        res = _redis.multi { |m|
+          m.public_send op, _key_topic, @subscriber.name
+          m.public_send op, _key_subscriber, @topic.name
+        }
 
-        _redis.multi { |m|
-          m.public_send method, _key_topic, @subscriber.name
-          m.public_send method, _key_subscriber, @topic.name
-        }.any?
+        res.any? and _log.info {
+          "'#{@subscriber.name}' #{msg} '#{@topic.name}'"
+        }
+        self
       end
     end
   end
