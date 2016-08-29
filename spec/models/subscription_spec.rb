@@ -19,7 +19,7 @@ describe Routemaster::Models::Subscription do
 
     it 'has side effects' do
       subject
-      expect { subject.save }.to change { _redis.keys }
+      expect { subject.save }.to change { _redis.keys.sort }
     end
   end
 
@@ -34,12 +34,12 @@ describe Routemaster::Models::Subscription do
 
     it 'is idempotent' do
       subject.save.destroy
-      expect { subject.destroy }.not_to change { _redis.keys }
+      expect { subject.destroy }.not_to change { _redis.keys.sort }
     end
 
     it 'cleans up' do
       subject
-      expect { subject.save.destroy }.not_to change { _redis.keys }
+      expect { subject.save.destroy }.not_to change { _redis.keys.sort }
     end
   end
 

@@ -36,7 +36,7 @@ describe Routemaster::Models::Subscriber do
     end
 
     it 'cleans up' do
-      expect { subject.destroy }.not_to change { redis.keys }
+      expect { subject.destroy }.not_to change { redis.keys.sort }
     end
   end
 
