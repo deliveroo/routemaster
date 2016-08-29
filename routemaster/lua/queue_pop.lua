@@ -8,12 +8,11 @@
 -- ARGV[1]: timestamp of the event
 --
 local uid = redis.call('RPOP', KEYS[1])
-if uid == nil then
+if uid then
+  redis.call('ZADD', KEYS[2], ARGV[1], uid)
+
+  local payload = redis.call('HGET', KEYS[3], uid)
+  return { uid, payload }
+else
   return nil
 end
-
-redis.call('ZADD', KEYS[2], ARGV[1], uid)
-
-local payload = redis.call('HGET', KEYS[3], uid)
-return { uid, payload }
-
