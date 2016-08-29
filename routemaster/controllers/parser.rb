@@ -23,7 +23,7 @@ module Routemaster
               begin
                 @parsed_data = JSON.parse(request.body.read)
               rescue JSON::ParserError => e
-                _log.warn('JSON parse error')
+                _log.warn("JSON parse error: "#{e.message}")
                 halt 400
               end
             else
