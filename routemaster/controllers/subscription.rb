@@ -2,21 +2,17 @@ require 'routemaster/controllers'
 require 'routemaster/models/topic'
 require 'routemaster/models/subscription'
 require 'routemaster/services/update_subscription_topics'
-require 'sinatra'
+require 'routemaster/controllers/parser'
+require 'sinatra/base'
 
 module Routemaster
   module Controllers
     class Subscription < Sinatra::Base
+      register Parser
+
       VALID_KEYS = %w(topics callback uuid max timeout)
 
-      post '/subscription' do
-        begin
-          data = JSON.parse(request.body.read)
-        rescue JSON::ParserError => e
-          # TODO: log this.
-          halt 400
-        end
-
+      post '/subscription', parse: :json do
         # TODO: log this
         halt 400 if (data.keys - VALID_KEYS).any?
         halt 400 unless data['topics'].kind_of?(Array)
