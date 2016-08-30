@@ -50,7 +50,6 @@ All Redis keys are namespaced, under `rm:` by default.
 
   A hash containing metadata has about a topic. Keys:
   - `publisher`: the UUID of the (singly authorized) publisher
-  - `last_event`: a dump of the last event sent
   - `counter`: the cumulative number of events received
 
 `subscription:{subscriber}`
