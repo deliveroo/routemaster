@@ -45,10 +45,5 @@ module Routemaster
       perform
       expect(topic.get_count).to eq(2)
     end
-
-    it 'saves the latest event' do
-      perform
-      expect(topic.last_event).to eq(events.last)
-    end
   end
 end

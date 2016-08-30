@@ -19,7 +19,6 @@ module Routemaster
       def call
         Models::Queue.push(@topic.subscribers, @event)
         @topic.increment_count
-        @topic.last_event = @event
         self
       end
     end
