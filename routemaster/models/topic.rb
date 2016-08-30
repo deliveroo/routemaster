@@ -53,17 +53,6 @@ module Routemaster
         new(name: name, publisher: publisher)
       end
 
-      def last_event
-        raw = _redis.hget(_key, 'last_event')
-        return if raw.nil?
-        Services::Codec.new.load(raw, nil)
-      end
-
-      def last_event=(event)
-        _assert event.kind_of?(Event), 'can only save Event'
-        _redis.hset(_key, 'last_event', Services::Codec.new.dump(event))
-      end
-
       def get_count
         _redis.hget(_key, 'counter').to_i
       end
