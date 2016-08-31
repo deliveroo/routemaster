@@ -5,6 +5,7 @@ require 'routemaster/models/subscription'
 
 describe 'Event delivery', type: :acceptance do
   let(:processes) { Acceptance::ProcessLibrary.new }
+
   before { WebMock.disable! }
 
   before { processes.all.each { |p| p.start } }
