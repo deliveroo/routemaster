@@ -344,11 +344,13 @@ _not_ cause events related to the topic to be removed from the queue.
 
 ### Unsubscribing
 
-Subscribers can either unregister themselves altogether, or just for one topic:
+Subscribers can either unregister themselves altogether:
 
-    >> DELETE /subscribers
+    >> DELETE /subscriber
 
-    >> DELETE /subscriber/:topic
+or just for one topic:
+
+    >> DELETE /subscriber/topics/:topic
 
 
 
