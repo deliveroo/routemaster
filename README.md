@@ -332,6 +332,28 @@ Possible response statuses:
 - Anything else: failure, batch to be sent again later.
 
 
+### Removing topics
+
+Publishers can delete a topic they're responsible for:
+
+    >> DELETE /topic/:name
+
+This will cause subscribers to become unsubscribed for this topic, but will
+_not_ cause events related to the topic to be removed from the queue.
+
+
+### Unsubscribing
+
+Subscribers can either unregister themselves altogether:
+
+    >> DELETE /subscriber
+
+or just for one topic:
+
+    >> DELETE /subscriber/topics/:topic
+
+
+
 ### Monitoring
 
 Routermaster provides monitoring endpoints:

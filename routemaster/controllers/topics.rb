@@ -1,4 +1,5 @@
 require 'routemaster/controllers'
+require 'routemaster/controllers/parser'
 require 'routemaster/models/topic'
 require 'routemaster/services/ingest'
 require 'routemaster/mixins/log'
@@ -8,7 +9,8 @@ require 'json'
 module Routemaster
   module Controllers
     class Topics < Sinatra::Base
-      include Routemaster::Mixins::Log
+      include Mixins::Log
+      register Parser
 
       get '/topics' do
         content_type :json
@@ -21,8 +23,7 @@ module Routemaster
         end.to_json
       end
 
-      post '/topics/:name' do
-
+      post '/topics/:name', parse: :json do
         begin
           topic = Routemaster::Models::Topic.new(
             name:       params['name'],
@@ -34,22 +35,16 @@ module Routemaster
           halt 403, 'topic claimed'
         end
 
-        begin
-          event_data = JSON.parse(request.body.read)
-        rescue JSON::ParserError
-          halt 400, 'misformated JSON'
-        end
-
-        if !event_data.has_key?('type') || !event_data.has_key?('url')
+        if !data.has_key?('type') || !data.has_key?('url')
           halt 400, 'bad event'
         end
 
         begin
           event = Routemaster::Models::Event.new(
             topic: params['name'],
-            type:  event_data.fetch('type'),
-            url:   event_data.fetch('url'),
-            timestamp: event_data['timestamp'] || Routemaster.now
+            type:  data.fetch('type'),
+            url:   data.fetch('url'),
+            timestamp: data['timestamp'] || Routemaster.now
           )
         rescue ArgumentError => e
           _log.warn { "failed to parse event" }
@@ -60,6 +55,13 @@ module Routemaster
         Services::Ingest.new(topic: topic, event: event).call
 
         halt :ok
+      end
+
+      delete '/topics/:name' do
+        topic = Routemaster::Models::Topic.find(params[:name])
+        halt 404 if topic.nil?
+        topic.destroy
+        halt 204
       end
     end
   end

@@ -2,21 +2,17 @@ require 'routemaster/controllers'
 require 'routemaster/models/topic'
 require 'routemaster/models/subscription'
 require 'routemaster/services/update_subscription_topics'
-require 'sinatra'
+require 'routemaster/controllers/parser'
+require 'sinatra/base'
 
 module Routemaster
   module Controllers
     class Subscription < Sinatra::Base
+      register Parser
+
       VALID_KEYS = %w(topics callback uuid max timeout)
 
-      post '/subscription' do
-        begin
-          data = JSON.parse(request.body.read)
-        rescue JSON::ParserError => e
-          # TODO: log this.
-          halt 400
-        end
-
+      post '/subscription', parse: :json do
         # TODO: log this
         halt 400 if (data.keys - VALID_KEYS).any?
         halt 400 unless data['topics'].kind_of?(Array)
@@ -43,6 +39,24 @@ module Routemaster
           subscription: sub,
         ).call
 
+        halt 204
+      end
+
+      delete '/subscriber' do
+        _load_subscription.destroy
+        halt 204
+      end
+
+      delete '/subscriber/topics/:name' do
+        sub = _load_subscription
+        topic = Models::Topic.find(params['name'])
+        if topic.nil?
+          halt 404, 'topic not found'
+        end
+        unless topic.subscribers.include?(sub)
+          halt 404, 'not subscribed'
+        end
+        topic.subscribers.remove(sub)
         halt 204
       end
 
@@ -75,6 +89,13 @@ module Routemaster
           }
         end
         payload.to_json
+      end
+
+      private
+
+      def _load_subscription
+        sub = Models::Subscription.find(request.env['REMOTE_USER'])
+        sub or halt 404, 'subscriber not found'
       end
     end
   end

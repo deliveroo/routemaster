@@ -8,21 +8,18 @@ describe Routemaster::Controllers::Subscription, type: :controller do
   let(:uid) { 'charlie' }
   let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
 
+  let(:subscription) do
+    Routemaster::Models::Subscription.new(subscriber: 'charlie')
+  end
+
+  let(:topic) do
+    Routemaster::Models::Topic.new(
+      name: 'widget',
+      publisher: 'bob'
+    )
+  end
+
   describe 'GET /subscriptions' do
-
-    let(:topic) do
-      Routemaster::Models::Topic.new(
-        name: 'widget',
-        publisher: 'demo'
-      )
-    end
-
-    let(:subscription) do
-      Routemaster::Models::Subscription.new(
-        subscriber: 'charlie'
-      )
-    end
-
     let(:perform) { get "/subscriptions" }
 
     it 'responds' do
@@ -68,13 +65,6 @@ describe Routemaster::Controllers::Subscription, type: :controller do
     let(:raw_payload) { payload.to_json }
     let(:perform) do
       post '/subscription', raw_payload, 'CONTENT_TYPE' => 'application/json'
-    end
-    let(:subscription) do
-      Routemaster::Models::Subscription.new(subscriber: 'charlie')
-    end
-
-    before do
-      Routemaster::Models::Topic.new(name: 'widgets', publisher: 'bob')
     end
 
     it 'returns 204 with correct payload' do
@@ -138,6 +128,49 @@ describe Routemaster::Controllers::Subscription, type: :controller do
       payload[:max] = 512
       perform
       expect(subscription.max_events).to eq(512)
+    end
+  end
+
+
+  describe 'DELETE /subscriber' do
+    let(:perform) { delete '/subscriber' }
+
+    context 'at rest' do
+      it { expect(perform.status).to eq(404) }
+    end
+
+    context 'when the subscription exists' do
+      before { subscription }
+      it { expect(perform.status).to eq(204) }
+    end
+  end
+
+
+  describe 'DELETE /subscriber/topics/:name' do
+    let(:perform) { delete '/subscriber/topics/widget' }
+
+    context 'at rest' do
+      it { expect(perform.status).to eq(404) }
+    end
+
+    context 'when only the subscription exists' do
+      before { subscription }
+      it { expect(perform.status).to eq(404) }
+    end
+
+    context 'when only the topic exists' do
+      before { topic }
+      it { expect(perform.status).to eq(404) }
+    end
+
+    context 'when not subscribed' do
+      before { topic ; subscription }
+      it { expect(perform.status).to eq(404) }
+    end
+
+    context 'when the subscription exists' do
+      before { topic.subscribers.add subscription }
+      it { expect(perform.status).to eq(204) }
     end
   end
 end

@@ -52,6 +52,14 @@ All Redis keys are namespaced, under `rm:` by default.
   - `publisher`: the UUID of the (singly authorized) publisher
   - `counter`: the cumulative number of events received
 
+`subscription:{subscriber}`
+
+  A hash of subscription medatata. Keys:
+  - `callback`: the URL to send events to.
+  - `timeout`: how long to defer event delivery for batching purposes.
+  - `max_events`: maximum number of events to batch.
+  - `uuid`: the credential to use when delivering events.
+
 `subscribers:{topic}`
 
   A set of subscriber UUIDs for a particular topic.
