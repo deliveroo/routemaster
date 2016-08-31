@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require_relative '../config/bootstrap.rb'
+require 'routemaster/application'
+require 'pry'
+
+Pry::CLI.parse_options

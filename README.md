@@ -190,6 +190,34 @@ Routemaster can send exception traces to a 3rd party by setting the
 For the latter two, you will need to provide the reporting endpoint in
 `EXCEPTION_SERVICE_URL`
 
+### Autodrop
+
+Routemaster will, by default, permenently drop the oldest messages from queues
+when the amount of free Redis memory drops below a certain threshold.
+This guarantees that the bus will keep ingesting messages, and "clean up"
+behind listeners that are the latest / stale-est.
+
+Autodrop is not intended to be "business as usual": it's an exceptional
+condition.  It's there to address the case of the "dead subscriber". Say you
+remove a listening service from a federation but forget to unsubscribe: messages
+will pile up, and without autodrop the bus will eventually crash, bringing down
+the entire federation.
+
+In a normal situation, this would be addressed earlier: an alert would be set on
+queue staleness, and queue size, and depending on the situation either the
+subscription would be removed or the Redis instance ramped up, for instance.
+
+Set `ROUTEMASTER_REDIS_MAX_MEM` to the total amount of memory allocated to
+Redis, in bytes
+(100MB by default). This cannot typically be determined from a Redis client.
+
+Set `ROUTEMASTER_REDIS_MIN_MEM` to the threshold, in bytes (10MB by default). If
+less than this value is free, the auto-dropper will remove messages until twice
+the treshold in free memory is available.
+
+The auto-dropper runs every 30 seconds.
+
+
 
 ### Scaling Routemaster out
 
