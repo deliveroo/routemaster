@@ -1,5 +1,5 @@
 GIT
-  remote: git://github.com/deliveroo/routemaster-client.git
+  remote: https://github.com/deliveroo/routemaster-client.git
   revision: b29fc75bebb9784ef95e649dc6584db0fd19b7a2
   ref: b29fc75
   specs:
