@@ -1,12 +1,14 @@
 ## Routemaster internals
 
-Routemaster runs as 2 processes (see `Procfile`):
+Routemaster runs as 3 processes (see `Procfile`):
 
 - `web`, which serves the HTTP API. In particular, it receives events and stores
   them in Redis.
 
 - `watch`, which listens to Redis for events and eventually dispatches them
   to subscribers over HTTP.
+
+- `monitor`, which runs scheduled tasks.
 
 ### Web process
 
@@ -32,6 +34,15 @@ This process is built from 4 key classes:
 - The `Deliver` service gracefully sends event batches over HTTP;
 - The `Queue` model abstracts out queue management with Redis, providing a
   syncronous means to push and pop message from a queue.
+
+# Cron process
+
+This process runs scheduled tasks, regularly calling the following services:
+
+- `Monitor` delivers metrics to metric adapters;
+- `Autodrop` automatically removes the oldest messages from queues under low
+  memory conditions.
+
 
 
 ### Data layout

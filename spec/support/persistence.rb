@@ -14,5 +14,8 @@ class RedisCleaner
 end
 
 RSpec.configure do |config|
-  config.before(:each) { RedisCleaner.instance.clean! }
+  config.before(:each) do
+    RedisCleaner.instance.clean!
+    extend Routemaster::Mixins::Redis
+  end
 end
