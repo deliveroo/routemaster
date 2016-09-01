@@ -1,3 +1,13 @@
+GIT
+  remote: git://github.com/deliveroo/routemaster-client.git
+  revision: b29fc75bebb9784ef95e649dc6584db0fd19b7a2
+  ref: b29fc75
+  specs:
+    routemaster-client (1.2.2)
+      faraday (>= 0.9.0)
+      net-http-persistent (>= 2.9.4)
+      wisper (>= 1.6.1)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -79,10 +89,6 @@ GEM
     redis (3.3.1)
     redis-namespace (1.5.2)
       redis (~> 3.0, >= 3.0.4)
-    routemaster-client (1.2.1)
-      faraday (>= 0.9.0)
-      net-http-persistent
-      wisper (>= 1.4.0)
     rspec (3.5.0)
       rspec-core (~> 3.5.0)
       rspec-expectations (~> 3.5.0)
@@ -150,7 +156,7 @@ DEPENDENCIES
   rack-test
   redis
   redis-namespace
-  routemaster-client
+  routemaster-client!
   rspec
   rufus-scheduler
   sentry-raven
