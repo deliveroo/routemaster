@@ -1,7 +1,7 @@
 require 'routemaster/services'
 require 'routemaster/mixins/assert'
 require 'routemaster/mixins/log_exception'
-require 'routemaster/models/subscription'
+require 'routemaster/models/subscriber'
 require 'routemaster/services/receive'
 require 'core_ext/math'
 
@@ -13,7 +13,7 @@ module Routemaster
       include Mixins::LogException
 
       MAX_DELAY = 30_000 # max milliseconds between iterations, in Routemaster's time unit
-      DEFAULT_DELAY = 1_000 # default delay between iterations in absence of subscriptions
+      DEFAULT_DELAY = 1_000 # default delay between iterations in absence of subscribers
 
       # +max_events+ is the largest number of events fetched in a run
       # by receivers.
@@ -22,8 +22,8 @@ module Routemaster
         _assert (@max_events > 0)
       end
 
-      # Create Receive services for each subscription.
-      # Poll subscriptions regularly for news.
+      # Create Receive services for each subscriber.
+      # Poll subscribers regularly for news.
       def run(rounds = nil)
         _log.info { 'starting watch service' }
         @running = true
@@ -61,16 +61,15 @@ module Routemaster
 
       private
 
-      # Create receivers for any new subscriptions, and yield
-      # subscriber/receiver pairs for all known subscriptions.
+      # Create receivers for any new subscribers, and yield
+      # subscriber/receiver pairs for all known subscribers.
       def _updated_receivers
         @receivers ||= {}
         new_receivers = {}
-        Models::Subscription.each do |subscription|
-          subscriber = subscription.subscriber
-          new_receivers[subscriber] = @receivers.fetch(subscriber) {
-            _log.info { "watch detected new subscription for '#{subscriber}'" }
-            Receive.new(subscription, @max_events)
+        Models::Subscriber.each do |subscriber|
+          new_receivers[subscriber.name] = @receivers.fetch(subscriber.name) {
+            _log.info { "watch detected new subscriber for '#{subscriber.name}'" }
+            Receive.new(subscriber, @max_events)
           }
         end
         @receivers = new_receivers

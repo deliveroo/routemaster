@@ -6,7 +6,7 @@ require 'routemaster/middleware/authentication'
 require 'routemaster/controllers/pulse'
 require 'routemaster/controllers/topics'
 require 'routemaster/controllers/health'
-require 'routemaster/controllers/subscription'
+require 'routemaster/controllers/subscriber'
 require 'routemaster/mixins/log_exception'
 require 'hirefire-resource' if ENV['AUTOSCALE_WITH'] == 'hirefire'
 
@@ -27,7 +27,7 @@ module Routemaster
     use Middleware::Authentication
     use Controllers::Pulse
     use Controllers::Topics
-    use Controllers::Subscription
+    use Controllers::Subscriber
 
     not_found do
       content_type 'text/plain'

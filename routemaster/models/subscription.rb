@@ -1,108 +1,97 @@
-require 'routemaster/models/base'
-require 'routemaster/models/callback_url'
-require 'routemaster/models/user'
-require 'routemaster/models/queue'
+require 'routemaster/models'
+require 'routemaster/mixins/redis'
+require 'routemaster/mixins/assert'
+require 'routemaster/mixins/log'
 
-module Routemaster::Models
-  class Subscription < Routemaster::Models::Base
-    TIMEOUT_RANGE = 0..3_600_000
-    DEFAULT_TIMEOUT = 500
-    DEFAULT_MAX_EVENTS = 100
+module Routemaster
+  module Models
+    # The relation between a Subscriber and a Topic
+    class Subscription
+      include Mixins::Redis
+      include Mixins::Assert
+      include Mixins::Log
 
-    attr_reader :subscriber
+      attr_reader :subscriber, :topic
 
-    def initialize(subscriber:)
-      @subscriber = User.new(subscriber)
-      if _redis.sadd('subscriptions', @subscriber)
-        _log.info { "new subscription by '#{@subscriber}'" }
+      def initialize(subscriber:, topic:)
+        @subscriber = subscriber
+        @topic = topic
       end
-    end
 
-    def destroy
-      topics.each { |t| t.subscribers.remove(self) }
-      _redis.del(_key)
-      _redis.srem('subscriptions', @subscriber)
-    end
-
-    def callback=(value)
-      # TODO: test the callback with an empty event batch
-      _redis.hset(_key, 'callback', CallbackURL.new(value))
-    end
-
-    def callback
-      _redis.hget(_key, 'callback')
-    end
-
-    def timeout=(value)
-      _assert value.kind_of?(Fixnum)
-      _assert TIMEOUT_RANGE.include?(value)
-      _redis.hset(_key, 'timeout', value)
-    end
-
-    def timeout
-      raw = _redis.hget(_key, 'timeout')
-      return DEFAULT_TIMEOUT if raw.nil?
-      raw.to_i
-    end
-
-    def max_events=(value)
-      _assert value.kind_of?(Fixnum)
-      _assert (value > 0)
-      _redis.hset(_key, 'max_events', value)
-    end
-
-    def max_events
-      raw = _redis.hget(_key, 'max_events')
-      return DEFAULT_MAX_EVENTS if raw.nil?
-      raw.to_i
-    end
-
-    def uuid=(value)
-      _assert value.kind_of?(String) unless value.nil?
-      _redis.hset(_key, 'uuid', value)
-    end
-
-    def uuid
-      _redis.hget(_key, 'uuid')
-    end
-
-    def to_s
-      "subscription for '#{@subscriber}'"
-    end
-
-    def topics
-      Routemaster::Models::Topic.all.select do |t|
-        t.subscribers.include?(self)
+      def save
+        _persist(:sadd, 'subscribed to')
+        self
       end
-    end
 
-    def all_topics_count
-      topics.reduce(0) { |sum, topic| sum += topic.get_count }
-    end
+      def destroy
+        _persist(:srem, 'unsubscribed from')
+        self
+      end
 
-    def queue
-      @queue ||= Routemaster::Models::Queue.new(self)
-    end
+      def ==(other)
+        subscriber == other.subscriber && topic == other.topic
+      end
 
-    extend Enumerable
+      alias_method :eql?, :==
 
-    def self.each
-      _redis.smembers('subscriptions').each { |s| yield new(subscriber: s) }
-    end
+      module ClassMethods
+        include Mixins::Assert
 
-    def self.find(name)
-      return unless _redis.sismember('subscriptions', name) 
-      new(subscriber: name)
-    end
+        def find(subscriber:, topic:)
+          return unless exists?(subscriber: subscriber, topic: topic)
+          new(subscriber: subscriber, topic: topic)
+        end
 
-    def inspect
-      "<#{self.class.name} subscriber=#{@subscriber}>"
-    end
+        def exists?(subscriber:, topic:)
+          _redis.sismember(_key_topic(topic), subscriber.name)
+        end
 
-    private
+        def where(subscriber: nil, topic: nil)
+          _assert(subscriber.nil? ^ topic.nil?, 'exactly one or subscriber or topic must be provided')
+          if subscriber
+            Set.new _redis.smembers(_key_subscriber(subscriber)).map { |name|
+              new(subscriber: subscriber, topic: Topic.find(name))
+            }
+          else
+            Set.new _redis.smembers(_key_topic(topic)).map { |name|
+              new(subscriber: Subscriber.find(name), topic: topic)
+            }
+          end
+        end
 
-    def _key
-      @_key ||= "subscription:#{@subscriber}"
+        private
+
+        def _key_subscriber(subscriber)
+          "topics:#{subscriber.name}"
+        end
+
+        def _key_topic(topic)
+          "subscribers:#{topic.name}"
+        end
+      end
+      extend ClassMethods
+
+      private
+
+      def _key_subscriber
+        self.class.send(__method__, @subscriber)
+      end
+
+      def _key_topic
+        self.class.send(__method__, @topic)
+      end
+
+      def _persist(op, msg)
+        res = _redis.multi { |m|
+          m.public_send op, _key_topic, @subscriber.name
+          m.public_send op, _key_subscriber, @topic.name
+        }
+
+        res.any? and _log.info {
+          "'#{@subscriber.name}' #{msg} '#{@topic.name}'"
+        }
+        self
+      end
     end
   end
 end

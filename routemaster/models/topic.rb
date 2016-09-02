@@ -3,7 +3,7 @@ require 'routemaster/models/event'
 require 'routemaster/models/user'
 require 'routemaster/models/message'
 require 'routemaster/models/queue'
-require 'routemaster/models/subscribers'
+require 'routemaster/models/subscription'
 require 'routemaster/services/codec'
 require 'forwardable'
 
@@ -40,7 +40,7 @@ module Routemaster
       end
 
       def subscribers
-        @_subscribers ||= Subscribers.new(self)
+        Subscription.where(topic: self).map(&:subscriber)
       end
 
       def ==(other)

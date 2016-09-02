@@ -1,20 +1,21 @@
 require 'spec_helper'
 require 'spec/support/persistence'
-require 'routemaster/services/update_subscription_topics'
+require 'routemaster/services/update_subscriber_topics'
+require 'routemaster/models/subscriber'
 require 'routemaster/models/subscription'
 require 'routemaster/models/topic'
 
-describe Routemaster::Services::UpdateSubscriptionTopics do
-  let(:subscription) { Routemaster::Models::Subscription.new(subscriber: 'alice') }
+describe Routemaster::Services::UpdateSubscriberTopics do
+  let(:subscriber) { Routemaster::Models::Subscriber.new(name: 'alice') }
   let(:topic_a) { Routemaster::Models::Topic.new(name: 'topic_a', publisher: 'bob') }
   let(:topic_b) { Routemaster::Models::Topic.new(name: 'topic_b', publisher: 'bob') }
   let(:topic_c) { Routemaster::Models::Topic.new(name: 'topic_c', publisher: 'bob') }
   let(:topics) { [] }
 
-  subject { described_class.new subscription: subscription, topics: topics }
+  subject { described_class.new subscriber: subscriber, topics: topics }
 
   def current_topics
-    subscription.topics.map(&:name).sort
+    subscriber.topics.map(&:name).sort
   end
 
   it 'passes when no topics' do
@@ -28,11 +29,11 @@ describe Routemaster::Services::UpdateSubscriptionTopics do
 
   context 'when topics already are subscribed' do
     before do
-      topic_a.subscribers.add subscription
-      topic_b.subscribers.add subscription
+      Routemaster::Models::Subscription.new(topic: topic_a, subscriber: subscriber).save
+      Routemaster::Models::Subscription.new(topic: topic_b, subscriber: subscriber).save
     end
 
-    it 'can remove all subscriptions' do
+    it 'can remove all subscribers' do
       expect { subject.call }.to change { current_topics }.to %w[]
     end
 

@@ -14,15 +14,15 @@ module Routemaster
 
       CantDeliver = Class.new(Exception)
 
-      def initialize(subscription, events)
-        @subscription = subscription
+      def initialize(subscriber, events)
+        @subscriber = subscriber
         @buffer       = events
       end
 
       def run
         return false unless @buffer.any?
         return false unless _should_deliver?(@buffer)
-        _log.debug { "starting delivery to '#{@subscription.subscriber}'" }
+        _log.debug { "starting delivery to '#{@subscriber.name}'" }
 
 
         # assemble data
@@ -46,11 +46,11 @@ module Routemaster
         end
 
         if response.success?
-          _log.debug { "delivered #{@buffer.length} events to '#{@subscription.subscriber}'" }
+          _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
           return true
         end
 
-        _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscription.subscriber}'" }
+        _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
         raise CantDeliver.new("delivery failure (HTTP #{response.status})")
       end
 
@@ -59,17 +59,17 @@ module Routemaster
 
 
       def _should_deliver?(buffer)
-        return true  if buffer.first.timestamp + @subscription.timeout <= Routemaster.now
+        return true  if buffer.first.timestamp + @subscriber.timeout <= Routemaster.now
         return false if buffer.length == 0
-        return true  if buffer.length >= @subscription.max_events
+        return true  if buffer.length >= @subscriber.max_events
         false
       end
 
 
       def _conn
-        @_conn ||= Faraday.new(@subscription.callback) do |c|
+        @_conn ||= Faraday.new(@subscriber.callback) do |c|
           c.adapter Faraday.default_adapter
-          c.basic_auth(@subscription.uuid, 'x')
+          c.basic_auth(@subscriber.uuid, 'x')
         end
       end
     end

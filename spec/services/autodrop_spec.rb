@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'routemaster/services/autodrop'
 require 'routemaster/models/database'
-require 'routemaster/models/subscription'
+require 'routemaster/models/subscriber'
 require 'spec/support/persistence'
 
 describe Routemaster::Services::Autodrop do
@@ -11,7 +11,7 @@ describe Routemaster::Services::Autodrop do
 
   let(:subs) do
     [0,1,2].map { |n|
-      Routemaster::Models::Subscription.new(subscriber: "sub#{n}")
+      Routemaster::Models::Subscriber.new(name: "sub#{n}")
     }
   end
 
@@ -20,13 +20,13 @@ describe Routemaster::Services::Autodrop do
     allow(database).to receive(:empty_enough?).and_return(*empty_enough)
   end
 
-  context 'when there are no subscriptions' do
+  context 'when there are no subscribers' do
     it 'returns false' do
       expect(subject.call).to be_falsey
     end
   end
 
-  context 'with subscriptions' do
+  context 'with subscribers' do
     before { subs }
 
     context 'and the database is too full' do

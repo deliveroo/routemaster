@@ -6,17 +6,17 @@ require 'routemaster/services/deliver'
 
 module Routemaster
   module Services
-    # Passes batches of events from a Subscription to a Deliver service
+    # Passes batches of events from a Subscriber to a Deliver service
     class Receive
       include Mixins::Log
       include Mixins::Assert
 
-      attr_reader :subscription
+      attr_reader :subscriber
 
-      def initialize(subscription, max_events)
-        @subscription = subscription
+      def initialize(subscriber, max_events)
+        @subscriber = subscriber
         @max_events   = max_events
-        @consumer     = Models::Queue.new(@subscription)
+        @consumer     = Models::Queue.new(@subscriber)
         @batch        = Models::Batch.new(@consumer)
         @last_count   = 1
 
@@ -53,7 +53,7 @@ module Routemaster
 
       def time_to_next_run
         age     = @batch.age
-        timeout = @subscription.timeout
+        timeout = @subscriber.timeout
 
         if @last_count > 0 || age > timeout
           0
@@ -71,7 +71,7 @@ module Routemaster
       def _deliver
         @batch.synchronize do
           begin
-            deliver = Deliver.new(@subscription, @batch.events)
+            deliver = Deliver.new(@subscriber, @batch.events)
             @batch.ack if deliver.run
           rescue Deliver::CantDeliver => e
             @batch.nack
