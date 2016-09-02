@@ -3,7 +3,8 @@ require 'spec/support/persistence'
 require 'routemaster/models/topic'
 
 describe Routemaster::Models::Topic do
-  subject { described_class.new(name: 'widgets', publisher: 'bob') }
+  let(:options) {{ name: 'widgets', publisher: 'bob' }}
+  subject { described_class.new(options) }
 
   describe '.new' do
     it 'fails wihtout arguments' do
@@ -86,6 +87,15 @@ describe Routemaster::Models::Topic do
 
     it 'returns nil for unknown topics' do
       expect(result).to be_nil
+    end
+
+    context 'when the topic is unclaimed' do
+      before { options[:publisher] = nil }
+
+      it 'returns the existing topic' do
+        subject
+        expect(result).to eq(subject)
+      end
     end
   end
 end

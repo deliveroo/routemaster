@@ -23,7 +23,7 @@ module Routemaster
         return if publisher.nil?
 
         if _redis.hsetnx(_key, 'publisher', publisher)
-          _log.info { "new topic '#{@name}' from '#{@publisher}'" }
+          _log.info { "topic '#{@name}' claimed by '#{@publisher}'" }
         end
 
         current_publisher = _redis.hget(_key, 'publisher')
@@ -55,8 +55,8 @@ module Routemaster
       end
 
       def self.find(name)
+        return unless _redis.sismember('topics', name)
         publisher = _redis.hget("topic:#{name}", 'publisher')
-        return if publisher.nil?
         new(name: name, publisher: publisher)
       end
 
