@@ -50,10 +50,14 @@ module Routemaster
           _assert(subscriber.nil? ^ topic.nil?, 'exactly one or subscriber or topic must be provided')
           if subscriber
             Set.new _redis.smembers(_key_subscriber(subscriber)).map { |name|
-              new(subscriber: subscriber, topic: Topic.find(name))
+              topic = Topic.find(name)
+              _assert !!topic, "topic '#{name}' should exist"
+              new(subscriber: subscriber, topic: topic)
             }
           else
             Set.new _redis.smembers(_key_topic(topic)).map { |name|
+              subscriber = Subscriber.find(name)
+              _assert !!subscriber, "subscriber '#{name}' should exist"
               new(subscriber: Subscriber.find(name), topic: topic)
             }
           end
