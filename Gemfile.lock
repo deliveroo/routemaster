@@ -1,12 +1,13 @@
 GIT
   remote: https://github.com/deliveroo/routemaster-client.git
-  revision: b29fc75bebb9784ef95e649dc6584db0fd19b7a2
-  ref: b29fc75
+  revision: 6f7af94d49f9dc505427265e947289619e33d476
+  ref: 6f7af94
   specs:
     routemaster-client (1.2.2)
       faraday (>= 0.9.0)
-      net-http-persistent (>= 2.9.4)
-      wisper (>= 1.6.1)
+      oj (~> 2.17)
+      typhoeus (~> 1.1)
+      wisper (~> 1.6.1)
 
 GEM
   remote: https://rubygems.org/
@@ -22,6 +23,8 @@ GEM
     dogapi (1.22.0)
       multi_json
     dotenv (2.1.1)
+    ethon (0.9.0)
+      ffi (>= 1.3.0)
     eventmachine (1.2.0.1)
     faraday (0.9.2)
       multipart-post (>= 1.2, < 3)
@@ -61,11 +64,11 @@ GEM
     multi_json (1.12.1)
     multipart-post (2.0.0)
     nenv (0.3.0)
-    net-http-persistent (2.9.4)
     newrelic_rpm (3.16.0.318)
     notiffany (0.1.1)
       nenv (~> 0.1)
       shellany (~> 0.0)
+    oj (2.17.4)
     pry (0.10.4)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -124,6 +127,8 @@ GEM
     timecop (0.8.1)
     tunnels (1.2.2)
       eventmachine
+    typhoeus (1.1.0)
+      ethon (>= 0.9.0)
     unicorn (5.1.0)
       kgio (~> 2.6)
       raindrops (~> 0.7)
