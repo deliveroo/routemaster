@@ -4,4 +4,10 @@ require 'tunnels'
 
 $stdout.sync = true
 $stderr.sync = true
+
+Kernel.trap('TERM') do
+  $stderr.puts 'tunnel terminated'
+  exit 0
+end
+
 Tunnels.run!(*ARGV)
