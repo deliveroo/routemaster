@@ -3,7 +3,7 @@ require 'spec/support/persistence'
 require 'spec/support/webmock'
 require 'routemaster/client'
 require 'pathname'
-require 'routemaster/models/subscription'
+require 'routemaster/models/subscriber'
 require 'core_ext/math'
 
 # turn this on to get verbose tests
@@ -191,7 +191,7 @@ describe 'integration' do
           callback: 'https://127.0.0.1:17894/events'
         )
 
-        sub = Routemaster::Models::Subscription.new(subscriber: 'demo')
+        sub = Routemaster::Models::Subscriber.new(name: 'demo')
         expect(sub.callback).to eq('https://127.0.0.1:17894/events')
       end
       

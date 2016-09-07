@@ -5,8 +5,8 @@ describe Routemaster::Services::Monitor do
   let(:deliver) { instance_double 'Routemaster::Services::DeliverMetric' }
 
   before do
-    Routemaster::Models::Subscription.new(subscriber: 'alice')
-    Routemaster::Models::Subscription.new(subscriber: 'bob')
+    Routemaster::Models::Subscriber.new(name: 'alice')
+    Routemaster::Models::Subscriber.new(name: 'bob')
     allow_any_instance_of(Routemaster::Models::Queue).to receive(:length).and_return(1337)
     allow_any_instance_of(Routemaster::Models::Queue).to receive(:staleness).and_return(7331)
   end
@@ -14,16 +14,16 @@ describe Routemaster::Services::Monitor do
   it 'dispatches metrics' do
     expect_any_instance_of(Routemaster::Services::DeliverMetric).
       to receive(:call).
-      with('subscription.queue.size', 1337, %w[env:test app:routemaster subscription:alice])
+      with('subscriber.queue.size', 1337, %w[env:test app:routemaster subscriber:alice])
     expect_any_instance_of(Routemaster::Services::DeliverMetric).
       to receive(:call).
-      with('subscription.queue.size', 1337, %w[env:test app:routemaster subscription:bob])
+      with('subscriber.queue.size', 1337, %w[env:test app:routemaster subscriber:bob])
     expect_any_instance_of(Routemaster::Services::DeliverMetric).
       to receive(:call).
-      with('subscription.queue.staleness', 7331, %w[env:test app:routemaster subscription:alice])
+      with('subscriber.queue.staleness', 7331, %w[env:test app:routemaster subscriber:alice])
     expect_any_instance_of(Routemaster::Services::DeliverMetric).
       to receive(:call).
-      with('subscription.queue.staleness', 7331, %w[env:test app:routemaster subscription:bob])
+      with('subscriber.queue.staleness', 7331, %w[env:test app:routemaster subscriber:bob])
 
     subject.call
   end

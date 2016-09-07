@@ -1,149 +1,113 @@
 require 'spec_helper'
 require 'spec/support/persistence'
-require 'routemaster/models/subscription'
-require 'routemaster/models/subscribers'
-require 'routemaster/models/queue'
-require 'routemaster/models/message'
 require 'routemaster/models/topic'
+require 'routemaster/models/subscriber'
+require 'routemaster/models/subscription'
 
 describe Routemaster::Models::Subscription do
-  let(:topic) { Routemaster::Models::Topic.new(name: 'widgets', publisher: 'alice') }
-  let(:redis) { Object.new.extend(Routemaster::Mixins::Redis)._redis }
-  subject { described_class.new(subscriber: 'bob') }
+  let(:topic) { Routemaster::Models::Topic.new(name: 'widget', publisher: 'charlie') }
+  let(:subscriber_a) { Routemaster::Models::Subscriber.new(name: 'alice') }
+  let(:subscriber_b) { Routemaster::Models::Subscriber.new(name: 'bob') }
 
-  describe '#initialize' do
-    it 'passes' do
-      expect { subject }.not_to raise_error
+  let(:record_a) { described_class.new(topic: topic, subscriber: subscriber_a) }
+  let(:record_b) { described_class.new(topic: topic, subscriber: subscriber_b) }
+
+  subject { record_a }
+
+  describe '#save' do
+    it { expect { subject.save }.not_to raise_error }
+
+    it 'has side effects' do
+      subject
+      expect { subject.save }.to change { _redis.keys.sort }
     end
   end
 
   describe '#destroy' do
-    before { topic }
-
-    let(:perform) do
-      subject.callback = 'https://example.com'
-      subject.uuid = '0e959830-6de3-11e6-8b8f-572d810770de'
-      topic.subscribers.add subject
-      subject.destroy
+    it 'passes at rest' do
+      expect { subject.destroy }.not_to raise_error
     end
 
-    it 'passes' do
-      expect { perform }.not_to raise_error
+    it 'passes when saved' do
+      expect { subject.save.destroy }.not_to raise_error
     end
 
-    it 'removes' do
-      perform
-      expect(described_class.find('alice')).to be_nil 
+    it 'is idempotent' do
+      subject.save.destroy
+      expect { subject.destroy }.not_to change { _redis.keys.sort }
     end
 
     it 'cleans up' do
-      expect { subject.destroy }.not_to change { redis.keys }
+      subject
+      expect { subject.save.destroy }.not_to change { _redis.keys.sort }
     end
   end
 
-  describe '#timeout=' do
-    it 'accepts integers' do
-      expect { subject.timeout = 123 }.not_to raise_error
+  describe '.exists?' do
+    let(:result) { described_class.exists?(topic: topic, subscriber: subscriber_a) }
+
+    it 'is false at rest' do
+      expect(result).to be_falsey
     end
 
-    it 'rejects strings' do
-      expect { subject.timeout = '123' }.to raise_error(ArgumentError)
-    end
-
-    it 'rejects negatives' do
-      expect { subject.timeout = -123 }.to raise_error(ArgumentError)
-    end
-
-  end
-
-  describe '#timeout' do
-    it 'returns a default value if unset' do
-      expect(subject.timeout).to eq(described_class::DEFAULT_TIMEOUT)
-    end
-
-    it 'returns an integer' do
-      subject.timeout = 123
-      expect(subject.timeout).to eq(123)
+    it 'is true when saved' do
+      record_a.save
+      expect(result).to be_truthy
     end
   end
 
-  describe '.each' do
+  describe '.find' do
+    let(:result) { described_class.find(topic: topic, subscriber: subscriber_a) }
 
-    it 'does not yield when no subscriptions are present' do
-      expect { |b| described_class.each(&b) }.not_to yield_control
+    it 'is false at rest' do
+      expect(result).to be_falsey
     end
 
-    it 'yields subscriptions' do
-      a = described_class.new(subscriber: 'alice')
-      b = described_class.new(subscriber: 'bob')
-
-      expect { |b| described_class.each(&b) }.to yield_control.twice
-    end
-  end
-
-  describe '#topics' do
-
-    let(:properties_topic) do
-      Routemaster::Models::Topic.new(name: 'properties', publisher: 'demo')
-    end
-
-    let(:property_photos_topic) do
-      Routemaster::Models::Topic.new(name: 'photos', publisher: 'demo')
-    end
-
-    before do
-      subscriber1 = Routemaster::Models::Subscribers.new(properties_topic)
-      subscriber1.add(subject)
-      subscriber2 = Routemaster::Models::Subscribers.new(property_photos_topic)
-      subscriber2.add(subject)
-    end
-
-    it 'returns an array of associated topics' do
-      expect(subject.topics.map{|x|x.name}.sort)
-        .to eql(['photos','properties'])
+    it 'is a record when saved' do
+      record_a.save
+      record_b.save
+      expect(result).to eq(record_a)
     end
   end
 
-  describe '#all_topics_count' do
-    let(:properties_topic) do
-      Routemaster::Models::Topic.new({
-        name: 'properties',
-        publisher: 'demo'
-      })
-    end
-    let(:property_photos_topic) do
-      Routemaster::Models::Topic.new({
-        name: 'photos',
-        publisher: 'demo'
-      })
+  describe '.where' do
+    shared_examples 'search' do
+      it 'returns the correct results' do
+        expect { described_class.where(options).to eq(results) } 
+      end
     end
 
-    before do
-      subscriber1 = Routemaster::Models::Subscribers.new(properties_topic)
-      subscriber1.add(subject)
-      subscriber2 = Routemaster::Models::Subscribers.new(property_photos_topic)
-      subscriber2.add(subject)
+    shared_examples 'empty search' do
+      let(:results) { Set.new }
+      include_examples 'search'
     end
 
-    it 'should sum the cumulative totals for all associated topics' do
-      allow(subject)
-        .to receive(:topics)
-        .and_return([properties_topic, property_photos_topic])
-      allow(properties_topic)
-        .to receive(:get_count)
-        .and_return(100)
-      allow(property_photos_topic)
-        .to receive(:get_count)
-        .and_return(200)
+    context 'lookup by topic' do
+      let(:options) {{ topic: topic }}
 
-      expect(subject.all_topics_count).to eql 300
+      context 'at rest' do
+        include_examples 'empty search'
+      end
+
+      context 'with data' do
+        let(:results) { [record_a, record_b].to_set }
+        before { record_a.save ; record_b.save }
+        include_examples 'search'
+      end
+    end
+
+    context 'lookup by subscriber' do
+      let(:options) {{ subscriber: subscriber_b }}
+
+      context 'at rest' do
+        include_examples 'empty search'
+      end
+
+      context 'with data' do
+        let(:results) { [record_b].to_set }
+        before { record_a.save ; record_b.save }
+        include_examples 'search'
+      end
     end
   end
-
-  describe '#queue' do
-    it 'is mine' do
-      expect(subject.queue.subscription).to eq(subject)
-    end
-  end
-
 end

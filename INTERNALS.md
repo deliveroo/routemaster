@@ -51,11 +51,19 @@ All Redis keys are namespaced, under `rm:` by default.
 
 `topics`
 
-  The set of topic names.
+  The set of all topic names.
 
-`subscription`
+`subscribers`
 
-  The set of subscriber UUIDs.
+  The set of all subscriber UUIDs.
+
+`topics:{uuid}`
+
+  The set of topic names subscribed to by subscriber `uuid`.
+
+`subscribers:{topic}`
+
+  The set of subscriber UUIDs having subscribed to topic `name`.
 
 `topic:{name}`
 
@@ -63,17 +71,13 @@ All Redis keys are namespaced, under `rm:` by default.
   - `publisher`: the UUID of the (singly authorized) publisher
   - `counter`: the cumulative number of events received
 
-`subscription:{subscriber}`
+`subscriber:{uuid}`
 
   A hash of subscription medatata. Keys:
   - `callback`: the URL to send events to.
   - `timeout`: how long to defer event delivery for batching purposes.
   - `max_events`: maximum number of events to batch.
   - `uuid`: the credential to use when delivering events.
-
-`subscribers:{topic}`
-
-  A set of subscriber UUIDs for a particular topic.
 
 `queue:new:{subscriber}`
 
