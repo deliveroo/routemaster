@@ -27,8 +27,6 @@ describe Routemaster::Services::MetricsCollectors::Datadog do
     context 'when the configuration is set properly' do
       before { ENV['DATADOG_API_KEY'] = 'api_key_super_secret' }
       before { ENV['DATADOG_APP_KEY'] = 'api_key_super_secret_app' }
-      after  { ENV.delete 'DATADOG_API_KEY' }
-      after  { ENV.delete 'DATADOG_APP_KEY' }
 
       it 'should send a metric to datadog' do
         expect(Dogapi::Client).to receive(:new).and_return(client)

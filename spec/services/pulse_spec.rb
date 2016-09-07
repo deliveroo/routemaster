@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'spec/support/env'
 require 'routemaster/services/pulse'
 require 'spec/support/dummy'
 require 'spec/support/env'

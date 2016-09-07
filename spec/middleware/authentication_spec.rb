@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'spec/support/env'
 require 'routemaster/middleware/authentication'
 require 'spec/support/rack_test'
 
@@ -31,7 +32,6 @@ describe Routemaster::Middleware::Authentication, type: :controller do
 
   context 'with proper credentials' do
     before { ENV['ROUTEMASTER_CLIENTS'] = 'bob,john-mcfoo' }
-    after  { ENV.delete 'ROUTEMASTER_CLIENTS' }
     before { authorize 'john-mcfoo', 'secret' }
 
     it 'succeeds' do

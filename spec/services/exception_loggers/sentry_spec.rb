@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'spec/support/env'
 require 'raven'
 require 'routemaster/application'
 require 'routemaster/mixins/log'
@@ -24,7 +25,6 @@ describe Routemaster::Services::ExceptionLoggers::Sentry do
 
     context 'when the configuration is set properly' do
       before { ENV['EXCEPTION_SERVICE_URL']='http://test.host' }
-      after  { ENV.delete 'EXCEPTION_SERVICE_URL' }
 
       it 'should send a notification to Honeybadger' do
         expect(Raven::Event).to receive(:capture_exception).with(error)
