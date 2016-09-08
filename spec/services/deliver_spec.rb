@@ -95,7 +95,14 @@ describe Routemaster::Services::Deliver do
 
       context 'when the connection fails' do
         before do
-          allow_any_instance_of(Net::HTTP).to receive(:request).and_raise(SocketError)
+          { 
+            success?:       false,
+            timed_out?:     false,
+            response_code:  0,
+            return_message: "Couldn't resolve host name",
+          }.each_pair do |k,v|
+            allow_any_instance_of(Typhoeus::Response).to receive(k).and_return(v)
+          end
         end
 
         it { expect { perform }.to raise_error(described_class::CantDeliver) }

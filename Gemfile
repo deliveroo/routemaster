@@ -6,7 +6,7 @@ ruby '2.3.1'
 gem 'foreman'
 
 # web server
-gem 'unicorn'
+gem 'puma'
 
 # application microframework
 gem 'sinatra'
@@ -26,6 +26,7 @@ gem 'msgpack'
 # talkin' sweet HTTP
 gem 'faraday'
 gem 'faraday_middleware'
+gem 'typhoeus'
 
 # configuration through environement
 gem 'dotenv'
@@ -65,7 +66,7 @@ group :development do
   gem 'pry-remote'
 
   # testing against the client
-  gem 'routemaster-client', git: 'https://github.com/deliveroo/routemaster-client.git', ref: 'b29fc75'
+  gem 'routemaster-client', git: 'https://github.com/deliveroo/routemaster-client.git', ref: '6f7af94'
 end
 
 group :test do
