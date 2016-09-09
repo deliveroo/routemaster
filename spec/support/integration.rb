@@ -125,18 +125,18 @@ module Acceptance
     def web
       @web ||= SubProcess.new(
         name:    'web',
-        command: 'unicorn -I. -c config/unicorn.rb',
-        start:   /worker=1 ready/,
-        stop:    /master complete/
+        command: 'puma -I. -C config/puma.rb',
+        start:   /Worker 1.*booted/,
+        stop:    /Goodbye!/
       )
     end
 
     def client
       @client ||= SubProcess.new(
         name:    'client',
-        command: 'unicorn -I. -c spec/support/client.rb -p 17892 spec/support/client.ru',
-        start:   /worker=1 ready/,
-        stop:    /master complete/
+        command: 'puma -I. -w 2 -p 17892 spec/support/client.ru',
+        start:   /Worker 1.*booted/,
+        stop:    /Goodbye!/
       )
     end
 

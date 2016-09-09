@@ -6,7 +6,7 @@ ruby '2.3.1'
 gem 'foreman'
 
 # web server
-gem 'unicorn'
+gem 'puma'
 
 # application microframework
 gem 'sinatra'
@@ -26,6 +26,7 @@ gem 'msgpack'
 # talkin' sweet HTTP
 gem 'faraday'
 gem 'faraday_middleware'
+gem 'typhoeus'
 
 # configuration through environement
 gem 'dotenv'

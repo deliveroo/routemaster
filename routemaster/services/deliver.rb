@@ -1,8 +1,9 @@
 require 'routemaster/services'
 require 'routemaster/mixins/log'
 require 'routemaster/mixins/log_exception'
-require 'config/openssl'
 require 'faraday'
+require 'typhoeus'
+require 'typhoeus/adapters/faraday'
 require 'json'
 
 module Routemaster
@@ -24,7 +25,6 @@ module Routemaster
         return false unless _should_deliver?(@buffer)
         _log.debug { "starting delivery to '#{@subscriber.name}'" }
 
-
         # assemble data
         data = @buffer.map do |event|
           {
@@ -42,7 +42,7 @@ module Routemaster
             post.body = data.to_json
           end
         rescue Faraday::Error::ClientError => e
-          raise CantDeliver.new("delivery failure (#{e.class.name}: #{e.message})")
+          raise CantDeliver.new("#{e.class.name}: #{e.message}")
         end
 
         if response.success?
@@ -51,7 +51,7 @@ module Routemaster
         end
 
         _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
-        raise CantDeliver.new("delivery failure (HTTP #{response.status})")
+        raise CantDeliver.new("HTTP #{response.status}")
       end
 
 
@@ -67,10 +67,14 @@ module Routemaster
 
 
       def _conn
-        @_conn ||= Faraday.new(@subscriber.callback) do |c|
-          c.adapter Faraday.default_adapter
+        @_conn ||= Faraday.new(@subscriber.callback, ssl: { verify: _verify_ssl? }) do |c|
+          c.adapter :typhoeus
           c.basic_auth(@subscriber.uuid, 'x')
         end
+      end
+
+      def _verify_ssl?
+        !!( ENV.fetch('ROUTEMASTER_SSL_VERIFY') =~ /^(true|on|yes|1)$/i )
       end
     end
   end
