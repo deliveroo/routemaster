@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'spec/support/env'
 require 'routemaster/application'
 require 'routemaster/mixins/log'
 require 'routemaster/mixins/log_exception'

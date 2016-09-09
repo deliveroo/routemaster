@@ -76,7 +76,6 @@ module Routemaster
       def _verify_ssl?
         !!( ENV.fetch('ROUTEMASTER_SSL_VERIFY') =~ /^(true|on|yes|1)$/i )
       end
-
     end
   end
 end
