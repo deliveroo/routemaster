@@ -183,7 +183,7 @@ worker_timeout Integer(ENV.fetch('PUMA_TIMEOUT'))
 #
 # If unspecified, this defaults to the value of worker_timeout.
 #
-worker_timeout Integer(ENV.fetch('PUMA_BOOT_TIMEOUT'))
+worker_boot_timeout Integer(ENV.fetch('PUMA_BOOT_TIMEOUT'))
 
 # === Puma control rack application ===
 
