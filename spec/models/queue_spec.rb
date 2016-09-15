@@ -77,8 +77,6 @@ describe Routemaster::Models::Queue do
       it 'returns the oldest message' do
         expect(subject.peek).to eq(messages.first)
       end
-
-      it 'does not dequeue'
     end
   end
 

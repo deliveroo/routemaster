@@ -186,6 +186,7 @@ Routemaster can send exception traces to a 3rd party by setting the
 - `print` (will log exceptions to standard output; the default)
 - [`sentry`](https://getsentry.com/welcome/)
 - [`honeybadger`](https://www.honeybadger.io)
+- [`new_relic`](https://newrelic.com/)
 
 For the latter two, you will need to provide the reporting endpoint in
 `EXCEPTION_SERVICE_URL`
