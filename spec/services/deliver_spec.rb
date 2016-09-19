@@ -95,7 +95,7 @@ describe Routemaster::Services::Deliver do
 
       context 'when the connection fails' do
         before do
-          { 
+          {
             success?:       false,
             timed_out?:     false,
             response_code:  0,
@@ -141,6 +141,30 @@ describe Routemaster::Services::Deliver do
 
       it 'returns truthy' do
         expect(perform).to eq(true)
+      end
+    end
+
+    context 'when the delivery times out' do
+      let(:port) { 12024 }
+      let(:callback) { "https://127.0.0.1:12024/callback" }
+      let!(:listening_thread) do
+        Thread.new do
+          s = TCPServer.new port
+          s.accept
+        end
+      end
+
+      before do
+        subscriber.timeout = 500
+        subscriber.max_events = 3
+        3.times { buffer.push make_event }
+        WebMock.disable!
+      end
+
+      after { listening_thread.join }
+
+      it "raises a CantDeliver exception" do
+        expect { perform }.to raise_error(described_class::CantDeliver)
       end
     end
   end
