@@ -13,6 +13,9 @@ module Routemaster
       include Mixins::Log
       include Mixins::LogException
 
+      CONNECT_TIMEOUT = ENV.fetch('ROUTEMASTER_CONNECT_TIMEOUT', 2).to_i
+      TIMEOUT = ENV.fetch('ROUTEMASTER_TIMEOUT', 5).to_i
+
       CantDeliver = Class.new(Exception)
 
       def initialize(subscriber, events)
@@ -40,8 +43,8 @@ module Routemaster
           response = _conn.post do |post|
             post.headers['Content-Type'] = 'application/json'
             post.body = data.to_json
-            post.options.timeout = 5
-            post.options.open_timeout = 2
+            post.options.timeout = TIMEOUT
+            post.options.open_timeout = CONNECT_TIMEOUT
           end
         rescue Faraday::Error::ClientError => e
           raise CantDeliver.new("#{e.class.name}: #{e.message}")
