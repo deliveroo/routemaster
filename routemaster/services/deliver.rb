@@ -40,6 +40,8 @@ module Routemaster
           response = _conn.post do |post|
             post.headers['Content-Type'] = 'application/json'
             post.body = data.to_json
+            post.options.timeout = 5
+            post.options.open_timeout = 2
           end
         rescue Faraday::Error::ClientError => e
           raise CantDeliver.new("#{e.class.name}: #{e.message}")
