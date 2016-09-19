@@ -70,6 +70,4 @@ describe 'Event delivery', type: :acceptance do
     end
     processes.watch.wait_log %r{delivered 5 events}
   end
-
-  it 'sends events to multiple clients'
 end
