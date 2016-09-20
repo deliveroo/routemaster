@@ -25,7 +25,7 @@ module Routemaster
           abort 'Please install and configure sentry-raven (or equivalent service) first!'
         end
 
-        def process(e, env = ENV['RACK_ENV'])
+        def process(e, _env = ENV['RACK_ENV'])
           evt = Raven::Event.capture_exception(e)
           Raven.send(evt) if evt
         end

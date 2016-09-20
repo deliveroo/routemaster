@@ -9,7 +9,7 @@ module Routemaster
         include Mixins::Log
         include Singleton
 
-        def process(e, env = ENV['RACK_ENV'])
+        def process(e, _env = ENV['RACK_ENV'])
           _log_exception(e)
         end
 
