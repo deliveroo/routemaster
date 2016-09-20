@@ -43,8 +43,6 @@ module Routemaster
           response = _conn.post do |post|
             post.headers['Content-Type'] = 'application/json'
             post.body = data.to_json
-            post.options.timeout = TIMEOUT
-            post.options.open_timeout = CONNECT_TIMEOUT
           end
         rescue Faraday::Error::ClientError => e
           raise CantDeliver.new("#{e.class.name}: #{e.message}")
@@ -75,6 +73,8 @@ module Routemaster
         @_conn ||= Faraday.new(@subscriber.callback, ssl: { verify: _verify_ssl? }) do |c|
           c.adapter :typhoeus
           c.basic_auth(@subscriber.uuid, 'x')
+          c.options[:open_timeout] = CONNECT_TIMEOUT
+          c.options[:timeout] = TIMEOUT
         end
       end
 
