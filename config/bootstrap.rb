@@ -14,4 +14,7 @@ $:.unshift(dir) unless $:.include?(dir)
 Dotenv.load!('.env')
 Dotenv.overload('.env.local') if ENV['RACK_ENV'] == 'development'
 
-require 'newrelic_rpm' if ENV['NEW_RELIC_LICENSE_KEY']
+if ENV['NEW_RELIC_LICENSE_KEY']
+  require 'newrelic_rpm'
+  GC::Profiler.enable
+end
