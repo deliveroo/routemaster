@@ -13,6 +13,9 @@ module Routemaster
       include Mixins::Log
       include Mixins::LogException
 
+      CONNECT_TIMEOUT = ENV.fetch('ROUTEMASTER_CONNECT_TIMEOUT', 2).to_i
+      TIMEOUT = ENV.fetch('ROUTEMASTER_TIMEOUT', 5).to_i
+
       CantDeliver = Class.new(Exception)
 
       def initialize(subscriber, events)
@@ -70,6 +73,8 @@ module Routemaster
         @_conn ||= Faraday.new(@subscriber.callback, ssl: { verify: _verify_ssl? }) do |c|
           c.adapter :typhoeus
           c.basic_auth(@subscriber.uuid, 'x')
+          c.options[:open_timeout] = CONNECT_TIMEOUT
+          c.options[:timeout] = TIMEOUT
         end
       end
 
