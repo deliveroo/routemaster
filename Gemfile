@@ -47,6 +47,9 @@ gem 'dogapi', require: false
 # Autoscaling
 gem 'hirefire-resource', require: false
 
+# Debugging in staging/production
+gem 'pry', require: false
+
 group :development do
   # SSL support for local development
   gem 'tunnels',        require: false
@@ -61,7 +64,6 @@ group :development do
   # support time-dependent tests
   gem 'timecop',        require: false
   # better REPL
-  gem 'pry'
   gem 'pry-nav'
   gem 'pry-remote'
 
