@@ -42,7 +42,7 @@ satisfactory to us; either they're too complex to host and maintain, don't
 support key features (persistence), or provide too much rope to hang ourselves
 with.
 
-### Remote procedure call as an antipattern
+### Remote procedure call as an anti-pattern
 
 Routemaster is designed on purpose to _not_ support RPC-style architectures, for
 instance by severely limiting payload contents.
@@ -116,8 +116,8 @@ variable.
 By default the bus will send events to `demo`, eg:
 
 ```
-# Allowed UUIDs, separated by commas
-ROUTEMASTER_CLIENTS=demo,my-service--6f1d6311-98a9-42ab-8da4-ed2d7d5b86c4`
+# Allowed Client UUIDs, separated by commas
+ROUTEMASTER_CLIENT_UUIDS=demo,my-service--6f1d6311-98a9-42ab-8da4-ed2d7d5b86c4`
 ```
 
 For further configuration options please check the provided `.env` files
@@ -214,7 +214,7 @@ Redis, in bytes
 
 Set `ROUTEMASTER_REDIS_MIN_MEM` to the threshold, in bytes (10MB by default). If
 less than this value is free, the auto-dropper will remove messages until twice
-the treshold in free memory is available.
+the threshold in free memory is available.
 
 The auto-dropper runs every 30 seconds.
 
@@ -252,7 +252,7 @@ HTTP Basic is required for all requests. The username is stored as a
 human-readable name (but not checked); the password should be a per-client UUID.
 
 The list of allowed clients is part of the configuration, and is passed as a
-comma-separated list to the `ROUTEMASTER_CLIENTS` environment variable.
+comma-separated list to the `ROUTEMASTER_CLIENT_UUIDS` environment variable.
 
 
 ### Publication (creating topics)
