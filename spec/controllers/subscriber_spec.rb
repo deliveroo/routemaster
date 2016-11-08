@@ -59,9 +59,9 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
 
   describe 'post /subscriber' do
     let(:payload) {{
-      topics:   %w(widgets),
+      topics: %w(widgets),
       callback: 'https://app.example.com/events',
-      uuid:     'alice'
+      delivery_token: 'alice'
     }}
     let(:raw_payload) { payload.to_json }
     let(:perform) do
@@ -114,9 +114,9 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
       expect(subscriber.callback).to eq('https://app.example.com/events')
     end
 
-    it 'sets the subscriber uuid' do
+    it 'sets the subscriber delivery_token' do
       perform
-      expect(subscriber.uuid).to eq('alice')
+      expect(subscriber.delivery_token).to eq('alice')
     end
 
     it 'sets the subscriber timeout' do

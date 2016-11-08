@@ -31,7 +31,7 @@ describe Routemaster::Middleware::Authentication, type: :controller do
   end
 
   context 'with proper credentials' do
-    before { ENV['ROUTEMASTER_CLIENTS'] = 'bob,john-mcfoo' }
+    before { ENV['ROUTEMASTER_CLIENT_UUIDS'] = 'bob,john-mcfoo' }
     before { authorize 'john-mcfoo', 'secret' }
 
     it 'succeeds' do

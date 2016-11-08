@@ -14,7 +14,7 @@ describe 'Event delivery', type: :acceptance do
   after  { processes.all.each { |p| p.stop } }
 
   let(:client) {
-    Routemaster::Client.new(url: 'https://127.0.0.1:17893', uuid: 'demo', verify_ssl: false)
+    Routemaster::Client.new(url: 'https://127.0.0.1:17893', delivery_token: 'demo', verify_ssl: false)
   }
   let(:max_events) { '1' }
   let(:timeout) { '0' }

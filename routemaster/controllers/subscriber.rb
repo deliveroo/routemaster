@@ -10,7 +10,7 @@ module Routemaster
     class Subscriber < Sinatra::Base
       register Parser
 
-      VALID_KEYS = %w(topics callback uuid max timeout)
+      VALID_KEYS = %w(topics callback delivery_token max timeout)
 
       post %r{^/(subscription|subscriber)$}, parse: :json do
         if (data.keys - VALID_KEYS).any?
@@ -29,10 +29,10 @@ module Routemaster
 
         begin
           sub = Models::Subscriber.new(name: request.env['REMOTE_USER'])
-          sub.callback   = data['callback']
-          sub.uuid       = data['uuid']
-          sub.timeout    = data['timeout'] if data['timeout']
-          sub.max_events = data['max']     if data['max']
+          sub.callback       = data['callback']
+          sub.delivery_token = data['delivery_token']
+          sub.timeout        = data['timeout'] if data['timeout']
+          sub.max_events     = data['max']     if data['max']
         rescue ArgumentError => e
           halt 400, e.message
         end

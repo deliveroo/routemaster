@@ -16,9 +16,9 @@ class App
 end
 
 use Routemaster::Receiver, {
-  path:    '/events',
-  uuid:    'demo-client',
-  handler: Handler.new
+  path:           '/events',
+  delivery_token: 'demo-client',
+  handler:        Handler.new
 }
 
 run App

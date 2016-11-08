@@ -16,7 +16,7 @@ module Routemaster
 
       def _authenticate(username, password)
         @_users ||= Set.new(
-          ENV.fetch('ROUTEMASTER_CLIENTS', '').split(','))
+          ENV.fetch('ROUTEMASTER_CLIENT_UUIDS', '').split(','))
         !! @_users.include?(username)
       end
     end

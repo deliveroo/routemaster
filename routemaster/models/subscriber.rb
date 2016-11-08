@@ -57,13 +57,13 @@ module Routemaster::Models
       raw.to_i
     end
 
-    def uuid=(value)
+    def delivery_token=(value)
       _assert value.kind_of?(String) unless value.nil?
-      _redis.hset(_key, 'uuid', value)
+      _redis.hset(_key, 'delivery_token', value)
     end
 
-    def uuid
-      _redis.hget(_key, 'uuid')
+    def delivery_token
+      _redis.hget(_key, 'delivery_token')
     end
 
     def to_s
