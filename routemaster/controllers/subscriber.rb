@@ -10,7 +10,7 @@ module Routemaster
     class Subscriber < Sinatra::Base
       register Parser
 
-      VALID_KEYS = %w(topics callback delivery_token max timeout)
+      VALID_KEYS = %w(topics callback delivery_token uuid max timeout)
 
       post %r{^/(subscription|subscriber)$}, parse: :json do
         if (data.keys - VALID_KEYS).any?
@@ -26,6 +26,12 @@ module Routemaster
           Models::Topic.new(name: name, publisher: nil)
         end
         halt 404 unless topics.all?
+
+        if data.has_key?('uuid')
+          warn "received uuid in payload - this is deprecated & renamed delivery_token"
+
+          data['delivery_token'] = data.delete('uuid')
+        end
 
         begin
           sub = Models::Subscriber.new(name: request.env['REMOTE_USER'])
