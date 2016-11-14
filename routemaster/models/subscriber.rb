@@ -57,13 +57,13 @@ module Routemaster::Models
       raw.to_i
     end
 
-    def delivery_token=(value)
+    def callback_token=(value)
       _assert value.kind_of?(String) unless value.nil?
-      _redis.hset(_key, 'delivery_token', value)
+      _redis.hset(_key, 'callback_token', value)
     end
 
-    def delivery_token
-      _redis.hget(_key, 'delivery_token')
+    def callback_token
+      _redis.hget(_key, 'callback_token')
     end
 
     def to_s

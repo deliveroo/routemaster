@@ -31,17 +31,28 @@ describe Routemaster::Middleware::Authentication, type: :controller do
   end
 
   context 'with proper credentials' do
-    before { ENV['ROUTEMASTER_CLIENT_UUIDS'] = 'bob,john-mcfoo' }
     before { authorize 'john-mcfoo', 'secret' }
 
-    it 'succeeds' do
-      perform
-      expect(last_response).to be_ok
+    shared_examples 'checks' do
+      it 'succeeds' do
+        perform
+        expect(last_response).to be_ok
+      end
+
+      it 'returns the username' do
+        perform
+        expect(last_response.body).to eq('john-mcfoo')
+      end
     end
 
-    it 'returns the username' do
-      perform
-      expect(last_response.body).to eq('john-mcfoo')
+    context 'using ROUTEMASTER_CLIENTS' do
+      before { ENV['ROUTEMASTER_CLIENTS'] = 'bob,john-mcfoo' }
+      include_examples 'checks' 
+    end
+
+    context 'using ROUTEMASTER_CLIENT_TOKENS' do
+      before { ENV['ROUTEMASTER_CLIENT_TOKENS'] = 'bob,john-mcfoo' }
+      include_examples 'checks' 
     end
   end
 end

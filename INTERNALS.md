@@ -55,41 +55,42 @@ All Redis keys are namespaced, under `rm:` by default.
 
 `subscribers`
 
-  The set of all subscriber UUIDs.
+  The set of all subscriber client tokens.
 
-`topics:{subscriber.name}`
+`topics:{client_token}`
 
-  The set of topic names subscribed to by subscriber `name`.
+  The set of topic names subscribed to by subscriber `client_token`.
 
 `subscribers:{topic}`
 
-  The set of subscriber UUIDs having subscribed to topic `name`.
+  The set of subscriber client tokens having subscribed to topic `name`.
 
-`topic:{topic.name}`
+`topic:{name}`
 
   A hash containing metadata has about a topic. Keys:
-  - `publisher`: the UUID of the (singly authorized) publisher
+  - `publisher`: the client token of the (singly authorized) publisher
   - `counter`: the cumulative number of events received
 
-`subscriber:{subscriber.name}`
+`subscriber:{client_token}`
 
   A hash of subscription medatata. Keys:
   - `callback`: the URL to send events to.
   - `timeout`: how long to defer event delivery for batching purposes.
   - `max_events`: maximum number of events to batch.
-  - `delivery_token`: the credential to use when delivering events.
+  - `callback_token`: the credential to use when delivering events.
 
-`queue:new:{subscriber}`
+`queue:new:{client_token}`
 
-  A list of UIDs of messages to be delivered, in reception order.
+  A list of UIDs of messages to be delivered, in reception order, by subscriber
+  client token.
 
-`queue:pending:{subscriber}`
+`queue:pending:{client_token}`
 
   A zset of UIDs of messages for which delivery is in progress, keyed by the
   timestamp of the attempt.
   This gets cleared when messages are acked or nacked.
 
-`queue:data:{subscriber}`
+`queue:data:{client_token}`
 
   A hash of messages keyed by their UID. Includes new and unacked messages.
 

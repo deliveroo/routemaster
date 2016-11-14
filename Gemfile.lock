@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/deliveroo/routemaster-client.git
-  revision: d1dd0f519cf8ec2098efb04b6d501d4507ff0556
-  ref: d1dd0f5
+  revision: 9c5b4a890943fb981dadda2c067d40bb0a535a75
+  ref: 9c5b4a8
   specs:
     routemaster-client (1.3.1)
       faraday (>= 0.9.0)

@@ -15,9 +15,18 @@ module Routemaster
       private
 
       def _authenticate(username, password)
-        @_users ||= Set.new(
-          ENV.fetch('ROUTEMASTER_CLIENT_UUIDS', '').split(','))
-        !! @_users.include?(username)
+        _tokens.include?(username)
+      end
+
+      def _tokens
+        return @_tokens if @_tokens
+        if raw = ENV['ROUTEMASTER_CLIENTS']
+          warn 'ROUTEMASTER_CLIENTS is deprecated, use ROUTEMASTER_CLIENT_TOKENS'
+        else
+          raw = ENV.fetch('ROUTEMASTER_CLIENT_TOKENS', '')
+        end
+        
+        @_tokens = Set.new(raw.split(','))
       end
     end
   end

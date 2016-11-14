@@ -16,7 +16,7 @@ describe Routemaster::Services::Deliver do
 
   before do
     WebMock.enable!
-    subscriber.delivery_token = 'hello'
+    subscriber.callback_token = 'hello'
     subscriber.callback = callback
   end
 

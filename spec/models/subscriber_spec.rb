@@ -21,7 +21,7 @@ describe Routemaster::Models::Subscriber do
 
     let(:perform) do
       subject.callback = 'https://example.com'
-      subject.delivery_token = '0e959830-6de3-11e6-8b8f-572d810770de'
+      subject.callback_token = '0e959830-6de3-11e6-8b8f-572d810770de'
       Routemaster::Models::Subscription.new(topic: topic, subscriber: subject).save
       subject.destroy
     end

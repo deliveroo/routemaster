@@ -59,9 +59,9 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
 
   describe 'post /subscriber' do
     let(:payload) {{
-      topics: %w(widgets),
-      callback: 'https://app.example.com/events',
-      delivery_token: 'alice'
+      topics:         %w(widgets),
+      callback:       'https://app.example.com/events',
+      callback_token: 'alice'
     }}
     let(:raw_payload) { payload.to_json }
     let(:perform) do
@@ -114,9 +114,15 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
       expect(subscriber.callback).to eq('https://app.example.com/events')
     end
 
-    it 'sets the subscriber delivery_token' do
+    it 'sets the subscriber callback_token' do
       perform
-      expect(subscriber.delivery_token).to eq('alice')
+      expect(subscriber.callback_token).to eq('alice')
+    end
+
+    it 'accepts the deprecated uuid in place of callback_token' do
+      payload[:uuid] = payload.delete(:callback_token)
+      perform
+      expect(subscriber.callback_token).to eq('alice')
     end
 
     it 'sets the subscriber timeout' do

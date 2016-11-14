@@ -17,7 +17,7 @@ end
 
 use Routemaster::Receiver, {
   path:           '/events',
-  delivery_token: 'demo-client',
+  callback_token: 'demo-client',
   handler:        Handler.new
 }
 
