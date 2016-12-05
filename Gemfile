@@ -68,7 +68,8 @@ group :development do
   gem 'pry-remote'
 
   # testing against the client
-  gem 'routemaster-client', git: 'https://github.com/deliveroo/routemaster-client.git', ref: '9c5b4a8'
+  gem 'routemaster-client', git: 'https://github.com/deliveroo/routemaster-client.git', ref: '55aa0f6'
+  # gem 'routemaster-client', path: '../routemaster-client'
 end
 
 group :test do
