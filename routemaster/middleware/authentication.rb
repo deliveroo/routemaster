@@ -20,7 +20,8 @@ module Routemaster
 
       def _tokens
         return @_tokens if @_tokens
-        if raw = ENV['ROUTEMASTER_CLIENTS']
+        raw = ENV['ROUTEMASTER_CLIENTS']
+        if raw
           warn 'ROUTEMASTER_CLIENTS is deprecated, use ROUTEMASTER_CLIENT_TOKENS'
         else
           raw = ENV.fetch('ROUTEMASTER_CLIENT_TOKENS', '')
