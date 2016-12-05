@@ -14,7 +14,7 @@ describe 'Event delivery', type: :acceptance do
   after  { processes.all.each { |p| p.stop } }
 
   let(:client) {
-    Routemaster::Client.new(url: 'https://127.0.0.1:17893', uuid: 'demo', verify_ssl: false)
+    Routemaster::Client.new(url: 'https://127.0.0.1:17893', client_token: 'demo', verify_ssl: false)
   }
   let(:max_events) { '1' }
   let(:timeout) { '0' }
@@ -27,11 +27,11 @@ describe 'Event delivery', type: :acceptance do
     client.created('dogs', 'https://example.com/dogs/1')
 
     client.subscribe(
-      topics:   %w(cats dogs),
-      callback: 'https://127.0.0.1:17894/events',
-      uuid:     'demo-client',
-      max:      Integer(max_events),
-      timeout:  Integer(timeout)
+      topics:         %w(cats dogs),
+      callback:       'https://127.0.0.1:17894/events',
+      callback_token: 'demo-client',
+      max:            Integer(max_events),
+      timeout:        Integer(timeout)
     )
   end
 

@@ -42,7 +42,7 @@ satisfactory to us; either they're too complex to host and maintain, don't
 support key features (persistence), or provide too much rope to hang ourselves
 with.
 
-### Remote procedure call as an antipattern
+### Remote procedure call as an anti-pattern
 
 Routemaster is designed on purpose to _not_ support RPC-style architectures, for
 instance by severely limiting payload contents.
@@ -110,14 +110,14 @@ A subscriber can "catch up" event if it hasn't pulled events for a while
 ## Installing & Configuring
 
 In order to have routemaster receive connections from a receiver or emitter
-you'll need to add their identifier to the `ROUTEMASTER_CLIENTS` environment
-variable.
+you'll need to add their identifier to the `ROUTEMASTER_CLIENT_TOKENS`
+environment variable.
 
 By default the bus will send events to `demo`, eg:
 
 ```
-# Allowed UUIDs, separated by commas
-ROUTEMASTER_CLIENTS=demo,my-service--6f1d6311-98a9-42ab-8da4-ed2d7d5b86c4`
+# Allowed client tokens, separated by commas
+ROUTEMASTER_CLIENT_TOKENS=demo,my-service--6f1d6311-98a9-42ab-8da4-ed2d7d5b86c4`
 ```
 
 For further configuration options please check the provided `.env` files
@@ -214,7 +214,7 @@ Redis, in bytes
 
 Set `ROUTEMASTER_REDIS_MIN_MEM` to the threshold, in bytes (10MB by default). If
 less than this value is free, the auto-dropper will remove messages until twice
-the treshold in free memory is available.
+the threshold in free memory is available.
 
 The auto-dropper runs every 30 seconds.
 
@@ -249,10 +249,11 @@ The auto-dropper runs every 30 seconds.
 All requests over non-SSL connections will be met with a 308 Permanent Redirect.
 
 HTTP Basic is required for all requests. The username is stored as a
-human-readable name (but not checked); the password should be a per-client UUID.
+human-readable name (but not checked); the password should be a per-client
+client.
 
 The list of allowed clients is part of the configuration, and is passed as a
-comma-separated list to the `ROUTEMASTER_CLIENTS` environment variable.
+comma-separated list to the `ROUTEMASTER_CLIENT_TOKENS` environment variable.
 
 
 ### Publication (creating topics)
@@ -307,9 +308,9 @@ A client can therefore only obtain events from their own subscription.
 
     >> POST /subscription
     >> {
-    >>   topics:   [<name>, ...],
-    >>   callback: <url>,
-    >>   uuid:     <uuid>,
+    >>   topics:          [<name>, ...],
+    >>   callback:        <url>,
+    >>   callback_token:  <secret>,
     >>   timeout:  <t>,
     >>   max:      <n>
     >> ]
@@ -318,7 +319,7 @@ Subscribes the client to receive events from the named topics. When events are
 ready, they will be POSTed to the `<url>` (see below), at most every `<t>`
 milliseconds (default 500). At most `<n>` events will be sent in each batch
 (default 100).
-The `<uuid>` will be used as an HTTP Basic password to the client for
+The `<secret>` will be used as an HTTP Basic password to the client for
 authentication.
 
 The response is always empty. No side effect if already subscribed to a given
@@ -418,7 +419,8 @@ Routermaster provides monitoring endpoints:
 - `<oldest>`: timestamp (seconds since epoch) of the oldest pending event.
 
 
-Monitoring resources can be queries by clients with a UUID included in `ROUTEMASTER_MONITORS`.
+Monitoring resources can be queries by clients with a token included in
+`ROUTEMASTER_MONITORS`.
 
 Routemaster does not, and will not include an UI for monitoring, as that would
 complexify its codebase too much (it's a separate concern, really).

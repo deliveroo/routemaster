@@ -18,7 +18,7 @@ describe 'Client integration' do
   after  { client_processes.each { |c| c.wait_stop } }
   after  { client_processes.each { |c| c.stop } }
 
-  let(:client) { Routemaster::Client.new(url: 'https://127.0.0.1:17893', uuid: 'demo', verify_ssl: false) }
+  let(:client) { Routemaster::Client.new(url: 'https://127.0.0.1:17893', client_token: 'demo', verify_ssl: false) }
   let(:subscriber) { Routemaster::Models::Subscriber.find('demo') }
   let(:topic) { Routemaster::Models::Topic.find('widgets') }
   let(:queue) { subscriber.queue }
@@ -62,7 +62,7 @@ describe 'Client integration' do
       client.unsubscribe('widgets')
       expect(subscriber.topics.map(&:name)).not_to include('widgets')
     end
-    
+
     it 'unsubscribes entirely' do
       client.unsubscribe_all
       expect(subscriber).to be_nil

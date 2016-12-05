@@ -17,7 +17,7 @@ describe Routemaster::Application, type: :controller do
   describe 'unknown endpoint' do
 
     before do
-      ENV['ROUTEMASTER_CLIENTS'] = 'demo'
+      ENV['ROUTEMASTER_CLIENT_TOKENS'] = 'demo'
       authorize 'demo', 'x'
     end
 

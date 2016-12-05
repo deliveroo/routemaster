@@ -10,7 +10,7 @@ module Routemaster
     class Subscriber < Sinatra::Base
       register Parser
 
-      VALID_KEYS = %w(topics callback uuid max timeout)
+      VALID_KEYS = %w(topics callback callback_token uuid max timeout)
 
       post %r{^/(subscription|subscriber)$}, parse: :json do
         if (data.keys - VALID_KEYS).any?
@@ -27,12 +27,17 @@ module Routemaster
         end
         halt 404 unless topics.all?
 
+        if data.has_key?('uuid')
+          warn "received uuid in payload - this is deprecated & renamed calback_token"
+          data['callback_token'] = data.delete('uuid')
+        end
+
         begin
           sub = Models::Subscriber.new(name: request.env['REMOTE_USER'])
-          sub.callback   = data['callback']
-          sub.uuid       = data['uuid']
-          sub.timeout    = data['timeout'] if data['timeout']
-          sub.max_events = data['max']     if data['max']
+          sub.callback       = data['callback']
+          sub.callback_token = data['callback_token']
+          sub.timeout        = data['timeout'] if data['timeout']
+          sub.max_events     = data['max']     if data['max']
         rescue ArgumentError => e
           halt 400, e.message
         end
