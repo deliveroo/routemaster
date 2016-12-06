@@ -49,21 +49,27 @@ This process runs scheduled tasks, regularly calling the following services:
 
 All Redis keys are namespaced, under `rm:` by default.
 
+Any mention of "UID" refers to a 20-character, Base64-encoded string
+(representing a 120-bit number), intending to be globally unique.
+
+All timestamps are represented as integers, milliseconds since the Unix epoch.
+
+
 `topics`
 
   The set of all topic names.
 
 `subscribers`
 
-  The set of all subscriber UUIDs.
+  The set of all subscriber tokens.
 
-`topics:{uuid}`
+`topics:{token}`
 
-  The set of topic names subscribed to by subscriber `uuid`.
+  The set of topic names subscribed to by subscriber `{token}`.
 
-`subscribers:{topic}`
+`subscribers:{name}`
 
-  The set of subscriber UUIDs having subscribed to topic `name`.
+  The set of subscriber tokens having subscribed to topic `{name}`.
 
 `topic:{name}`
 
@@ -71,27 +77,132 @@ All Redis keys are namespaced, under `rm:` by default.
   - `publisher`: the UUID of the (singly authorized) publisher
   - `counter`: the cumulative number of events received
 
-`subscriber:{uuid}`
+`subscriber:{token}`
 
   A hash of subscription medatata. Keys:
   - `callback`: the URL to send events to.
-  - `timeout`: how long to defer event delivery for batching purposes.
+  - `timeout`: how long to defer event delivery for batching purposes (aka deadline).
   - `max_events`: maximum number of events to batch.
   - `uuid`: the credential to use when delivering events.
 
-`queue:new:{subscriber}`
+`batch:{bid}` (list)
 
-  A list of UIDs of messages to be delivered, in reception order.
+  A list whose first 2 items are:
+  - the subscriber token this batch is for,
+  - the timestamp at which the batch was created,
+  followed by the serialized messages to deliver. 
+  
+  `bid` is the batch's UID.
+  Note: this is the key that contains the actual event data; other structures
+  only contain UID references.
 
-`queue:pending:{subscriber}`
+`batches:early:by_subscriber` (hash)
 
-  A zset of UIDs of messages for which delivery is in progress, keyed by the
-  timestamp of the attempt.
-  This gets cleared when messages are acked or nacked.
+  References UIDs of all undelivered batches that are not yet ready for
+  delivery (ie. being filled).
 
-`queue:data:{subscriber}`
+  Keys are subscriber tokens; values are batch UIDs.
+  
+`batches:early:by_deadline` (sorted set)
 
-  A hash of messages keyed by their UID. Includes new and unacked messages.
+  Same set as above (all undelivered batches).
+  The score is the batch's deadline (in milliseconds since the epoch); set
+  values are batch UIDs.
 
-Message UIDs are unique _per queue_, not globally.
+`batches:ready:queue` (list)
+
+  References IDs of batches that are ready for delivery, either because their
+  deadline has passed or because they're full.
+
+`batches:ready:by_creation` (sorted set)
+
+  Same contents as `batches:ready:queue`, but indexed by the batch's oldest
+  timestamp.
+
+`batches:pending` (hash)
+
+  A map of worker UIDs to the batch UID they're currently trying to deliver.
+
+`workers` (hash)
+
+  Maps worker identifiers (base 36 strings) to the timestamp they were last
+  active at.
+  Used for housekeeping (nacking pending batches for "dead" workers).
+
+`lock:....` (string)
+
+  Temporary locks used to manage consistency.
+  (only useful if we aim for cluster support, as clustering doesn't support
+  atomic ops across shards)
+
+
+### Event processing pseudocode
+
+```
+Ingestion controller:
+  for each subscriber:
+    atomic find-or-create batch for this subscriber:
+      given subscriber and event timestamp
+      if there is no early batch for this subscriber:
+        generate batch UID
+        with batch lock:
+          create batch payload key
+          add to early batches
+          publish batch deadline (redis pub)
+    with batch lock:
+      if batch is full:
+        if batch is still in the early set:
+          add to ready set
+          remove from early set
+
+Deadline loop:
+  for each batch in the early set:
+    with batch lock:
+      if batch is stale:
+        add to ready list
+        remove from early set
+  repeat every tick (50ms?)
+
+(alternate)
+Deadline reactor:
+  on event: (redis sub)
+    set wakeup timer for batch deadline
+  on timer:
+    with batch lock:
+      add to ready list
+      remove from early set
+  at boot, and at every tick (1s?): (to cope with "missed" redis pubsub events)
+    for each batch in the early set:
+      set wakeup timer for batch deadline
+
+Worker loop:
+  batch = block-pop from ready batches
+  if batch obtained:
+    with lock:
+      move batch from ready to pending
+      remove current ref if same batch
+    deliver batch
+    if delivery succeeds:
+      remove batch data
+      remove from pending
+    otherwise:
+      delay deadline (with backoff)
+      move batch from pending to ready
+
+Scrub loop:
+  for each pending batch:
+    if worker has not been alive recently:
+      with batch lock:
+        move batch back to the ready queue (with delayed deadline)
+  repeat every tick (1 minute?)
+
+Autodrop loop:
+  while Redis memory is low:
+    find oldest batch in the ready set
+    with batch lock:
+      remove batch data
+      remove ref from ready
+  repeat every tick (1 minute?)
+```
+
 
