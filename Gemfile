@@ -55,6 +55,7 @@ group :development do
   gem 'tunnels',        require: false
   # unit/functional tests
   gem 'rspec',          require: false
+  gem 'rspec-its',      require: false
   # integration tests
   gem 'rack-test',      require: false
   # running tests automatically

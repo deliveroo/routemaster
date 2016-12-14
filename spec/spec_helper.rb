@@ -4,6 +4,7 @@ Dotenv.overload('.env.test')
 
 require 'pry'
 require 'pry-remote'
+require 'rspec/its'
 
 # Report test coverage
 require 'codeclimate-test-reporter'
