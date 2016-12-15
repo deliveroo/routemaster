@@ -1,6 +1,6 @@
 require 'routemaster/services'
 require 'routemaster/mixins/assert'
-require 'routemaster/models/queue'
+require 'routemaster/models/batch'
 require 'routemaster/models/message'
 
 module Routemaster
@@ -17,7 +17,17 @@ module Routemaster
       end
 
       def call
-        Models::Queue.push(@topic.subscribers, @event)
+        data = Services::Codec.new.dump(@event)
+        @topic.subscribers.each do |s|
+          batch = Models::Batch.ingest(data: data, timestamp: @event.timestamp, subscriber: s)
+
+          begin
+            batch.promote
+          rescue Models::Batch::TransientError => e
+            _log.warn { "failed to promote batch" }
+            _log_exception(e)
+          end
+        end
         @topic.increment_count
         self
       end

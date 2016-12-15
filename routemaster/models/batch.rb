@@ -14,11 +14,7 @@ module Routemaster
       include Mixins::Assert
       include Mixins::Log
 
-      ACQUIRE_TIMEOUT = 5 # seconds to block workers for
-      BACKOFF_LIMIT   = 5 # max attempts to calculate backoff against - translates to 2^5 = 32s max backoff.
-
       TransientError   = Class.new(StandardError)
-      Retry            = Class.new(RuntimeError)
       NotEarlyError    = Class.new(TransientError)
       NonexistentError = Class.new(TransientError)
       NoSuchSubscriber = Class.new(TransientError)
@@ -50,7 +46,7 @@ module Routemaster
 
 
       # Return the batch status, possibly inferring it from its UID's presence
-      # in various data structure.
+      # in various data structure (memoised).
       #
       # Normally only useful while testing or validating data.
       def status
@@ -80,6 +76,7 @@ module Routemaster
       end
 
 
+      # The working currently holding this batch (memoised)
       def worker_id 
         @worker_id ||= begin
           pending_index_key = 'batches:pending'
@@ -99,11 +96,11 @@ module Routemaster
       # Is this the batch currently being filled for its subscriber?
       def current?
         batch_ref_key = "batches:early:by_subscriber:#{subscriber.name}"
-        # _redis.get(batch_ref_key).tap { |x| binding.pry } == @uid
         _redis.get(batch_ref_key) == @uid
       end
 
 
+      # Number of times the batch ws nacked (memoised)
       def attempts
         @attempts ||= begin
           batch_key = "batch:#{@uid}"
@@ -111,12 +108,12 @@ module Routemaster
         end
       end
 
-
-      # def attempts=(value)
-      #   batch_key = "batch:#{@uid}"
-      #   _redis.lset(batch_key, 2, value)
-      #   @attempts = value
-      # end
+      
+      # Returns the list of (serialised) payloads in the batch
+      def data
+        batch_key = "batch:#{@uid}"
+        _redis.lrange(batch_key, 3, -1)
+      end
 
 
       # Return a new instance without memoised state
@@ -149,6 +146,8 @@ module Routemaster
             _redis.unwatch
             return self
           end
+
+          _log.debug { "promoting batch #{@uid} for #{subscriber.name}" }
 
           created_at = _redis.lindex(batch_key, 1)
           _redis.multi do
@@ -199,7 +198,7 @@ module Routemaster
         batch_key = "batch:#{@uid}"
 
 
-        backoff = 1_000 * 2 ** [attempts, BACKOFF_LIMIT].max
+        backoff = 1_000 * 2 ** [attempts, _backoff_limit].max
         deadline = Routemaster.now + backoff + rand(backoff)
 
         watch = _redis.watch(batch_key) do
@@ -222,12 +221,12 @@ module Routemaster
 
       module ClassMethods
         # Finds or creates a batch and appends the event to it.
-        def ingest_event(event:, subscriber:)
+        def ingest(data:, timestamp:, subscriber:)
           batch_ref_key = "batches:early:by_subscriber:#{subscriber.name}"
           early_index_key = 'batches:early:by_deadline'
           
-          data = Services::Codec.new.dump(event)
-          deadline = event.timestamp + subscriber.timeout
+          # data = Services::Codec.new.dump(event)
+          deadline = timestamp + subscriber.timeout
           batch_uid = nil
 
           watch = _redis.watch(batch_ref_key) do
@@ -265,13 +264,15 @@ module Routemaster
           return unless batch_uid
           new(status: :early, uid: batch_uid).promote
         rescue TransientError => e
+          # XXX the batch_uid might have been auto-promoted in another thread -
+          # retry
           _log.warn { "while auto-promoting: #{e.class.name}, #{e.message}" }
           nil
         end
 
 
         # Transition a batch from "ready" to "pending"
-        def acquire(worker_id:, timeout: ACQUIRE_TIMEOUT)
+        def acquire(worker_id:)
           ready_queue_key = 'batches:ready:queue'
           ready_index_key = 'batches:ready:by_creation'
           pending_key     = "batches:pending:#{worker_id}"
@@ -281,7 +282,7 @@ module Routemaster
             raise "Worker '#{worker_id}' already has a batch acquired"
           end
 
-          batch_uid, _ = _redis.brpoplpush(ready_queue_key, pending_key, timeout: timeout)
+          batch_uid, _ = _redis.brpoplpush(ready_queue_key, pending_key, timeout: _acquire_timeout)
           return if batch_uid.nil?
 
           # TODO: there's a write hole here. The ready index will need to be
@@ -296,16 +297,46 @@ module Routemaster
           new(status: :pending, worker_id: worker_id, uid: batch_uid)
         end
 
+        def all
+          Iterator.new
+        end
+
         private
         
         def _generate_uid
           SecureRandom.urlsafe_base64(15)
         end
+
+        def _acquire_timeout
+          @_acquire_timeout ||= Integer(ENV.fetch('ROUTEMASTER_ACQUIRE_TIMEOUT'))
+        end
+
       end
       extend ClassMethods
 
+      class Iterator
+        include Enumerable
+        include Mixins::Redis
+
+        # Yied all know batches
+        def each(batch_size:100)
+          cursor = 0
+          loop do
+            cursor, keys = _redis.scan(cursor, match: 'batch:*', count: batch_size)
+            keys.each do |k|
+              uid = k.sub(/^batch:/, '')
+              yield Batch.new(uid: uid)
+            end
+            break if Integer(cursor) == 0
+          end
+        end
+      end
 
       private
+
+      def _backoff_limit
+        @_backoff_limit ||= Integer(ENV.fetch('ROUTEMASTER_BACKOFF_LIMIT'))
+      end
 
     end
   end

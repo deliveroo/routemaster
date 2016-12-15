@@ -14,18 +14,20 @@ module Routemaster
       include Mixins::LogException
 
       CONNECT_TIMEOUT = ENV.fetch('ROUTEMASTER_CONNECT_TIMEOUT', 2).to_i
-      TIMEOUT = ENV.fetch('ROUTEMASTER_TIMEOUT', 5).to_i
+      TIMEOUT         = ENV.fetch('ROUTEMASTER_TIMEOUT', 5).to_i
 
-      CantDeliver = Class.new(Exception)
+      CantDeliver = Class.new(StandardError)
+
+      def self.call(*args)
+        new(*args).call
+      end
 
       def initialize(subscriber, events)
         @subscriber = subscriber
-        @buffer       = events
+        @buffer     = events
       end
 
-      def run
-        return false unless @buffer.any?
-        return false unless _should_deliver?(@buffer)
+      def call
         _log.debug { "starting delivery to '#{@subscriber.name}'" }
 
         # assemble data
@@ -59,14 +61,6 @@ module Routemaster
 
 
       private
-
-
-      def _should_deliver?(buffer)
-        return true  if buffer.first.timestamp + @subscriber.timeout <= Routemaster.now
-        return false if buffer.length == 0
-        return true  if buffer.length >= @subscriber.max_events
-        false
-      end
 
 
       def _conn

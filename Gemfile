@@ -65,7 +65,7 @@ group :development do
   # support time-dependent tests
   gem 'timecop',        require: false
   # better REPL
-  gem 'pry-nav'
+  gem 'pry-byebug'
   gem 'pry-remote'
 
   # testing against the client

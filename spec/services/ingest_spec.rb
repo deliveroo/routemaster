@@ -13,12 +13,8 @@ module Routemaster
     let(:subscribers) {[
       Models::Subscriber.new(name: 'foo'),
       Models::Subscriber.new(name: 'bar'),
-      Models::Subscriber.new(name: 'qux'),
+      Models::Subscriber.new(name: 'qux').tap { |s| s.max_events = 2 },
     ]}
-
-    let(:consumers) {
-      subscribers.map { |s| Models::Queue.new(s) }
-    }
 
     let(:events) {[
       make_event, make_event
@@ -31,20 +27,35 @@ module Routemaster
     end
 
     before do
-      Routemaster::Models::Subscription.new(topic: topic, subscriber: subscribers[0]).save
-      Routemaster::Models::Subscription.new(topic: topic, subscriber: subscribers[2]).save
+      Models::Subscription.new(topic: topic, subscriber: subscribers[0]).save
+      Models::Subscription.new(topic: topic, subscriber: subscribers[2]).save
     end
 
     it 'pushes to all subscribers' do
       perform
-      expect(consumers[0].pop).to eq(events.first)
-      expect(consumers[1].pop).to be_nil
-      expect(consumers[2].pop).to eq(events.first)
+
+      expect(
+        Models::Batch.all.map { |b| b.subscriber.name }.sort
+      ).to eq %w[ foo qux ]
+    end
+
+    it 'pushes all events' do
+      perform
+      Models::Batch.all.each do |b|
+        popped_events = b.data.map { |d| Services::Codec.new.load(d) }
+        expect(popped_events).to eq(events)
+      end
     end
 
     it 'increments the topic event count' do
       perform
       expect(topic.get_count).to eq(2)
+    end
+
+    it 'promotes batches as needed' do
+      perform
+      b = Models::Batch.all.find { |b| b.subscriber.name == 'qux' }
+      expect(b.status).to eq(:ready)
     end
   end
 end

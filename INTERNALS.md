@@ -67,6 +67,16 @@ deadline delay); in this case its however not flagged as _current_.
 If delivery succeeds, the batch and all references are simply removed; there is
 no materialisation of the terminal status.
 
+               promote         acquire           ack
+    +-----------+   +-----------+   +-----------+   +-----------+
+    |           |   |           |   |           |   |           |
+    |   Early   |-->|   Ready   |-->|  Pending  |-->|   Acked   |
+    |           |   |           |   |           |   |           |
+    +-----------+   +-----------+   +-----_-----+   +-----------+
+         ^                                |
+         |                                | nack
+         \--------------------------------/
+
 
 ## Data layout
 
@@ -157,12 +167,6 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
   Maps worker identifiers (base 36 strings) to the timestamp they were last
   active at.
   Used for housekeeping (nacking pending batches for "dead" workers).
-
-`lock:....` (string)
-
-  Temporary locks used to manage consistency.
-  (only useful if we aim for cluster support, as clustering doesn't support
-  atomic ops across shards)
 
 
 ### Event processing pseudocode

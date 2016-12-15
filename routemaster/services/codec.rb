@@ -12,13 +12,13 @@ module Routemaster
       include Mixins::Log
 
       # Produce a Message (or subclass) from a string and a UID
-      def load(data, uid)
+      def load(data)
         code, hash = MessagePack.unpack(data)
-        CODE_TO_CLASS[code].new(decode_hash(hash).symbolize_keys.merge(uid: uid))
+        CODE_TO_CLASS[code].new(decode_hash(hash).symbolize_keys)
       rescue MessagePack::UnpackError => e
-        _log.warn { "Failed to decode message #{uid}" }
+        _log.warn { "Failed to decode message" }
         _log_exception(e)
-        Models::Message::Garbled.new(uid: uid)
+        Models::Message::Garbled.new
       end
 
       # Transforms a message into a string

@@ -24,32 +24,32 @@ describe Routemaster::Services::Deliver do
     WebMock.disable!
   end
 
-  describe '#run' do
-    let(:perform) { subject.run }
+  describe '#call' do
+    let(:perform) { subject.call }
+    let(:callback_status) { 204 }
+
+    before do
+      @stub = stub_request(:post, callback).
+        with(basic_auth: %w[hello x]).
+        with { |req| @request = req }.
+        to_return(status: callback_status, body: '')
+    end
+
 
     context 'when there are no events' do
-
       it 'passes' do
         expect { perform }.not_to raise_error
       end
 
-      it 'returns falsy' do
-        expect(perform).to eq(false)
-      end
-
-      it 'does not issue requests' do
+      it 'POSTs to the callback' do
         perform
-        expect(a_request(:any, //)).not_to have_been_made
+        expect(@stub).to have_been_requested
       end
     end
 
     context 'when there are events' do
       before do
-        Timecop.travel(-600) do
-          3.times { buffer.push make_event }
-        end
-        subscriber.timeout = 0
-        stub_request(:post, callback).with(basic_auth: %w[hello x]).to_return(status: 204, body: '')
+        3.times { buffer.push make_event }
       end
 
       it 'passes' do
@@ -62,110 +62,66 @@ describe Routemaster::Services::Deliver do
 
       it 'POSTs to the callback' do
         perform
-        expect(a_request(:post, callback).with(basic_auth: %w[hello x])).to have_been_made
+        expect(@stub).to have_been_requested
       end
 
       it 'sends valid JSON' do
-        WebMock.after_request do |request, _|
-          expect(request.headers['Content-Type']).to eq('application/json')
-          expect { JSON.parse(request.body) }.not_to raise_error
-        end
         perform
+        expect(@request.headers['Content-Type']).to eq('application/json')
+        expect { JSON.parse(@request.body) }.not_to raise_error 
       end
 
       it 'delivers events in order' do
-        WebMock.after_request do |request, _|
-          events = JSON.parse(request.body)
-          expect(events.length).to eq(3)
-          expect(events.first['url']).to match(/\/1$/)
-          expect(events.last['url']).to match(/\/3$/)
-        end
         perform
+        events = JSON.parse(@request.body)
+        expect(events.length).to eq(3)
+        expect(events.first['url']).to match(/\/1$/)
+        expect(events.last['url']).to match(/\/3$/)
       end
 
-      context 'when the callback fails' do
-        before do
-          stub_request(:post, callback).with(basic_auth: %w[hello x]).to_return(status: 500)
-        end
-
-        it 'raises an exception' do
+      shared_examples 'failure' do
+        it "raises a CantDeliver exception" do
           expect { perform }.to raise_error(described_class::CantDeliver)
         end
       end
 
-      context 'when the connection fails' do
-        before do
-          {
-            success?:       false,
-            timed_out?:     false,
-            response_code:  0,
-            return_message: "Couldn't resolve host name",
-          }.each_pair do |k,v|
-            allow_any_instance_of(Typhoeus::Response).to receive(k).and_return(v)
+      context 'when the callback 500s' do
+        let(:callback_status) { 500 }
+
+        it_behaves_like 'failure'
+      end
+
+      context 'when the callback cannot be resolved' do
+        let(:callback) { "https://nonexistent.example.com/callback" }
+        before { WebMock.disable! }
+
+        it_behaves_like 'failure'
+      end
+
+      context 'with fake local server' do
+        let(:port) { 12024 }
+        let(:callback) { "https://127.0.0.1:#{port}/callback" }
+
+        before { WebMock.disable! }
+
+        context 'when delivery times out' do
+          let!(:listening_thread) do
+            Thread.new do
+              s = TCPServer.new port
+              s.accept
+            end
           end
+
+          after { listening_thread.join }
+
+          it_behaves_like 'failure'
         end
 
-        it { expect { perform }.to raise_error(described_class::CantDeliver) }
-      end
-    end
-
-    context 'when there are recent events but less than the buffer size' do
-      before do
-        subscriber.timeout = 500
-        subscriber.max_events = 100
-        3.times { buffer.push make_event }
-      end
-
-      it 'does not send events' do
-        perform
-        expect(a_request(:any, callback)).not_to have_been_made
-      end
-
-      it 'returns flasy' do
-        expect(perform).to eq(false)
-      end
-    end
-
-    context 'when there are many recent events' do
-      before do
-        subscriber.timeout = 500
-        subscriber.max_events = 3
-        3.times { buffer.push make_event }
-        stub_request(:post, callback).with(basic_auth: %w[hello x]).to_return(status: 204, body: '')
-      end
-
-      it 'makes a request' do
-        perform
-        expect(a_request(:any, callback).with(basic_auth: %w[hello x])).to have_been_made
-      end
-
-      it 'returns truthy' do
-        expect(perform).to eq(true)
-      end
-    end
-
-    context 'when the delivery times out' do
-      let(:port) { 12024 }
-      let(:callback) { "https://127.0.0.1:12024/callback" }
-      let!(:listening_thread) do
-        Thread.new do
-          s = TCPServer.new port
-          s.accept
+        context 'when connection fails' do
+          it_behaves_like 'failure'
         end
       end
-
-      before do
-        subscriber.timeout = 500
-        subscriber.max_events = 3
-        3.times { buffer.push make_event }
-        WebMock.disable!
-      end
-
-      after { listening_thread.join }
-
-      it "raises a CantDeliver exception" do
-        expect { perform }.to raise_error(described_class::CantDeliver)
-      end
     end
+
   end
 end

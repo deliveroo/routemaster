@@ -13,14 +13,14 @@ describe Routemaster::Models::Batch do
     end
   }
 
-  def ingest_events(count)
-    (1..count).map {
-      described_class.ingest_event(event: make_event, subscriber: subscriber)
+  def do_ingest(count)
+    (1..count).map { |idx|
+      described_class.ingest(data: "payload#{idx}", timestamp: Routemaster.now, subscriber: subscriber)
     }.last
   end
 
-  describe '.ingest_event' do
-    let(:perform) { ingest_events(2) }
+  describe '.ingest' do
+    let(:perform) { do_ingest(2) }
 
     it { expect { perform }.not_to raise_error }
 
@@ -35,7 +35,7 @@ describe Routemaster::Models::Batch do
   end
 
   describe '#promote' do
-    let(:batch) { ingest_events(event_count) }
+    let(:batch) { do_ingest(event_count) }
     let(:event_count) { 1 }
     let(:perform) { batch.promote }
 
@@ -102,24 +102,26 @@ describe Routemaster::Models::Batch do
     end
 
     context 'when there is a promotable batch' do
-      before { ingest_events(3) }
+      before { do_ingest(3) }
       let(:timeout) { 0 }
 
-      it { is_expected.to be_a_kind_of(described_class) }
+      it 'returns a batch' do
+        is_expected.to be_a_kind_of(described_class)
+      end
     end
   end
 
 
   describe '.acquire' do
     let(:worker_id) { 'f000-b444' }
-    let(:result) { described_class.acquire(worker_id: worker_id, timeout: 1) }
+    let(:result) { described_class.acquire(worker_id: worker_id) }
 
     context 'when there are no ready batches' do
       it { expect(result).to be_nil }
     end
 
     context 'when there is a ready batch' do
-      before { ingest_events(3).promote }
+      before { do_ingest(3).promote }
 
       describe 'the batch' do
         subject { result.reload }
@@ -134,7 +136,7 @@ describe Routemaster::Models::Batch do
 
 
   describe '#ack' do
-    subject { ingest_events(3).promote ; described_class.acquire(worker_id: 'foobar') }
+    subject { do_ingest(3).promote ; described_class.acquire(worker_id: 'foobar') }
     let(:perform) { subject.ack }
 
     it { expect { perform }.not_to raise_error }
@@ -149,7 +151,7 @@ describe Routemaster::Models::Batch do
 
 
   describe '#nack' do
-    let(:batch) { ingest_events(3).promote ; described_class.acquire(worker_id: 'foobar') }
+    let(:batch) { do_ingest(3).promote ; described_class.acquire(worker_id: 'foobar') }
     let(:perform) { batch.nack }
 
     it { expect { perform }.not_to raise_error }
@@ -163,6 +165,17 @@ describe Routemaster::Models::Batch do
       its(:attempts) { is_expected.to eq(1) }
       its(:worker_id) { is_expected.to be_nil }
     end
+  end
+
+
+  describe 'Iterator' do
+    describe '.each' do
+      xit 'yields all batches'
+    end
+  end
+
+  describe '#data' do
+    xit 'returns the data'
   end
 
 end

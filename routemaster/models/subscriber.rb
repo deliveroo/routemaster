@@ -70,6 +70,10 @@ module Routemaster::Models
       "subscriber for '#{@name}'"
     end
 
+    def ==(other)
+      @name == other.name
+    end
+
     def topics
       Subscription.where(subscriber: self).map(&:topic)
     end

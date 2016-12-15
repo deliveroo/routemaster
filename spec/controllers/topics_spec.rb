@@ -23,8 +23,9 @@ describe Routemaster::Controllers::Topics, type: :controller do
     end
 
     it 'pushes the event' do
+      batch = double 'batch', promote: nil
       ingest = double 'ingest'
-      expect(ingest).to receive(:call)
+      expect(ingest).to receive(:call).and_return(batch)
       expect(Routemaster::Services::Ingest).to receive(:new) { |options|
         topic = options[:topic]
         event = options[:event]
