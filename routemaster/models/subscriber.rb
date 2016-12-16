@@ -1,7 +1,6 @@
 require 'routemaster/models/base'
 require 'routemaster/models/callback_url'
 require 'routemaster/models/user'
-require 'routemaster/models/queue'
 require 'routemaster/models/subscription'
 
 module Routemaster::Models
@@ -80,10 +79,6 @@ module Routemaster::Models
 
     def all_topics_count
       topics.reduce(0) { |sum, topic| sum + topic.get_count }
-    end
-
-    def queue
-      @queue ||= Routemaster::Models::Queue.new(self)
     end
 
     extend Enumerable

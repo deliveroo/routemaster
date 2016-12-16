@@ -1,7 +1,6 @@
 require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/models/subscriber'
-require 'routemaster/models/queue'
 require 'routemaster/models/message'
 require 'routemaster/models/topic'
 
@@ -132,12 +131,6 @@ describe Routemaster::Models::Subscriber do
         .and_return(200)
 
       expect(subject.all_topics_count).to eql 300
-    end
-  end
-
-  describe '#queue' do
-    it 'is mine' do
-      expect(subject.queue.subscriber).to eq(subject)
     end
   end
 
