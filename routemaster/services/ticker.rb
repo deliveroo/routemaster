@@ -1,18 +1,24 @@
-require 'routemaster/services/thread'
+require 'routemaster/models/job'
 
 module Routemaster
   module Services
-    # Runs its `callable`, then waits for `every` milliseconds.
-    # Useful as a callable for a `Thread`.
+    # Enqueues a job `name` into `queue`, then wait `every` milliseconds.
+    #
+    # FIXME: consolidate multiple ticker threads into one with a timer set.
     class Ticker
-      def initialize(callable, every:)
-        @every    = every
-        @callable = callable
+      def initialize(queue:, name:, every:)
+        @queue = queue
+        @name  = name
+        @every = every
       end
 
       def call
-        @callable.call
+        @queue.push Models::Job.new(name: @name)
         sleep(1e-3 * @every)
+      end
+
+      def cleanup
+        nil
       end
     end
   end

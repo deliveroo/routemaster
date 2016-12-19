@@ -24,23 +24,30 @@ module Routemaster
         _log.debug { _smart_backtrace(e).join("\n\t") }
       end
 
+      def _log_context(string)
+        Thread.current[:_log_context] = string
+      end
+
       private
 
       TIMESTAMP_FORMAT = '%F %T.%L'
 
       def _formatter(severity, datetime, progname, message)
-        # In "deployed" environments (normally running Foreman), timestamps are
-        # already added by the wrapper.
-        if _show_timestamp?
-          "[%s] %s: %s\n" % [
-            datetime.utc.strftime(TIMESTAMP_FORMAT),
-            severity,
-            message
-          ]
-        else
-          "%s: %s\n" % [
-            severity, message
-          ]
+        _format % {
+          timestamp: datetime.utc.strftime(TIMESTAMP_FORMAT),
+          level:     severity,
+          message:   message,
+          context:   Thread.current[:_log_context] || 'main',
+        }
+      end
+
+      def _format
+        @@_format ||= begin
+          # In "deployed" environments (normally running Foreman), timestamps are
+          # already added by the wrapper.
+          _show_timestamp? ?
+            "[%<timestamp>s] %<level>s: [%<context>s] %<message>s\n" :
+            "%<level>s: [%<context>s] %<message>s\n"
         end
       end
 

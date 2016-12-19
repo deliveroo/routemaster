@@ -4,9 +4,16 @@ module Routemaster
   end
 
   def self.batch_queue
-    @batch_queue ||= begin
+    @_batch_queue ||= begin
       require 'routemaster/models/queue'
       Models::Queue.new(name: 'main')
+    end
+  end
+
+  def self.aux_queue
+    @_aux_queue ||= begin
+      require 'routemaster/models/queue'
+      Models::Queue.new(name: 'aux')
     end
   end
 end

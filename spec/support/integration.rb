@@ -117,8 +117,8 @@ module Acceptance
       @watch ||= SubProcess.new(
         name:    'worker',
         command: './bin/worker',
-        start:   /INFO: job worker: started/,
-        stop:    /INFO: job worker: completed/
+        start:   /job worker: started/,
+        stop:    /job worker: completed/
       )
     end
 

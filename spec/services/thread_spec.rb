@@ -21,6 +21,8 @@ describe Routemaster::Services::Thread do
     expect(q.pop).to eq(:hello)
   end
 
+  xit 'cleanup'
+
   context 'when the callback fails' do
     let(:callback) { -> {
       raise ArgumentError, "you don't even"

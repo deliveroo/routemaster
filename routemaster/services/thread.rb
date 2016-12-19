@@ -22,7 +22,7 @@ module Routemaster
       end
 
       def stop
-        _log.info { "#{name}: stopping" }
+        _log.info { 'stopping' }
         @running = false
         self
       end
@@ -31,21 +31,23 @@ module Routemaster
         return self unless @thread
         @thread.join
         @thread = nil
-        _log.info { "#{name}: terminated" }
+        _log.info { 'terminated' }
         self
       end
 
       private
 
       def _run
-        _log.info { "#{name}: starting" }
+        _log_context(@name)
+        _log.info { 'starting' }
         while @running
           @callable.call
-          _log.info { "#{name}: callable returning" }
+          _log.info { 'callable returning' }
         end
-        _log.info { "#{name}: stopped" }
+        @callable.cleanup
+        _log.info { 'stopped' }
       rescue StandardError => e
-        _log.warn { "#{name}: aborting on #{e.class.name}, #{e.message}" }
+        _log.warn { "aborting on #{e.class.name}, #{e.message}" }
         _log_exception(e)
         deliver_exception(e)
         @errq.push self

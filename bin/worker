@@ -10,16 +10,21 @@ include Routemaster::Mixins::Log
 
 _log.info { 'creating thread group' }
 Routemaster::Services::ThreadGroup.new.tap do |group|
-  # scheduler thread
-  group.add Routemaster::Services::Ticker.new(lambda {
-    jobs = Routemaster.batch_queue.schedule
-    _log.debug { "scheduler: promoted #{jobs} jobs" }
-  }, every: 100), name: 'scheduler'
+  # ticker threads
+  group.add Routemaster::Services::Ticker.new(
+    queue: Routemaster.aux_queue, name: 'schedule', every: 100
+  ), name: 'ticker.schedule'
 
-  # worker threads
+  # aux worker thread
+  group.add Routemaster::Services::Worker.new(
+    queue: Routemaster.aux_queue
+  ), name: "worker.aux"
+
+  # main worker threads
   Integer(ENV.fetch('ROUTEMASTER_WORKER_THREADS')).times do |idx|
-    worker = Routemaster::Services::Worker.new(queue: Routemaster.batch_queue)
-    group.add worker, name: "worker.#{idx + 1}"
+    group.add Routemaster::Services::Worker.new(
+      queue: Routemaster.batch_queue
+    ), name: "worker.main.#{idx + 1}"
   end
 
   _log.info { 'trapping signals for clean exit' }

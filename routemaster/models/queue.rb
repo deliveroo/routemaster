@@ -13,6 +13,8 @@ module Routemaster
       include Mixins::Log
       include Mixins::LogException
 
+      attr_reader :name
+
       class Retry < StandardError
         attr_reader :delay
 
@@ -52,9 +54,10 @@ module Routemaster
 
 
       # Count all jobs; or all jobs before the deadline, if specified.
-      def length(deadline:nil)
+      def length(deadline:nil, scheduled: true, instant: true)
         deadline ||= '+inf'
-        _redis.llen(_queue_key) + _redis.zcount(_scheduled_key, '-inf', deadline)
+        (scheduled ? _redis.zcount(_scheduled_key, '-inf', deadline) : 0) +
+        (instant ? _redis.llen(_queue_key) : 0)      
       end
 
 
@@ -62,6 +65,7 @@ module Routemaster
       # If an identical job is already queued, do nothing.
       # Returns truthy iff a job was actually added.
       def push(job)
+        _log.debug { "queue.#{@name} ingesting #{job.inspect}" }
         if job.run_at
           _redis_lua_run(
             'queue_push_scheduled',
@@ -92,6 +96,7 @@ module Routemaster
         return if job_data.nil?
 
         job = Job.load(job_data)
+        # _log.debug { "queue.#{@name} yiedling #{job.inspect}" }
         yield job
 
         _redis_lua_run(
@@ -148,6 +153,18 @@ module Routemaster
           _log.warn { "scrubbed worker.#{worker_id}" }
         end
       end
+
+
+      module ClassMethods
+        include Mixins::Redis
+
+        def each
+          _redis.scan_each(match: 'jobs:index:*') do |k|
+            yield new(name: k.sub(/^jobs:index:/, ''))
+          end
+        end
+      end
+      extend ClassMethods
 
 
       private
