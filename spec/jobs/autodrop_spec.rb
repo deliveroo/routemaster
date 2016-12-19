@@ -1,11 +1,11 @@
 require 'spec_helper'
-require 'routemaster/services/autodrop'
+require 'routemaster/jobs/autodrop'
 require 'routemaster/models/database'
 require 'routemaster/models/subscriber'
 require 'routemaster/models/batch'
 require 'spec/support/persistence'
 
-describe Routemaster::Services::Autodrop do
+describe Routemaster::Jobs::Autodrop do
   subject { described_class.new(batch_size: 2, database: database) }
   let(:database) { double 'database' }
   let(:too_full) {[ false ]}

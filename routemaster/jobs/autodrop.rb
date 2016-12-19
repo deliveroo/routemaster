@@ -1,11 +1,10 @@
-require 'routemaster/services'
+require 'routemaster/jobs'
 require 'routemaster/models/database'
 require 'routemaster/models/subscriber'
 require 'routemaster/mixins/log'
-require 'ostruct'
 
 module Routemaster
-  module Services
+  module Jobs
     # Autodrop messages from queues until the database is empty enough.
     #
     # Naive algorithm for now: just drop the oldest messages from all queues
@@ -21,7 +20,6 @@ module Routemaster
       end
 
       def call
-        _log.info { 'auto-drop: starting' }
         return unless @database.too_full?
         n_messages = n_batches = 0
 

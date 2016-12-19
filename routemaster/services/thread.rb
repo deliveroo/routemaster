@@ -42,7 +42,7 @@ module Routemaster
         _log.info { 'starting' }
         while @running
           @callable.call
-          _log.info { 'callable returning' }
+          _log.debug { 'callable returning' }
         end
         @callable.cleanup if @callable.respond_to?(:cleanup)
         _log.info { 'stopped' }

@@ -24,7 +24,7 @@ module Routemaster
         _redis.hset(_index_key, @id, Routemaster.now)
 
         @queue.pop(@id) do |job|
-          _log.debug { "worker.#{@id}: running job #{job.inspect}" }
+          _log.debug { "running job '#{job.name}' with args #{job.args.inspect}" }
           job.perform
         end
         nil

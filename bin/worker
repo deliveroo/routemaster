@@ -12,8 +12,11 @@ _log.info { 'creating thread group' }
 Routemaster::Services::ThreadGroup.new.tap do |group|
   # ticker threads
   group.add Routemaster::Services::Ticker.new(
-    queue: Routemaster.aux_queue, name: 'schedule', every: 100
+    queue: Routemaster.aux_queue, name: 'schedule', every: 1000, delay: false
   ), name: 'ticker.schedule'
+  group.add Routemaster::Services::Ticker.new(
+    queue: Routemaster.aux_queue, name: 'autodrop', every: 10_000
+  ), name: 'ticker.autodrop'
 
   # aux worker thread
   group.add Routemaster::Services::Worker.new(
