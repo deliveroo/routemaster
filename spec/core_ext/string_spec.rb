@@ -30,4 +30,8 @@ describe String do
       end
     end
   end
+
+  describe '#demodulize' do
+    xit
+  end
 end

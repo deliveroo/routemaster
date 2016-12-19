@@ -16,13 +16,13 @@ module Routemaster
       Models::Subscriber.new(name: 'qux').tap { |s| s.max_events = 2 },
     ]}
 
-    let(:events) {[
-      make_event, make_event
-    ]}
+    let(:events) {[ make_event, make_event ]}
+
+    let(:queue) { Models::Queue.new(name: 'main') }
 
     def perform
       events.each do |event|
-        described_class.new(topic: topic, event: event).call
+        described_class.new(topic: topic, event: event, queue: queue).call
       end
     end
 
@@ -32,11 +32,9 @@ module Routemaster
     end
 
     it 'pushes to all subscribers' do
-      perform
-
-      expect(
+      expect { perform }.to change {
         Models::Batch.all.map { |b| b.subscriber.name }.sort
-      ).to eq %w[ foo qux ]
+      }.to eq %w[ foo qux ]
     end
 
     it 'pushes all events' do
@@ -52,10 +50,12 @@ module Routemaster
       expect(topic.get_count).to eq(2)
     end
 
-    it 'promotes batches as needed' do
-      perform
-      b = Models::Batch.all.find { |b| b.subscriber.name == 'qux' }
-      expect(b.status).to eq(:ready)
+    it 'enqueues delivery jobs' do
+      expect { perform }.to change { queue.length }.to(2)
+    end
+
+
+    xit 'promotes delivery job if batch full' do
     end
   end
 end

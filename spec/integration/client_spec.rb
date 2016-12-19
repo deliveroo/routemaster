@@ -3,6 +3,7 @@ require 'spec/support/integration'
 require 'routemaster/client'
 require 'routemaster/models/subscriber'
 require 'routemaster/models/topic'
+require 'routemaster/models/batch'
 
 describe 'Client integration' do
   let(:processes) { Acceptance::ProcessLibrary.new }
@@ -21,7 +22,6 @@ describe 'Client integration' do
   let(:client) { Routemaster::Client.new(url: 'https://127.0.0.1:17893', uuid: 'demo', verify_ssl: false) }
   let(:subscriber) { Routemaster::Models::Subscriber.find('demo') }
   let(:topic) { Routemaster::Models::Topic.find('widgets') }
-  let(:queue) { subscriber.queue }
 
   it 'connects' do
     expect { client }.not_to raise_error
@@ -69,8 +69,11 @@ describe 'Client integration' do
     end
 
     it 'enqueues' do
-      client.created('widgets', 'https://example.com/widgets/1')
-      expect(queue.pop.url).to eq('https://example.com/widgets/1')
+      expect {
+        client.created('widgets', 'https://example.com/widgets/1')
+      }.to change {
+        Routemaster::Models::Batch.all.count
+      }.by(1)
     end
   end
 

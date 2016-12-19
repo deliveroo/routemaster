@@ -23,12 +23,12 @@ module Routemaster
         _log.info { 'auto-drop: starting' }
         return false unless @database.too_full?
         messages_removed = 0
-        queues = Models::Subscriber.map(&:queue)
+        # queues = Models::Subscriber.map(&:queue)
 
         # loop through queues, removing messages
         until @database.empty_enough?
-          queues.sort_by!(&:staleness)
-          messages_removed += queues.last.drop(BATCH_SIZE)
+          # queues.sort_by!(&:staleness)
+          # messages_removed += queues.last.drop(BATCH_SIZE)
         end
         _log.info { "auto-drop: removed #{messages_removed} messages" }
         messages_removed

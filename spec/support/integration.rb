@@ -4,7 +4,7 @@ require 'spec/support/webmock'
 require 'core_ext/math'
 
 # turn this on to get verbose tests
-VERBOSE = false
+VERBOSE = ENV.fetch('VERBOSE_ACCEPTANCE_TESTS', 'NO') == 'YES'
 
 module Acceptance
   class SubProcess
@@ -115,10 +115,10 @@ module Acceptance
   class ProcessLibrary
     def watch
       @watch ||= SubProcess.new(
-        name:    'watch',
-        command: './bin/watch',
-        start:   /INFO: starting watch service/,
-        stop:    /INFO: watch completed/
+        name:    'worker',
+        command: './bin/worker',
+        start:   /INFO: job worker: started/,
+        stop:    /INFO: job worker: completed/
       )
     end
 

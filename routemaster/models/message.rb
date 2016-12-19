@@ -23,7 +23,7 @@ module Routemaster
       end
 
       def inspect
-        "<#{self.class.name}\">"
+        '<%s>' % self.class.name.demodulize
       end
 
       # Messages are equal if their data and timestamps are equal.

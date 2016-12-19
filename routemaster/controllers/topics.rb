@@ -52,7 +52,7 @@ module Routemaster
           halt 400, 'bad event'
         end
 
-        Services::Ingest.new(topic: topic, event: event).call
+        Services::Ingest.new(topic: topic, event: event, queue: Routemaster.batch_queue).call
 
         halt :ok
       end

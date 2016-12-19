@@ -9,55 +9,26 @@ require 'routemaster/services/deliver'
 
 module Routemaster
   describe Services::Worker do
-    subject { described_class.new(delivery: delivery) }
+    subject { described_class.new(queue: queue) }
 
-    let(:subscriber) {
-      Routemaster::Models::Subscriber.new(name: 'alice').tap do |s|
-        s.timeout = 0
-      end
-    }
-    let(:messages) { [make_event, make_event] }
-    let(:delivery) { double 'delivery', call:nil }
-    let(:perform) { subject.call }
+    let(:queue) { double 'queue' }
+    let(:job) { double 'job' }
 
     before do
-      ENV['EXCEPTION_SERVICE'] = 'dummy'
-      
-      messages.each do |msg|
-        Models::Batch.ingest(
-          subscriber: subscriber,
-          timestamp:  msg.timestamp,
-          data:       Services::Codec.new.dump(msg))
-      end
-      Models::Batch.auto_promote
+      allow(queue).to receive(:pop)
     end
 
     describe '#call' do
-      context 'at rest' do
-        let(:messages) { [] }
-        it { expect { perform }.not_to raise_error }
-        it { expect(perform).to eq(false) }
+      let(:perform) { subject.call }
+
+      it 'pops jobs from the queue' do
+        expect(queue).to receive(:pop).with(subject.id)
+        perform
       end
 
-      context 'when there is a batch to acquire' do
-        it { expect { perform }.not_to raise_error }
-        it { expect(perform).to eq(true) }
-        it 'attempts delivery' do
-          expect(delivery).to receive(:call) do |sub,ev|
-            expect(sub).to eq(subscriber)
-            expect(ev).to eq(messages)
-          end
-          perform
-        end
+      it 'performs jobs' do
+        allow(queue).to receive(:pop).and_yield(job)
       end
-
-      #   it 'logs exception' do
-      #     expect(receiver).to receive(:run).and_raise(StandardError)
-      #     expect(Routemaster::Services::ExceptionLoggers::Dummy.instance).to receive(:process)
-      #     subscribers << subscriber_a
-      #     expect{ subject.run(1) }.to raise_error(StandardError)
-      #   end
-      # end
     end
 
     describe '#last_at' do
@@ -66,13 +37,18 @@ module Routemaster
       it { expect(result).to be_nil }
 
       context 'once the worker has run' do
-        before { perform }
+        before { subject.call }
 
-        it { expect(perform).to eq(true) }
         it { expect(result).to be_between(Routemaster.now - 1000, Routemaster.now) }
-        # it { expect(result).to be_less_than(Time.now) }
       end
-      
+    end
+
+    describe '#cleanup' do
+      before { subject.call }
+
+      it 'removes last_at' do
+        expect { subject.cleanup }.to change { subject.last_at }.to(nil)
+      end
     end
   end
 end

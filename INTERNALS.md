@@ -25,62 +25,83 @@ Controllers use a variety of models to perform, in a traditional MVC approach.
 
 ### Worker process
 
-FIXME
+This process (of which multiuple instances can be run) executes a number of
+threads concurrently.
 
-This process is built from 4 key classes:
+- A group a `ROUTEMASTER_WORKER_THREADS` threads runs the `Worker` service,
+  which delivers batches off the main job queue.
+- A single thread executes non-delivery jobs (monitoring, auto-dropping,
+  promotion of scheduled jobs)
+- A single threads schedules regular jobs (the ones run by the previous queue).
 
-- The `Watch` service regularly polls for subscriptions and creates
-  a `Receive` service for each;
-- The `Receive` service, for a given subscriptions, buffers events from a `Queue` and creates
-  `Deliver` services to send the to clients;
-- The `Deliver` service gracefully sends event batches over HTTP;
-- The `Queue` model abstracts out queue management with Redis, providing a
-  syncronous means to push and pop message from a queue.
+Details on the services above:
 
-### Cron process
-
-This process runs scheduled tasks, regularly calling the following services:
-
-- `Monitor` delivers metrics to metric adapters;
+- `Monitor` delivers gauge metrics to metric adapters;
 - `Autodrop` automatically removes the oldest messages from queues under low
   memory conditions.
 
 
+
 ## Event batch lifecycle
 
-All events get batched for delivery for a particular subscriber; the date model
+All events get batched for delivery for a particular subscriber; the data model
 is described below.
 
-Batches start out _early_ when they get created. An _early_ batch is also
-flagged as _current_ initially — each subscriber has at most one current batch,
-which is the one where newly ingested events will be added.
+Batches start out _current_ when they get created. Each subscriber has at most
+one _current_ batch which receives new events.
 
-When a batch becomes stale or full it gets promoted to _ready_ status.
+When the batch is either full or stale, it gets promoted to _ready_ - another
+_current_ batch may then be created which the first awaits delivery.
 
-Workers pick up _ready_ batches and change their status to _pending_. Each
-worker has at most one pending batch.
+Finally, batches get deleted once they have been delivered; or when the
+auto-dropper removes them (because the system is running out of storage space).
 
-If delivery of a batch fails; or if a worker dies and the batch is subsequently
-recovered, the batch gets demoted from _pending_ back to _early_ status (with a
-deadline delay); in this case its however not flagged as _current_.
+               promote         deliver           
+    +-----------+   +-----------+   +-----------+
+    |           |   |           |   |           |
+    |  Current  |-->|   Ready   |-->|  Deleted  |
+    |           |   |           |   |           |
+    +-----------+   +-----------+   +-----------+
+         |                                ^
+         |                     deliver    |     
+         `--------------------------------´
 
-If delivery succeeds, the batch and all references are simply removed; there is
+
+## Job lifecycle
+
+Jobs (in particular, delivery jobs) can be created as _scheduled_ ("run after a
+specified time in the future") or _instant_ ("run as soon as possible").
+
+Workers pick up _instant_ jobs and change their status to _pending_. Each
+worker has at most one pending job.
+
+If a worker dies and the job subsequently recovered ("scrubbed"), the job gets
+demoted from _pending_ back to _instant_ status.
+
+The job executor can also ask for a job to be retried in the future (by raising
+a specific exception); in this case the job is demoted back to _scheduled_
+status.
+
+If a job succeeds, the job and all references are simply removed; there is
 no materialisation of the terminal status.
 
                promote         acquire           ack
     +-----------+   +-----------+   +-----------+   +-----------+
     |           |   |           |   |           |   |           |
-    |   Early   |-->|   Ready   |-->|  Pending  |-->|   Acked   |
+    | Scheduled |-->|   Ready   |-->|  Pending  |-->|  Deleted  |
     |           |   |           |   |           |   |           |
-    +-----------+   +-----------+   +-----_-----+   +-----------+
+    +-----------+   +-----------+   +-----------+   +-----------+
          ^                                |
          |                                | nack
          \--------------------------------/
 
 
-## Data layout
+Note that we enforce job uniqueness: only one instance of a job may be enqueued
+at any point, irrespective of state. The control layer make it a no-op to
+enqueue a duplicate job when a copy is already scheduled, ready, or pending.
 
-All Redis keys are namespaced, under `rm:` by default.
+
+## Data layout
 
 Any mention of "UID" refers to a 20-character, Base64-encoded string
 (representing a 120-bit number), intending to be globally unique.
@@ -128,45 +149,43 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
   
   `bid` is the batch's UID.
 
-`batches:early:by_subscriber:{token}` (string)
+`batches:current:{token}` (string)
 
-  The early batch for subscriber `{token}`, if any.
+  The current batch for subscriber `{token}`, if any.
   Value is a batch UID.
   
-`batches:early:by_deadline` (sorted set)
+`batches:index` (sorted set)
 
-  An index for the set of early batches (the batches that or neither full nor
-  stale).
+  An index for the set of all batches.
+  The score is the batch's creation timestamp; values are batch UIDs.
 
-  The score is the batch's deadline (in milliseconds since the epoch); set
-  values are keys (pointing to actual batches).
+`jobs:index:{q}` (set)
 
-`batches:ready:queue` (list)
+  All jobs currently in the queue named `{q}`, in any state. Jobs are
+  represented as a MessagePack-encoded array of 2 elements, the job name and its
+  array of arguments.
 
-  References IDs of batches that are ready for delivery, either because their
-  deadline has passed or because they're full.
+`jobs:scheduled:{q}` (sorted set)
 
-  The head of the list is the most recently added batch reference.
+  Jobs scheduled for later execution, scored by their deadline timestamp.
+  Jobs a represented as above.
 
-`batches:ready:by_creation` (sorted set)
+`jobs:queue:{q}` (list)
 
-  Same contents as `batches:ready:queue`, but indexed by the batch's oldest
-  timestamp.
+  Jobs in the "instant" state, for immediate execution.
 
-`batches:pending:{worker}` (list)
+`jobs:pending:{q}:{worker}` (list)
 
-  For a given `{worker}` UID, the batch UID they're currently trying to deliver.
-  The list length should always be exactly 0 or 1.
-
-`batches:pending` (hash)
-
-  Maps batch UIDs to worker UIDs, for batches pending delivery.
+  A list of at most 1 element, containing the job currently being processed by
+  worker `{worker}`.
 
 `workers` (hash)
 
-  Maps worker identifiers (base 36 strings) to the timestamp they were last
-  active at.
-  Used for housekeeping (nacking pending batches for "dead" workers).
+  Maps worker identifiers to the timestamp they were last
+  active at.  Used for housekeeping (nacking pending batches for "dead"
+  workers).
+
+  Job identifiers are formatted as batch UIDs.
 
 
 ### Event processing pseudocode

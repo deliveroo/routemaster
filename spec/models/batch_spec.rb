@@ -27,7 +27,6 @@ describe Routemaster::Models::Batch do
     describe 'the batch' do
       subject { perform.reload }
 
-      its(:status) { is_expected.to eq(:early) }
       its(:length) { is_expected.to eq(2) }
       its(:attempts) { is_expected.to eq(0) }
       it { is_expected.to be_current }
@@ -35,147 +34,90 @@ describe Routemaster::Models::Batch do
   end
 
   describe '#promote' do
-    let(:batch) { do_ingest(event_count) }
-    let(:event_count) { 1 }
+    let(:batch) { do_ingest(2) }
     let(:perform) { batch.promote }
 
-    context 'when the batch is in the early set' do
-      shared_examples 'promotion' do
-        it { expect { perform }.not_to raise_error }
+    it { expect { perform }.not_to raise_error }
+    it { expect { perform }.to change { batch.current? }.from(true).to(false) }
 
-        describe 'the batch' do
-          before { perform }
-          subject { batch.reload }
-          
-          its(:status) { is_expected.to eq(:ready) }
-          its(:length) { is_expected.to eq(event_count) }
-          it { is_expected.not_to be_current }
-        end
-      end
+    context 'when the batch has been deleted' do
+      let(:batch) { do_ingest(2).promote.delete.reload }
 
-      context 'when the batch is full' do
-        let(:event_count) { 2 }
-        it_behaves_like 'promotion'
-      end
-
-      context 'when the batch is late' do
-        let(:timeout) { 0 }
-        it_behaves_like 'promotion'
-      end
-
-      context 'when the batch is neither full nor late' do
-        it { expect { perform }.not_to raise_error }
-
-        describe 'the batch' do
-          before { perform }
-          subject { batch.reload }
-          
-          its(:status) { is_expected.to eq(:early) }
-          its(:length) { is_expected.to eq(event_count) }
-          it { is_expected.to be_current }
-        end
-      end
-    end
-
-    context 'when the batch is ready' do
-      let(:event_count) { 2 }
-      before { perform }
-
-      subject { described_class.new(uid: batch.uid, status: :early) }
-      it { expect { subject.promote }.to raise_error(described_class::NotEarlyError) }
-    end
-
-    context 'when the batch data has disappeared' do
-      let(:event_count) { 2 }
-      before { _redis.del("batch:#{batch.uid}") }
-
-      it { expect { batch.promote }.to raise_error(described_class::NonexistentError) }
+      it { expect { perform }.not_to raise_error }
     end
   end
 
 
-  describe '.auto_promote' do
-    subject { described_class.auto_promote }
+  describe '#delete' do
+    let(:batch) { do_ingest(3) }
+    let(:perform) { batch.reload.delete  }
 
-    context 'when no batches are stale' do
-      it { is_expected.to be_nil }
+    context 'with a current batch' do
+      it { expect { perform }.to raise_error(ArgumentError) }
     end
 
-    context 'when there is a promotable batch' do
-      before { do_ingest(3) }
-      let(:timeout) { 0 }
+    context 'with a non-current batch' do
+      before { batch.promote }
+      
+      it { expect { perform }.not_to raise_error }
 
-      it 'returns a batch' do
-        is_expected.to be_a_kind_of(described_class)
+      it 'removes the batch from the index' do
+        expect { perform }.to change { described_class.all.count }.from(1).to(0)
       end
-    end
-  end
 
-
-  describe '.acquire' do
-    let(:worker_id) { 'f000-b444' }
-    let(:result) { described_class.acquire(worker_id: worker_id) }
-
-    context 'when there are no ready batches' do
-      it { expect(result).to be_nil }
-    end
-
-    context 'when there is a ready batch' do
-      before { do_ingest(3).promote }
+      it 'removes the batch data' do
+        expect { perform }.to change { batch.exists? }.from(true).to(false)
+      end
 
       describe 'the batch' do
-        subject { result.reload }
-
-        its(:status) { is_expected.to eq(:pending) }
-        its(:length) { is_expected.to eq(3) }
-        its(:worker_id) { is_expected.to eq(worker_id) }
-        it { is_expected.not_to be_current }
+        before { perform }
+        it { expect { batch.reload.length }.to raise_error(described_class::NonexistentError) }
       end
     end
   end
 
 
-  describe '#ack' do
-    subject { do_ingest(3).promote ; described_class.acquire(worker_id: 'foobar') }
-    let(:perform) { subject.ack }
-
-    it { expect { perform }.not_to raise_error }
-  
-    describe 'the batch' do
-      before { perform }
-      it { expect { subject.length }.to raise_error(described_class::NonexistentError) }
-      its(:status) { is_expected.to eq(:acked) }
-      its(:worker_id) { is_expected.to be_nil }
+  describe '#data' do
+    subject { do_ingest(2) }
+    it 'returns the data' do
+      expect(subject.data).to eq %w[payload1 payload2]
     end
   end
 
 
-  describe '#nack' do
-    let(:batch) { do_ingest(3).promote ; described_class.acquire(worker_id: 'foobar') }
-    let(:perform) { batch.nack }
+  describe '#attempts' do
+    subject { do_ingest(2) }
 
-    it { expect { perform }.not_to raise_error }
+    it { expect(subject.attempts).to eq(0) }
+  end
 
-    describe 'the batch' do
-      subject { batch.reload }
-      before { perform }
 
-      its(:status) { is_expected.to eq(:early) }
-      its(:length) { is_expected.to eq(3) }
-      its(:attempts) { is_expected.to eq(1) }
-      its(:worker_id) { is_expected.to be_nil }
-    end
+  describe '#full?' do
+    xit
+  end
+
+
+  describe '#fail' do
+    subject { do_ingest(2) }
+    let(:perform) { subject.fail }
+
+    it { expect { perform }.to change { subject.attempts }.from(0).to(1) }
+    it { expect(perform).to eq(1) }
   end
 
 
   describe 'Iterator' do
-    describe '.each' do
-      xit 'yields all batches'
-    end
-  end
+    subject { described_class.all }
+    let!(:batch1) { do_ingest(2).promote }
+    let!(:batch2) { do_ingest(2).promote }
 
-  describe '#data' do
-    xit 'returns the data'
+    describe '.each' do
+      it 'yields all batches' do
+        result = []
+        subject.each { |x| result << x }
+        expect(result).to eq([batch1, batch2])
+      end
+    end
   end
 
 end

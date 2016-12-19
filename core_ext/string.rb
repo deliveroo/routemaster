@@ -6,4 +6,12 @@ class String
     string.gsub!('/', '::')
     string
   end
+
+  def demodulize
+    if i = rindex('::')
+      self[(i+2)..-1]
+    else
+      self
+    end
+  end
 end

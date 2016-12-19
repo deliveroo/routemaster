@@ -14,32 +14,19 @@ module Routemaster
 
       attr_reader :id
 
-      def initialize(id: nil, delivery: Services::Deliver)
+      def initialize(id: nil, queue:)
         @id = id || SecureRandom.urlsafe_base64(15)
-        @delivery = delivery
+        @queue = queue
       end
 
-      # Acquires a batch for delivery (blocking), and deliver it
+      # Acquires a job for delivery (blocking), and run it
       def call
         _redis.hset(_index_key, @id, Routemaster.now)
 
-        batch = Models::Batch.acquire(worker_id: @id)
-        return false unless batch
-        _log.debug { "worker.#{@id}: acquired batch #{batch.uid}" }
-
-        events = batch.data.
-          map { |d| Services::Codec.new.load(d) }.
-          select { |msg| msg.kind_of?(Models::Event) }
-
-        begin
-          @delivery.call(batch.subscriber, events)
-          batch.ack
-          true
-        rescue Services::Deliver::CantDeliver => e
-          batch.nack
-          _log_exception(e)
-          false
+        @queue.pop(@id) do |job|
+          job.perform
         end
+        nil
       end
 
       def cleanup

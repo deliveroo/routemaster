@@ -16,9 +16,9 @@ gem 'sinatra-initializers'
 gem 'rack-ssl'
 
 # database
-gem 'hiredis'
-gem 'redis', require: %w(redis redis/connection/hiredis)
+gem 'redis'
 gem 'redis-namespace'
+gem 'connection_pool'
 
 # fast, redis-compatible serialisation
 gem 'msgpack'

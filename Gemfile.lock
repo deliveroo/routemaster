@@ -17,6 +17,7 @@ GEM
     codeclimate-test-reporter (0.6.0)
       simplecov (>= 0.7.1, < 1.0.0)
     coderay (1.1.1)
+    connection_pool (2.2.1)
     crack (0.4.3)
       safe_yaml (~> 1.0.0)
     diff-lcs (1.2.5)
@@ -50,7 +51,6 @@ GEM
       guard-compat (~> 1.1)
       rspec (>= 2.99.0, < 4.0)
     hashdiff (0.3.0)
-    hiredis (0.6.1)
     hirefire-resource (0.3.11)
     honeybadger (2.6.0)
     json (2.0.2)
@@ -144,13 +144,13 @@ PLATFORMS
 
 DEPENDENCIES
   codeclimate-test-reporter
+  connection_pool
   dogapi
   dotenv
   faraday
   faraday_middleware
   foreman
   guard-rspec
-  hiredis
   hirefire-resource
   honeybadger
   msgpack

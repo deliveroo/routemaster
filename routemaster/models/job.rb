@@ -15,7 +15,6 @@ module Routemaster
         @data   = data
       end
 
-
       def perform
         require "routemaster/jobs/#{@name}"
         Routemaster::Jobs.const_get(@name.capitalize).new.call(*@args)
@@ -32,7 +31,6 @@ module Routemaster
       def inspect
         "<Job:#{@name} argv=#{@args.inspect}>"
       end
-
 
       module ClassMethods
         def load(data, **options)
