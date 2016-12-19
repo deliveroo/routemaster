@@ -32,6 +32,12 @@ describe String do
   end
 
   describe '#demodulize' do
-    xit
+    it 'returns the last component' do
+      expect('Foo::Bar::Baz'.demodulize).to eq('Baz')
+    end
+
+    it 'works with a single component' do
+      expect('Foo'.demodulize).to eq('Foo')
+    end
   end
 end

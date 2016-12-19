@@ -21,7 +21,13 @@ describe Routemaster::Services::Thread do
     expect(q.pop).to eq(:hello)
   end
 
-  xit 'cleanup'
+  context 'when the callback has a cleanup method' do
+    it 'cleans up' do
+      expect(callback).to receive(:cleanup)
+      subject
+      q.pop
+    end
+  end
 
   context 'when the callback fails' do
     let(:callback) { -> {

@@ -59,6 +59,8 @@ module Routemaster
 
       def full?
         length >= subscriber.max_events
+      rescue NonexistentError, NoSuchSubscriber
+        nil
       end
 
 

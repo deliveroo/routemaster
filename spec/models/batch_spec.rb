@@ -93,7 +93,13 @@ describe Routemaster::Models::Batch do
 
 
   describe '#full?' do
-    xit
+    it 'is true when the batch is full' do
+      expect(do_ingest(2)).to be_full
+    end
+
+    it 'is false when the batch is not full' do
+      expect(do_ingest(1)).not_to be_full
+    end
   end
 
 

@@ -44,7 +44,7 @@ module Routemaster
           @callable.call
           _log.info { 'callable returning' }
         end
-        @callable.cleanup
+        @callable.cleanup if @callable.respond_to?(:cleanup)
         _log.info { 'stopped' }
       rescue StandardError => e
         _log.warn { "aborting on #{e.class.name}, #{e.message}" }

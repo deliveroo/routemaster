@@ -16,10 +16,6 @@ module Routemaster
         @queue.push Models::Job.new(name: @name)
         sleep(1e-3 * @every)
       end
-
-      def cleanup
-        nil
-      end
     end
   end
 end
