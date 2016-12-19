@@ -2,18 +2,21 @@ require 'spec_helper'
 require 'routemaster/services/autodrop'
 require 'routemaster/models/database'
 require 'routemaster/models/subscriber'
+require 'routemaster/models/batch'
 require 'spec/support/persistence'
 
 describe Routemaster::Services::Autodrop do
-  let(:database) { Routemaster::Models::Database.instance }
+  subject { described_class.new(batch_size: 2, database: database) }
+  let(:database) { double 'database' }
   let(:too_full) {[ false ]}
   let(:empty_enough) {[ true ]}
 
-  # let(:subs) do
-  #   [0,1,2].map { |n|
-  #     Routemaster::Models::Subscriber.new(name: "sub#{n}")
-  #   }
-  # end
+  def do_ingest(count, name)
+    subscriber = Routemaster::Models::Subscriber.new(name: name)
+    1.upto(count) do |idx|
+      Routemaster::Models::Batch.ingest(data: "payload#{idx}", timestamp: Routemaster.now, subscriber: subscriber)
+    end
+  end
 
   before do
     allow(database).to receive(:too_full?).and_return(*too_full)
@@ -21,46 +24,29 @@ describe Routemaster::Services::Autodrop do
   end
 
   context 'when there are no subscribers' do
-    it 'returns false' do
+    it 'returns falsey' do
       expect(subject.call).to be_falsey
     end
   end
 
-  context 'with subscribers' do
-    before { subs }
+  context 'with batches' do
+    before do
+      do_ingest(10, 'alice')
+      do_ingest(5, 'bob')
+      do_ingest(3, 'charlie')
+    end
 
     context 'and the database is too full' do
       let(:too_full) {[ true ]}
       let(:empty_enough) {[ false, true ]}
       
-      xit 'returns 0' do
-        expect(subject.call).to eq(0)
-      end
-    end
-
-    context 'and messages' do
-      def msg_at(timestamp)
-        Routemaster::Models::Message::Ping.new(data: SecureRandom.uuid, timestamp: timestamp)
-      end
-
-      before do
-        # Routemaster::Models::Queue.push [subs[0]], msg_at(100)
-        # Routemaster::Models::Queue.push [subs[1]], msg_at(200)
-        # Routemaster::Models::Queue.push [subs[2]], msg_at(300)
-      end
-
-      let(:too_full) {[ true ]}
-      let(:empty_enough) {[ false, false, true ]}
-
-      xit 'removes messages' do
-        expect { subject.call }.to change {
-          subs.map(&:queue).map(&:length)
-        }.from([1,1,1]).to([0,0,1])
-      end
-
-      xit 'returns the number of messages removed' do
+      it 'returns the number of batches removed' do
         expect(subject.call).to eq(2)
       end
+      
+      it 'actually deletes batches' do
+        expect { subject.call }.to change { Routemaster::Models::Batch.all.count }.by(-2)
+      end 
     end
   end
 end

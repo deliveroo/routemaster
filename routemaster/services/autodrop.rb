@@ -15,23 +15,26 @@ module Routemaster
 
       BATCH_SIZE = 100
 
-      def initialize
-        @database = Models::Database.instance
+      def initialize(batch_size: BATCH_SIZE, database: Models::Database.instance)
+        @database   = database
+        @batch_size = batch_size
       end
 
       def call
         _log.info { 'auto-drop: starting' }
-        return false unless @database.too_full?
-        messages_removed = 0
-        # queues = Models::Subscriber.map(&:queue)
+        return unless @database.too_full?
+        n_messages = n_batches = 0
 
         # loop through queues, removing messages
         until @database.empty_enough?
-          # queues.sort_by!(&:staleness)
-          # messages_removed += queues.last.drop(BATCH_SIZE)
+          Models::Batch.all.take(@batch_size).each do |batch|
+            n_messages += batch.length || 0
+            n_batches += 1
+            batch.delete
+          end
         end
-        _log.info { "auto-drop: removed #{messages_removed} messages" }
-        messages_removed
+        _log.info { "auto-drop: removed #{n_messages} messages in #{n_batches} batches" }
+        n_batches
       end
     end
   end

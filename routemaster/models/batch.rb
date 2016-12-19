@@ -113,14 +113,13 @@ module Routemaster
 
       # Removes all references to the batch (it's been delivered)
       def delete
-        _assert(!current?, "Cannot delete the current batch")
-
         _redis_lua_run(
           'batch_delete',
-          keys: [_batch_key, _index_key],
+          keys: [_batch_key, _index_key, _batch_ref_key],
           argv: [@uid])
         self
       end
+
 
       module ClassMethods
         # Add the data to the subscriber's current batch. A new batch will be
@@ -215,9 +214,13 @@ module Routemaster
         include Enumerable
         include Mixins::Redis
 
+        def initialize(batch_size: 100)
+          @batch_size = batch_size
+        end
+
         # Yied all know batches, in creation order.
-        def each(batch_size:100)
-          _redis.zscan_each(Batch.send(:_index_key), count: batch_size) do |uid, score|
+        def each
+          _redis.zscan_each(Batch.send(:_index_key), count: @batch_size) do |uid, score|
             yield Batch.new(uid: uid, deadline: score)
           end
         end

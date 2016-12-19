@@ -49,25 +49,21 @@ describe Routemaster::Models::Batch do
 
 
   describe '#delete' do
-    let(:batch) { do_ingest(3) }
+    let!(:batch) { do_ingest(3) }
     let(:perform) { batch.reload.delete  }
 
-    context 'with a current batch' do
-      it { expect { perform }.to raise_error(ArgumentError) }
+    it { expect { perform }.not_to raise_error }
+
+    it 'removes the batch from the index' do
+      expect { perform }.to change { described_class.all.count }.from(1).to(0)
     end
 
-    context 'with a non-current batch' do
-      before { batch.promote }
-      
-      it { expect { perform }.not_to raise_error }
+    it 'removes the batch data' do
+      expect { perform }.to change { batch.exists? }.from(true).to(false)
+    end
 
-      it 'removes the batch from the index' do
-        expect { perform }.to change { described_class.all.count }.from(1).to(0)
-      end
-
-      it 'removes the batch data' do
-        expect { perform }.to change { batch.exists? }.from(true).to(false)
-      end
+    it 'makes the batch non-current' do
+      expect { perform }.to change { batch.current? }.to(false)
     end
   end
 
