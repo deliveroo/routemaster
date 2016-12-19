@@ -18,8 +18,16 @@ module Routemaster
         # prevents further ingestion in this batch (idempotent)
         batch.promote
 
-        events = batch.data.
-          tap { |d| return self if d.empty? }. # batch has been deleted
+        subscriber = batch.subscriber
+        data = batch.data
+
+        # handle unsubscription, autodrop
+        if subscriber.nil? || data.nil? || data.empty?
+          batch.delete
+          return self
+        end
+
+        events = data.
           map { |d| Services::Codec.new.load(d) }.
           select { |msg| msg.kind_of?(Models::Event) }
 

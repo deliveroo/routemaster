@@ -80,6 +80,19 @@ module Routemaster
           expect { perform }.to change { batch.reload.attempts }.from(0).to(1)
         end
       end
+
+      context 'when subscriber has been removed' do
+        before { subscriber.destroy }
+
+        it 'does not fail' do
+          expect { perform }.not_to change { @error }
+        end
+
+        it 'deletes the batch' do
+          perform
+          expect(batch.reload).not_to exist
+        end
+      end
     end
   end
 end

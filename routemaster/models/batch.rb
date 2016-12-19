@@ -16,9 +16,6 @@ module Routemaster
       include Mixins::Log
 
       TransientError   = Class.new(StandardError)
-      NotEarlyError    = Class.new(TransientError)
-      NonexistentError = Class.new(TransientError)
-      NoSuchSubscriber = Class.new(TransientError)
       Inconsistency    = Class.new(RuntimeError)
 
       attr_reader :uid, :deadline
@@ -35,19 +32,19 @@ module Routemaster
           name = _redis.lindex(_batch_key, 0)
           return if name.nil?
 
-          subscriber = Subscriber.find(name)
-          raise NoSuchSubscriber, "batch=#{@uid}, subscriber=#{name}" if subscriber.nil?
-
-          subscriber
+          Subscriber.find(name)
         end
       end
 
 
-      # Return the number of events in the batch.
+      # Return the number of events in the batch (memoised)
       def length
-        raw = _redis.llen(_batch_key)
-        raise NonexistentError, @uid if raw.nil? || raw < 3
-        raw - 3
+        @_length ||= begin
+          raw = _redis.llen(_batch_key)
+          return if raw.nil? || raw.zero?
+          raise Inconsistency, @uid if raw < 3
+          raw - 3
+        end
       end
 
 
@@ -58,9 +55,7 @@ module Routemaster
 
 
       def full?
-        length >= subscriber.max_events
-      rescue NonexistentError, NoSuchSubscriber
-        nil
+        length && length >= subscriber.max_events
       end
 
 
@@ -108,19 +103,10 @@ module Routemaster
       # 
       # It is not an error if the batch is not current, or no longer exists.
       def promote
-        _redis.watch(_batch_key, _batch_ref_key) do |w|
-          if _batch_ref_key.nil?
-            w.unwatch
-            return self
-          end
-
-          uid = _redis.get(_batch_ref_key)
-          w.multi do |m|
-            m.del(_batch_ref_key) if @uid == uid
-          end
-        end
-        # FIXME:
-        # retry watch
+        _redis_lua_run(
+          'batch_promote',
+          keys: [_batch_ref_key],
+          argv: [@uid])
         self
       end
 
@@ -129,10 +115,10 @@ module Routemaster
       def delete
         _assert(!current?, "Cannot delete the current batch")
 
-        _redis.multi do |m|
-          m.del(_batch_key)
-          m.zrem(_index_key, @uid)
-        end
+        _redis_lua_run(
+          'batch_delete',
+          keys: [_batch_key, _index_key],
+          argv: [@uid])
         self
       end
 

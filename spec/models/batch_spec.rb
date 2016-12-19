@@ -68,11 +68,6 @@ describe Routemaster::Models::Batch do
       it 'removes the batch data' do
         expect { perform }.to change { batch.exists? }.from(true).to(false)
       end
-
-      describe 'the batch' do
-        before { perform }
-        it { expect { batch.reload.length }.to raise_error(described_class::NonexistentError) }
-      end
     end
   end
 
@@ -89,6 +84,20 @@ describe Routemaster::Models::Batch do
     subject { do_ingest(2) }
 
     it { expect(subject.attempts).to eq(0) }
+  end
+
+
+  describe '#length' do
+    subject { do_ingest(2) }
+    let(:result) { subject.reload.length }
+
+    it { expect(result).to eq(2) }
+
+    context 'when the batch was deleted' do
+      before { subject.promote.delete }
+
+      it { expect(result).to be_nil }
+    end
   end
 
 
@@ -112,6 +121,24 @@ describe Routemaster::Models::Batch do
   end
 
 
+  describe '#subscriber' do
+    subject { do_ingest(2) }
+    let(:result) { subject.reload.subscriber }
+
+    it 'returns the subscriber' do
+      expect(result).to eq(subscriber)
+    end
+    
+    context 'when the subscriber has been deleted' do
+      before { subscriber.destroy }
+
+      it 'returns nil' do
+        expect(result).to be_nil
+      end
+    end
+  end
+
+
   describe 'Iterator' do
     subject { described_class.all }
     let!(:batch1) { do_ingest(2).promote }
@@ -121,7 +148,8 @@ describe Routemaster::Models::Batch do
       it 'yields all batches' do
         result = []
         subject.each { |x| result << x }
-        expect(result).to eq([batch1, batch2])
+        expect(result).to include(batch1)
+        expect(result).to include(batch2)
       end
     end
   end
