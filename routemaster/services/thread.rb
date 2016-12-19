@@ -5,7 +5,11 @@ require 'routemaster/mixins/log_exception'
 module Routemaster
   module Services
     # Abstracts out repeatedly calling `callable` on a thread.
-    # On exceptions, enqueues itself to `errq`
+    # On exceptions, enqueues itself to `errq`.
+    #
+    # Long-running callables are expected to yield to check whether they may
+    # continue.
+    #
     class Thread
       include Mixins::Log
       include Mixins::LogException
@@ -22,7 +26,7 @@ module Routemaster
       end
 
       def stop
-        _log.info { 'stopping' }
+        _log.info { "stopping #{name}" }
         @running = false
         self
       end
@@ -31,7 +35,7 @@ module Routemaster
         return self unless @thread
         @thread.join
         @thread = nil
-        _log.info { 'terminated' }
+        _log.info { "#{name} terminated" }
         self
       end
 
@@ -41,7 +45,7 @@ module Routemaster
         _log_context(@name)
         _log.info { 'starting' }
         while @running
-          @callable.call
+          @callable.call { @running }
           _log.debug { 'callable returning' }
         end
         @callable.cleanup if @callable.respond_to?(:cleanup)
