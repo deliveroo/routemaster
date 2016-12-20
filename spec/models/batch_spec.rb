@@ -6,6 +6,7 @@ require 'routemaster/models/subscriber'
 
 describe Routemaster::Models::Batch do
   let(:timeout) { 5000 }
+  let(:ingest_callback) {}
   let(:subscriber) {
     Routemaster::Models::Subscriber.new(name: 'alice').tap do |s|
       s.max_events = 2
@@ -15,47 +16,104 @@ describe Routemaster::Models::Batch do
 
   def do_ingest(count)
     (1..count).map { |idx|
-      described_class.ingest(data: "payload#{idx}", timestamp: Routemaster.now, subscriber: subscriber)
+      described_class.ingest(
+        data:       "payload#{idx}", 
+        timestamp:  Routemaster.now, 
+        subscriber: subscriber) { ingest_callback }
     }.last
   end
 
   describe '.ingest' do
     let(:perform) { do_ingest(2) }
+    let(:expected_event_count) { 2 }
+    let(:expected_batch_length) { 2 }
 
-    it { expect { perform }.not_to raise_error }
+    shared_examples 'event adder' do
+      it { expect { perform }.not_to raise_error }
 
-    describe 'the batch' do
-      subject { perform.reload }
+      describe 'the batch' do
+        subject { perform.reload }
 
-      its(:length) { is_expected.to eq(2) }
-      its(:attempts) { is_expected.to eq(0) }
-      it { is_expected.to be_current }
-    end
-
-    describe 'counters' do
-      before { do_ingest(1).promote }
-
-      it 'increments the batch counter' do
-        expect { perform }.to change {
-          described_class.counters[:batches]['alice']
-        }.by(1)
+        its(:length) { is_expected.to eq(expected_batch_length) }
+        its(:attempts) { is_expected.to eq(0) }
+        it { is_expected.to be_current }
       end
 
-      it 'increments the event counter' do
-        expect { perform }.to change {
-          described_class.counters[:events]['alice']
-        }.by(2)
+      describe 'counters' do
+        before { do_ingest(1).promote }
+
+        it 'increments the batch counter' do
+          expect { perform }.to change {
+            described_class.counters[:batches]['alice']
+          }.by(1)
+        end
+
+        it 'increments the event counter' do
+          expect { perform }.to change {
+            described_class.counters[:events]['alice']
+          }.by(2)
+        end
+      end
+
+      it 'broadcasts events_added' do
+        listener = double
+        Wisper.subscribe(listener) do
+          expect(listener).to receive(:events_added).with(name: 'alice', count: 1).exactly(expected_event_count).times
+          perform
+        end
       end
     end
 
-    it 'broadcasts' do
-      listener = double
-      Wisper.subscribe(listener) do
-        expect(listener).to receive(:events_added).with(name: 'alice', count: 1).twice
-        perform
+    shared_examples 'retrying' do
+      it 'broadcasts retried_ingestion' do
+        listener = double
+        Wisper.subscribe(listener) do
+          expect(listener).to receive(:retried_ingestion).once
+          perform
+        end
+      end
+    end
+
+    context 'when there is no batch' do
+      it_behaves_like 'event adder'
+
+      context 'when a batch is concurrently created' do
+        let(:expected_event_count) { 3 }
+        let(:expected_batch_length) { 3 }
+        let(:ingest_callback) do
+          described_class.ingest(
+            data:       'other', 
+            timestamp:  Routemaster.now, 
+            subscriber: subscriber)
+        end
+
+        it_behaves_like 'event adder'
+        it_behaves_like 'retrying'
+      end
+    end
+
+    context 'when there is a current batch' do
+      let!(:batch) do
+        described_class.ingest(
+          data:       'other', 
+          timestamp:  Routemaster.now, 
+          subscriber: subscriber)
+      end
+
+      context 'when the current batch is deleted in flight' do
+        let(:ingest_callback) { batch.delete }
+        it_behaves_like 'event adder'
+        it_behaves_like 'retrying'
+      end
+
+      context 'when the current batch is promoted in flight' do
+        let(:ingest_callback) { batch.promote }
+        it_behaves_like 'event adder'
+        it_behaves_like 'retrying'
       end
     end
   end
+
 
   describe '#promote' do
     let(:batch) { do_ingest(2) }

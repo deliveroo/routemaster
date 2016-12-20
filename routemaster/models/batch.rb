@@ -22,6 +22,8 @@ module Routemaster
       # number of prefix metdata items in a batch list
       PREFIX_COUNT = 3
 
+      # number of times to retry ingestion before raising an exceptions
+      RETRY_ATTEMPTS = 5
 
       attr_reader :uid, :deadline
 
@@ -133,44 +135,39 @@ module Routemaster
         # created as needed.
         def ingest(data:, timestamp:, subscriber:)
           batch_ref_key = _batch_ref_key(subscriber.name)
-          now = Routemaster.now
-          
-          deadline = timestamp + subscriber.timeout
-          batch_uid = nil
+          now           = Routemaster.now
+          deadline      = timestamp + subscriber.timeout
+          uid           = nil
 
-          watch = _redis.watch(batch_ref_key) do |w|
-            items = [data]
-            batch_uid = w.get(batch_ref_key)
-            make_batch = !batch_uid
-            
-            if make_batch
-              batch_uid = _generate_uid
-              items.unshift(subscriber.name, now, 0)
-            end
+          # Ingestion might need retrying is the current batch (pointed to by
+          # `batch_ref_key`) changes between the GET and the EVAL.
+          # This can't be packaged as a single Lua script as the batch key to
+          # write to is dependent on the value stored at another (the ref key).
+          _retrying('batch ingestion') do
+            uid = _redis.get(batch_ref_key)
 
-            batch_key = _batch_key(batch_uid)
-            w.multi do |m|
-              m.rpush(batch_key, items)
-              if make_batch
-                m.set(batch_ref_key, batch_uid)
-                m.zadd(_index_key, now, batch_uid)
-                m.hincrby(_batch_counter_key, subscriber.name, 1)
-              end
-              m.hincrby(_event_counter_key, subscriber.name, 1)
-              # FIXME: convert this to Lua if possible.
+            yield if block_given? # this is used in tests only, to inject behaviour to simulate concurrency
+
+            if !uid
+              uid = _generate_uid
+              _redis_lua_run(
+                'batch_ingest_new',
+                keys: [batch_ref_key, _batch_key(uid), _index_key, _batch_counter_key, _event_counter_key],
+                argv: [uid, data, subscriber.name, now])
+            else
+              _redis_lua_run(
+                'batch_ingest_add',
+                keys: [batch_ref_key, _batch_key(uid), _event_counter_key],
+                argv: [uid, data, subscriber.name])
             end
           end
-
-          throw :retry if watch.nil? # watch precondition failed
-          # FIXME: limited retrying + monitoring
           
           broadcast(:events_added, name: subscriber.name, count: 1)
-          new(subscriber: subscriber, uid: batch_uid, deadline: deadline)
+          new(subscriber: subscriber, uid: uid, deadline: deadline)
         end
 
 
         def counters
-          # binding.pry
           {
             batches: _redis.hgetall(_batch_counter_key).map_values(&:to_i),
             events:  _redis.hgetall(_event_counter_key).map_values(&:to_i),
@@ -214,6 +211,14 @@ module Routemaster
 
         def _batch_key(uid)
           "batch:#{uid}"
+        end
+
+        def _retrying(message, &block)
+          RETRY_ATTEMPTS.times do
+            return if yield
+            broadcast(:retried_ingestion)
+          end
+          raise "#{message} failed after #{RETRY_ATTEMPTS} attempts"
         end
       end
       extend ClassMethods
