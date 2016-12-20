@@ -15,7 +15,7 @@ module Routemaster
         # multiple blocking threads) and the web frontend (which can share fewer
         # connections)
         @@_redis ||=
-        ConnectionPool.wrap(size: 10, timeout: 2) do
+          ConnectionPool.wrap(size: Routemaster.config[:redis_pool_size], timeout: 2) do
           ::Redis.new(url: ENV.fetch('ROUTEMASTER_REDIS_URL'))
         end
       end

@@ -8,11 +8,17 @@ require 'routemaster/mixins/log'
 
 include Routemaster::Mixins::Log
 
+Routemaster.configure(
+  # One connection for each worker thread, one for the aux worker, and one for
+  # the tickers to enqueue their jobs
+  redis_pool_size: Integer(ENV.fetch('ROUTEMASTER_WORKER_THREADS')) + 2
+)
+
 _log.info { 'creating thread group' }
 Routemaster::Services::ThreadGroup.new.tap do |group|
   # ticker threads
   group.add Routemaster::Services::Ticker.new(
-    queue: Routemaster.aux_queue, name: 'schedule', every: 1000, delay: false
+    queue: Routemaster.aux_queue, name: 'schedule', every: 100, delay: false
   ), name: 'ticker.schedule'
   group.add Routemaster::Services::Ticker.new(
     queue: Routemaster.aux_queue, name: 'autodrop', every: 10_000
