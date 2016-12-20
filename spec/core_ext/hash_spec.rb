@@ -21,6 +21,10 @@ describe Hash do
   end
 
   describe '#map_values' do
-    xit
+    let(:subject) {{ foo: '1', bar: '12' }}
+    
+    it 'changes values with block' do
+      expect(subject.map_values &:to_i).to eq(foo: 1, bar: 12)
+    end
   end
 end

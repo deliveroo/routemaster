@@ -48,7 +48,13 @@ describe Routemaster::Models::Batch do
       end
     end
 
-    xit 'broadcasts'
+    it 'broadcasts' do
+      listener = double
+      Wisper.subscribe(listener) do
+        expect(listener).to receive(:events_added).with(name: 'alice', count: 1).twice
+        perform
+      end
+    end
   end
 
   describe '#promote' do
@@ -98,7 +104,13 @@ describe Routemaster::Models::Batch do
       end
     end
 
-    xit 'broadcasts'
+    it 'broadcasts' do
+      listener = double
+      Wisper.subscribe(listener) do
+        expect(listener).to receive(:events_removed).with(name: 'alice', count: 3)
+        perform
+      end
+    end
   end
 
 

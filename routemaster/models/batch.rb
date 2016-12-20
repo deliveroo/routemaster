@@ -164,7 +164,7 @@ module Routemaster
           throw :retry if watch.nil? # watch precondition failed
           # FIXME: limited retrying + monitoring
           
-          broadcast(:event_added, name: subscriber.name, count: 1)
+          broadcast(:events_added, name: subscriber.name, count: 1)
           new(subscriber: subscriber, uid: batch_uid, deadline: deadline)
         end
 
