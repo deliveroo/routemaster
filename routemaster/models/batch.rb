@@ -25,6 +25,7 @@ module Routemaster
       # number of times to retry ingestion before raising an exceptions
       RETRY_ATTEMPTS = 5
 
+
       attr_reader :uid, :deadline
 
 
@@ -213,7 +214,7 @@ module Routemaster
           "batch:#{uid}"
         end
 
-        def _retrying(message, &block)
+        def _retrying(message)
           RETRY_ATTEMPTS.times do
             return if yield
             broadcast(:retried_ingestion)
