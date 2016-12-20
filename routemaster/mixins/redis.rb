@@ -11,9 +11,6 @@ module Routemaster
       end
 
       def _redis
-        # FIXME: pool size should be defined differently for workers (with
-        # multiple blocking threads) and the web frontend (which can share fewer
-        # connections)
         @@_redis ||=
           ConnectionPool.wrap(size: Routemaster.config[:redis_pool_size], timeout: 2) do
           ::Redis.new(url: ENV.fetch('ROUTEMASTER_REDIS_URL'))
