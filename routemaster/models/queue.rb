@@ -112,7 +112,7 @@ module Routemaster
           'queue_nack',
           keys: [pending_key, _scheduled_key, _index_key],
           argv: [job_data, run_at])
-      rescue StandardError => e
+      rescue StandardError
         _log.warn("failed to process #{job.inspect}")
         raise
       end
