@@ -19,4 +19,8 @@ describe Hash do
         to eq(a:1, b:2, c:3)
     end
   end
+
+  describe '#map_values' do
+    xit
+  end
 end

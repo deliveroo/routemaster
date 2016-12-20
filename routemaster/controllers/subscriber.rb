@@ -1,6 +1,7 @@
 require 'routemaster/controllers'
 require 'routemaster/models/topic'
 require 'routemaster/models/subscriber'
+require 'routemaster/models/batch'
 require 'routemaster/services/update_subscriber_topics'
 require 'routemaster/controllers/parser'
 require 'sinatra/base'
@@ -82,15 +83,16 @@ module Routemaster
 
       get %r{^/(subscriptions|subscribers)$} do
         content_type :json
+        counters = Models::Batch.counters
         payload = Models::Subscriber.map do |subscriber|
           {
             subscriber: subscriber.name,
             callback: subscriber.callback,
             topics: subscriber.topics.map(&:name),
             events: {
-              sent: subscriber.all_topics_count,
-              queued: subscriber.queue.length,
-              oldest: subscriber.queue.staleness,
+              sent:   nil,
+              queued: counters[:events][subscriber.name],
+              oldest: nil,
             }
           }
         end

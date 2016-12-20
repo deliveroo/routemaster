@@ -31,6 +31,24 @@ describe Routemaster::Models::Batch do
       its(:attempts) { is_expected.to eq(0) }
       it { is_expected.to be_current }
     end
+
+    describe 'counters' do
+      before { do_ingest(1).promote }
+
+      it 'increments the batch counter' do
+        expect { perform }.to change {
+          described_class.counters[:batches]['alice']
+        }.by(1)
+      end
+
+      it 'increments the event counter' do
+        expect { perform }.to change {
+          described_class.counters[:events]['alice']
+        }.by(2)
+      end
+    end
+
+    xit 'broadcasts'
   end
 
   describe '#promote' do
@@ -50,7 +68,7 @@ describe Routemaster::Models::Batch do
 
   describe '#delete' do
     let!(:batch) { do_ingest(3) }
-    let(:perform) { batch.reload.delete  }
+    let(:perform) { batch.reload.delete }
 
     it { expect { perform }.not_to raise_error }
 
@@ -65,6 +83,22 @@ describe Routemaster::Models::Batch do
     it 'makes the batch non-current' do
       expect { perform }.to change { batch.current? }.to(false)
     end
+
+    describe 'counters' do
+      it 'increments the batch counter' do
+        expect { perform }.to change {
+          described_class.counters[:batches]['alice']
+        }.by(-1)
+      end
+
+      it 'increments the event counter' do
+        expect { perform }.to change {
+          described_class.counters[:events]['alice']
+        }.by(-3)
+      end
+    end
+
+    xit 'broadcasts'
   end
 
 

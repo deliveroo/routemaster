@@ -6,6 +6,7 @@ require 'routemaster/mixins/redis'
 require 'routemaster/mixins/assert'
 require 'routemaster/mixins/log'
 require 'routemaster/services/codec'
+require 'wisper'
 
 module Routemaster
   module Models
@@ -14,11 +15,16 @@ module Routemaster
       include Mixins::Redis
       include Mixins::Assert
       include Mixins::Log
+      include Wisper::Publisher
 
-      TransientError   = Class.new(StandardError)
       Inconsistency    = Class.new(RuntimeError)
 
+      # number of prefix metdata items in a batch list
+      PREFIX_COUNT = 3
+
+
       attr_reader :uid, :deadline
+
 
       def initialize(uid:, deadline:nil, subscriber:nil)
         @uid        = uid
@@ -29,10 +35,8 @@ module Routemaster
 
       def subscriber
         @subscriber ||= begin
-          name = _redis.lindex(_batch_key, 0)
-          return if name.nil?
-
-          Subscriber.find(name)
+          return if _subscriber_name.nil?
+          Subscriber.find(_subscriber_name)
         end
       end
 
@@ -42,8 +46,8 @@ module Routemaster
         @_length ||= begin
           raw = _redis.llen(_batch_key)
           return if raw.nil? || raw.zero?
-          raise Inconsistency, @uid if raw < 3
-          raw - 3
+          raise Inconsistency, @uid if raw < PREFIX_COUNT
+          raw - PREFIX_COUNT
         end
       end
 
@@ -83,7 +87,7 @@ module Routemaster
       # 
       # It is not an error if the batch no longer exists.
       def data
-        _redis.lrange(_batch_key, 3, -1)
+        _redis.lrange(_batch_key, PREFIX_COUNT, -1)
       end
 
 
@@ -111,17 +115,20 @@ module Routemaster
       end
 
 
-      # Removes all references to the batch (it's been delivered)
+      # Removes all references to the batch (it's been delivered, or autodropped)
       def delete
-        _redis_lua_run(
+        count = _redis_lua_run(
           'batch_delete',
-          keys: [_batch_key, _index_key, _batch_ref_key],
-          argv: [@uid])
+          keys: [_batch_key, _index_key, _batch_ref_key, _batch_counter_key, _event_counter_key],
+          argv: [@uid, PREFIX_COUNT, _subscriber_name])
+        broadcast(:events_removed, name: _subscriber_name, count: count)
         self
       end
 
 
       module ClassMethods
+        include Wisper::Publisher
+
         # Add the data to the subscriber's current batch. A new batch will be
         # created as needed.
         def ingest(data:, timestamp:, subscriber:)
@@ -147,7 +154,9 @@ module Routemaster
               if make_batch
                 m.set(batch_ref_key, batch_uid)
                 m.zadd(_index_key, now, batch_uid)
+                m.hincrby(_batch_counter_key, subscriber.name, 1)
               end
+              m.hincrby(_event_counter_key, subscriber.name, 1)
               # FIXME: convert this to Lua if possible.
             end
           end
@@ -155,7 +164,17 @@ module Routemaster
           throw :retry if watch.nil? # watch precondition failed
           # FIXME: limited retrying + monitoring
           
+          broadcast(:event_added, name: subscriber.name, count: 1)
           new(subscriber: subscriber, uid: batch_uid, deadline: deadline)
+        end
+
+
+        def counters
+          # binding.pry
+          {
+            batches: _redis.hgetall(_batch_counter_key).map_values(&:to_i),
+            events:  _redis.hgetall(_event_counter_key).map_values(&:to_i),
+          }
         end
 
 
@@ -172,7 +191,6 @@ module Routemaster
 
         private
 
-
         def _generate_uid
           SecureRandom.urlsafe_base64(15)
         end
@@ -180,6 +198,14 @@ module Routemaster
 
         def _batch_ref_key(name)
           name ? "batches:current:#{name}" : nil
+        end
+
+        def _event_counter_key
+          'batches:counters:event'
+        end
+
+        def _batch_counter_key
+          'batches:counters:batch'
         end
 
         def _index_key
@@ -196,18 +222,23 @@ module Routemaster
       private
 
 
+      def _subscriber_name
+        @_subscriber_name ||= _redis.lindex(_batch_key, 0)
+      end
+
+
       def _batch_ref_key
-        self.class.send(:_batch_ref_key, subscriber&.name)
+        self.class.send(:_batch_ref_key, _subscriber_name)
       end
 
-
-      def _index_key
-        self.class.send(:_index_key)
-      end
 
       def _batch_key
         self.class.send(:_batch_key, @uid)
       end
+
+      extend Forwardable
+
+      delegate %i[_index_key _event_counter_key _batch_counter_key] => :'self.class'
 
 
       class Iterator

@@ -77,10 +77,6 @@ module Routemaster::Models
       Subscription.where(subscriber: self).map(&:topic)
     end
 
-    def all_topics_count
-      topics.reduce(0) { |sum, topic| sum + topic.get_count }
-    end
-
     extend Enumerable
 
     def self.each

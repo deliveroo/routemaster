@@ -44,6 +44,9 @@ gem 'rufus-scheduler', require: false
 # metric collection
 gem 'dogapi', require: false
 
+# internal event bus
+gem 'wisper'
+
 # Autoscaling
 gem 'hirefire-resource', require: false
 

@@ -41,6 +41,15 @@ Details on the services above:
   memory conditions.
 
 
+## Internal events
+
+We use the `wisper` gem as a process-local event bus. Conventionally, our event
+have a single hash as a payload. This is a catalog of such events.
+
+`events_added(name:, count:)`
+
+`events_removed(name:, count:)`
+
 
 ## Event batch lifecycle
 
@@ -158,6 +167,14 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
 
   An index for the set of all batches.
   The score is the batch's creation timestamp; values are batch UIDs.
+
+`batches:counters:event` (hash)
+
+  Number of currently extant events, per subscriber name.
+
+`batches:counters:batch` (hash)
+
+  Number of currently extant batches, per subscriber name.
 
 `jobs:index:{q}` (set)
 

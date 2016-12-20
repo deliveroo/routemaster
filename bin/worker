@@ -17,6 +17,9 @@ Routemaster::Services::ThreadGroup.new.tap do |group|
   group.add Routemaster::Services::Ticker.new(
     queue: Routemaster.aux_queue, name: 'autodrop', every: 10_000
   ), name: 'ticker.autodrop'
+  group.add Routemaster::Services::Ticker.new(
+    queue: Routemaster.aux_queue, name: 'monitor', every: 10_000
+  ), name: 'ticker.monitor'
 
   # aux worker thread
   group.add Routemaster::Services::Worker.new(
