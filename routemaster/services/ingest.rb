@@ -26,10 +26,7 @@ module Routemaster
           job = Models::Job.new(name: 'batch', args: batch.uid, run_at: batch.deadline)
           @queue.push(job)
 
-          if batch.full?
-            @queue.promote(job)
-            batch.promote
-          end
+          @queue.promote(job) if batch.full?
         end
         @topic.increment_count
         self

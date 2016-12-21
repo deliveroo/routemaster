@@ -6,10 +6,11 @@ require 'routemaster/models/subscriber'
 
 describe Routemaster::Models::Batch do
   let(:timeout) { 5000 }
+  let(:batch_size) { 3 }
   let(:ingest_callback) {}
   let(:subscriber) {
     Routemaster::Models::Subscriber.new(name: 'alice').tap do |s|
-      s.max_events = 2
+      s.max_events = batch_size
       s.timeout = timeout
     end
   }
@@ -24,9 +25,9 @@ describe Routemaster::Models::Batch do
   end
 
   describe '.ingest' do
-    let(:perform) { do_ingest(2) }
-    let(:expected_event_count) { 2 }
-    let(:expected_batch_length) { 2 }
+    let(:perform) { do_ingest(1) }
+    let(:expected_event_count) { 1 }
+    let(:expected_batch_length) { 1 }
 
     shared_examples 'event adder' do
       it { expect { perform }.not_to raise_error }
@@ -51,7 +52,7 @@ describe Routemaster::Models::Batch do
         it 'increments the event counter' do
           expect { perform }.to change {
             described_class.counters[:events]['alice']
-          }.by(2)
+          }.by(1)
         end
       end
 
@@ -78,8 +79,8 @@ describe Routemaster::Models::Batch do
       it_behaves_like 'event adder'
 
       context 'when a batch is concurrently created' do
-        let(:expected_event_count) { 3 }
-        let(:expected_batch_length) { 3 }
+        let(:expected_event_count) { 2 }
+        let(:expected_batch_length) { 2 }
         let(:ingest_callback) do
           described_class.ingest(
             data:       'other', 
@@ -93,6 +94,8 @@ describe Routemaster::Models::Batch do
     end
 
     context 'when there is a current batch' do
+      let(:expected_batch_length) { 2 }
+
       let!(:batch) do
         described_class.ingest(
           data:       'other', 
@@ -100,19 +103,40 @@ describe Routemaster::Models::Batch do
           subscriber: subscriber)
       end
 
+      it_behaves_like 'event adder'
+
       context 'when the current batch is deleted in flight' do
+        let(:expected_batch_length) { 1 }
         let(:ingest_callback) { batch.delete }
         it_behaves_like 'event adder'
         it_behaves_like 'retrying'
       end
 
       context 'when the current batch is promoted in flight' do
+        let(:expected_batch_length) { 1 }
         let(:ingest_callback) { batch.promote }
         it_behaves_like 'event adder'
         it_behaves_like 'retrying'
       end
     end
+
+    context 'when filling the batch' do
+      context 'on the first event' do
+        let(:batch_size) { 1 }
+        it 'gets promoted' do
+          expect(do_ingest(batch_size)).not_to be_current 
+        end
+      end
+
+      context 'on the second event' do
+        let(:batch_size) { 2 }
+        it 'gets promoted' do
+          expect(do_ingest(batch_size)).not_to be_current 
+        end
+      end
+    end
   end
+
 
 
   describe '#promote' do
@@ -131,7 +155,7 @@ describe Routemaster::Models::Batch do
 
 
   describe '#delete' do
-    let!(:batch) { do_ingest(3) }
+    let!(:batch) { do_ingest(2) }
     let(:perform) { batch.reload.delete }
 
     it { expect { perform }.not_to raise_error }
@@ -158,14 +182,14 @@ describe Routemaster::Models::Batch do
       it 'increments the event counter' do
         expect { perform }.to change {
           described_class.counters[:events]['alice']
-        }.by(-3)
+        }.by(-2)
       end
     end
 
     it 'broadcasts' do
       listener = double
       Wisper.subscribe(listener) do
-        expect(listener).to receive(:events_removed).with(name: 'alice', count: 3)
+        expect(listener).to receive(:events_removed).with(name: 'alice', count: 2)
         perform
       end
     end
@@ -203,11 +227,11 @@ describe Routemaster::Models::Batch do
 
   describe '#full?' do
     it 'is true when the batch is full' do
-      expect(do_ingest(2)).to be_full
+      expect(do_ingest(3)).to be_full
     end
 
     it 'is false when the batch is not full' do
-      expect(do_ingest(1)).not_to be_full
+      expect(do_ingest(2)).not_to be_full
     end
   end
 

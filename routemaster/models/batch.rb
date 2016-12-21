@@ -133,7 +133,7 @@ module Routemaster
         include Wisper::Publisher
 
         # Add the data to the subscriber's current batch. A new batch will be
-        # created as needed.
+        # created as needed. The batch will be promoted if it's full.
         def ingest(data:, timestamp:, subscriber:)
           batch_ref_key = _batch_ref_key(subscriber.name)
           now           = Routemaster.now
@@ -154,12 +154,12 @@ module Routemaster
               _redis_lua_run(
                 'batch_ingest_new',
                 keys: [batch_ref_key, _batch_key(uid), _index_key, _batch_counter_key, _event_counter_key],
-                argv: [uid, data, subscriber.name, now])
+                argv: [uid, data, subscriber.name, now, subscriber.max_events])
             else
               _redis_lua_run(
                 'batch_ingest_add',
                 keys: [batch_ref_key, _batch_key(uid), _event_counter_key],
-                argv: [uid, data, subscriber.name])
+                argv: [uid, data, subscriber.name, PREFIX_COUNT, subscriber.max_events])
             end
           end
           
