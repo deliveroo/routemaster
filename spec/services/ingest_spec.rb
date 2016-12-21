@@ -54,10 +54,15 @@ module Routemaster
       expect { perform }.to change { queue.length }.to(2)
     end
 
-
     it 'promotes delivery job if batch full' do
       perform
       expect(queue.dump.select { |j| j.run_at.nil? }).not_to be_empty
+    end
+
+    it 'promotes batch job if batch full' do
+      perform
+      batch = Models::Batch.all.find { |b| b.subscriber.name == 'qux' }
+      expect(batch).not_to be_current
     end
   end
 end
