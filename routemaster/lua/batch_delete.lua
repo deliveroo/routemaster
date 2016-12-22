@@ -3,7 +3,7 @@
 --
 -- KEYS[1]: list, the batch payload
 -- KEYS[2]: zset, the batch index
--- KEYS[3]: string, the subscriber's current ref
+-- KEYS[3]: set,  the subscriber's current ref
 -- KEYS[4]: hash, the batch counters
 -- KEYS[5]: hash, the event counters
 --
@@ -15,11 +15,7 @@ local count = redis.call('LLEN', KEYS[1])
 
 redis.call('DEL',  KEYS[1])
 redis.call('ZREM', KEYS[2], ARGV[1])
-
-if ARGV[1] == redis.call('GET', KEYS[3]) then
-  redis.call('DEL', KEYS[3])
-end
-
+redis.call('SREM', KEYS[3], ARGV[1])
 
 local prefix_count = tonumber(ARGV[2])
 if count >= prefix_count then

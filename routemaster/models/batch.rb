@@ -49,7 +49,7 @@ module Routemaster
         @_length ||= begin
           raw = _redis.llen(_batch_key)
           return if raw.nil? || raw.zero?
-          raise Inconsistency, @uid if raw < PREFIX_COUNT
+          binding.pry and raise Inconsistency, @uid if raw < PREFIX_COUNT
           raw - PREFIX_COUNT
         end
       end
@@ -68,7 +68,7 @@ module Routemaster
 
       # Is this the batch currently being filled for its subscriber?
       def current?
-        _batch_ref_key && _redis.get(_batch_ref_key) == @uid
+        _redis.sismember(_batch_ref_key, @uid)
       end
 
 
@@ -145,7 +145,7 @@ module Routemaster
           # This can't be packaged as a single Lua script as the batch key to
           # write to is dependent on the value stored at another (the ref key).
           _retrying('batch ingestion') do
-            uid = _redis.get(batch_ref_key)
+            uid = _redis.srandmember(batch_ref_key)
 
             yield if block_given? # this is used in tests only, to inject behaviour to simulate concurrency
 
@@ -170,8 +170,8 @@ module Routemaster
 
         def counters
           {
-            batches: _redis.hgetall(_batch_counter_key).map_values(&:to_i),
-            events:  _redis.hgetall(_event_counter_key).map_values(&:to_i),
+            batches: _redis.hgetall(_batch_counter_key).map_values(&:to_i).tap { |h| h.default = 0 },
+            events:  _redis.hgetall(_event_counter_key).map_values(&:to_i).tap { |h| h.default = 0 },
           }
         end
 

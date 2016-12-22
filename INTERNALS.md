@@ -56,8 +56,9 @@ have a single hash as a payload. This is a catalog of such events.
 All events get batched for delivery for a particular subscriber; the data model
 is described below.
 
-Batches start out _current_ when they get created. Each subscriber has at most
-one _current_ batch which receives new events.
+Batches start out _current_ when they get created. Each subscriber normally has
+at most one _current_ batch which receives new events, although in edge cases
+(high concurrency) more than one current batch might get created.
 
 When the batch is either full or stale, it gets promoted to _ready_ - another
 _current_ batch may then be created which the first awaits delivery.
@@ -158,10 +159,13 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
   
   `bid` is the batch's UID.
 
-`batches:current:{token}` (string)
+`batches:current:{token}` (set)
 
-  The current batch for subscriber `{token}`, if any.
-  Value is a batch UID.
+  The current batch(es) for subscriber `{token}`, if any.
+  Values are batch UIDs.
+
+  This should normally have at most 1 element, although under high
+  concurrency situations multiple batches may be created simultaneously.
   
 `batches:index` (sorted set)
 

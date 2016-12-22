@@ -7,7 +7,7 @@ require 'routemaster/models/subscriber'
 describe Routemaster::Models::Batch do
   let(:timeout) { 5000 }
   let(:batch_size) { 3 }
-  let(:ingest_callback) {}
+  let(:during_ingest) {}
   let(:subscriber) {
     Routemaster::Models::Subscriber.new(name: 'alice').tap do |s|
       s.max_events = batch_size
@@ -16,18 +16,22 @@ describe Routemaster::Models::Batch do
   }
 
   def do_ingest(count)
-    (1..count).map { |idx|
+    @counter ||= 0
+    (1..count).map { 
       described_class.ingest(
-        data:       "payload#{idx}", 
+        data:       "payload#{@counter += 1}", 
         timestamp:  Routemaster.now, 
-        subscriber: subscriber) { ingest_callback }
+        subscriber: subscriber) { during_ingest }
     }.last
   end
 
   describe '.ingest' do
     let(:perform) { do_ingest(1) }
-    let(:expected_event_count) { 1 }
-    let(:expected_batch_length) { 1 }
+    let(:expected_batches_added)   { 1 }
+    let(:expected_batches_removed) { 0 }
+    let(:expected_events_added)    { 1 }
+    let(:expected_events_removed)  { 0 }
+    let(:expected_batch_length)    { 1 }
 
     shared_examples 'event adder' do
       it { expect { perform }.not_to raise_error }
@@ -41,25 +45,23 @@ describe Routemaster::Models::Batch do
       end
 
       describe 'counters' do
-        before { do_ingest(1).promote }
-
         it 'increments the batch counter' do
           expect { perform }.to change {
             described_class.counters[:batches]['alice']
-          }.by(1)
+          }.by(expected_batches_added - expected_batches_removed)
         end
 
         it 'increments the event counter' do
           expect { perform }.to change {
             described_class.counters[:events]['alice']
-          }.by(1)
+          }.by(expected_events_added - expected_events_removed)
         end
       end
 
       it 'broadcasts events_added' do
         listener = double
         Wisper.subscribe(listener) do
-          expect(listener).to receive(:events_added).with(name: 'alice', count: 1).exactly(expected_event_count).times
+          expect(listener).to receive(:events_added).with(name: 'alice', count: 1).exactly(expected_events_added).times
           perform
         end
       end
@@ -79,21 +81,29 @@ describe Routemaster::Models::Batch do
       it_behaves_like 'event adder'
 
       context 'when a batch is concurrently created' do
-        let(:expected_event_count) { 2 }
-        let(:expected_batch_length) { 2 }
-        let(:ingest_callback) do
+        let(:expected_batches_added) { 2 }
+        let(:expected_events_added)  { 2 }
+        let(:expected_batch_length)  { 1 }
+
+        let(:during_ingest) do
           described_class.ingest(
             data:       'other', 
             timestamp:  Routemaster.now, 
             subscriber: subscriber)
         end
 
+        it 'adds to a separate batch' do
+          perform
+          expect(Routemaster::Models::Batch.all.count).to eq(2)
+        end
+
         it_behaves_like 'event adder'
-        it_behaves_like 'retrying'
+        # it_behaves_like 'retrying'
       end
     end
 
     context 'when there is a current batch' do
+      let(:expected_batches_added) { 0 }
       let(:expected_batch_length) { 2 }
 
       let!(:batch) do
@@ -106,15 +116,21 @@ describe Routemaster::Models::Batch do
       it_behaves_like 'event adder'
 
       context 'when the current batch is deleted in flight' do
-        let(:expected_batch_length) { 1 }
-        let(:ingest_callback) { batch.delete }
+        let(:expected_batches_removed) { 1 }
+        let(:expected_batches_added)   { 1 }
+        let(:expected_events_removed)  { 1 }
+        let(:expected_batch_length)    { 1 }
+        let(:during_ingest) { batch.delete }
+        # it { binding.pry ; perform ; binding.pry }
         it_behaves_like 'event adder'
         it_behaves_like 'retrying'
       end
 
       context 'when the current batch is promoted in flight' do
-        let(:expected_batch_length) { 1 }
-        let(:ingest_callback) { batch.promote }
+        let(:expected_batches_added) { 1 }
+        let(:expected_batch_length)  { 1 }
+        let(:during_ingest) { batch.promote }
+        # it { binding.pry ; perform ; binding.pry }
         it_behaves_like 'event adder'
         it_behaves_like 'retrying'
       end

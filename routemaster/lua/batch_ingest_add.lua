@@ -1,8 +1,9 @@
 -- 
 -- Add a message to a batch, promote if full
 --
--- KEYS[1]: string, subscriber's current ref. should be equal to the batch UID,
---          otherwise indicates the batch was promoted, deleted, or replaced.
+-- KEYS[1]: set, subscriber's current ref.
+--          should contain the batch UID,
+--          otherwise indicates the batch was promoted, or deleted.
 -- KEYS[2]: list, the batch payload.
 -- KEYS[3]: hash, the event counters
 --
@@ -12,10 +13,14 @@
 -- ARGV[4]: the batch prefix count (number of items excluding payloads)
 -- ARGV[5]: the maximum #items in a batch
 --
-local current_uid = redis.call('GET', KEYS[1])
 
--- check that this is still the current batch
-if current_uid ~= ARGV[1] then
+-- FIXME
+-- merge the 2 cases into an add/create Lua script
+-- pass it both the expected and a potential new batch UID
+-- return the effective UID
+
+-- check that this is still a current batch
+if redis.call('SISMEMBER', KEYS[1], ARGV[1]) < 1 then
   return nil
 end
 
@@ -24,7 +29,7 @@ redis.call('HINCRBY', KEYS[3], ARGV[3], 1)
 
 -- promote batch if full
 if redis.call('LLEN', KEYS[2]) >= tonumber(ARGV[4]) + tonumber(ARGV[5]) then
-  redis.call('DEL', KEYS[1])
+  redis.call('SREM', KEYS[1], ARGV[1])
 end  
 
 return true
