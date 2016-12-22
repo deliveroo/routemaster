@@ -46,7 +46,7 @@ module Routemaster
         @_length ||= begin
           raw = _redis.llen(_batch_key)
           return if raw.nil? || raw.zero?
-          binding.pry and raise Inconsistency, @uid if raw < PREFIX_COUNT
+          raise Inconsistency, @uid if raw < PREFIX_COUNT
           raw - PREFIX_COUNT
         end
       end
@@ -135,11 +135,11 @@ module Routemaster
           batch_ref_key = _batch_ref_key(subscriber.name)
           now           = Routemaster.now
           deadline      = timestamp + subscriber.timeout
-          uid           = nil
 
           # Ingestion might create a new batch if there is no current batch (pointed to by
           # `batch_ref_key`) changes between the SRANDMEMBER and the EVAL.
-          # This is handled by the Lua script.
+          # To this effect, we provide an alternate batch UID to be used if
+          # creating a batch.
           uid = _redis.srandmember(batch_ref_key)
           alt_uid = _generate_uid
 
