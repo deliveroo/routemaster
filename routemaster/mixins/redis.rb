@@ -1,6 +1,7 @@
 require 'routemaster/mixins'
 require 'connection_pool'
 require 'redis'
+require 'core_ext/env'
 
 module Routemaster
   module Mixins
@@ -13,7 +14,7 @@ module Routemaster
       def _redis
         @@_redis ||=
         ConnectionPool.wrap(size: Routemaster.config[:redis_pool_size], timeout: 2) do
-          ::Redis.new(url: ENV.fetch('ROUTEMASTER_REDIS_URL'))
+          ::Redis.new(url: ENV.ifetch('ROUTEMASTER_REDIS_URL'))
         end
       end
 
