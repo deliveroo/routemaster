@@ -13,8 +13,8 @@ module Routemaster
       include Mixins::Log
       include Mixins::LogException
 
-      CONNECT_TIMEOUT = ENV.fetch('ROUTEMASTER_CONNECT_TIMEOUT', 2).to_i
-      TIMEOUT         = ENV.fetch('ROUTEMASTER_TIMEOUT', 5).to_i
+      CONNECT_TIMEOUT = ENV.fetch('ROUTEMASTER_CONNECT_TIMEOUT').to_i
+      TIMEOUT         = ENV.fetch('ROUTEMASTER_TIMEOUT').to_i
 
       CantDeliver = Class.new(StandardError)
 
