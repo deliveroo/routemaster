@@ -32,15 +32,19 @@ describe Routemaster::Jobs::Monitor do
     end
   end
 
-  it 'dispatches metrics' do
-    subject.call
+  describe 'dispatches metrics' do
+    before { subject.call }
 
-    expect(@events).to include(['subscriber.queue.batches', 1,  array_including('subscriber:alice')])
-    expect(@events).to include(['subscriber.queue.batches', 4,  array_including('subscriber:bob')])
-    expect(@events).to include(['subscriber.queue.events',  12, array_including('subscriber:alice')])
-    expect(@events).to include(['subscriber.queue.events',  42, array_including('subscriber:bob')])
+    it { expect(@events).to include(['subscriber.queue.batches', 1,  array_including('subscriber:alice')]) }
+    it {expect(@events).to include(['subscriber.queue.batches', 4,  array_including('subscriber:bob')]) }
+    it {expect(@events).to include(['subscriber.queue.events',  12, array_including('subscriber:alice')]) }
+    it {expect(@events).to include(['subscriber.queue.events',  42, array_including('subscriber:bob')]) }
 
-    expect(@events).to include(['jobs.count', 2, %w[env:test app:routemaster queue:foo status:instant]])
-    expect(@events).to include(['jobs.count', 1, %w[env:test app:routemaster queue:foo status:scheduled]])
+    it {expect(@events).to include(['jobs.count', 2, %w[env:test app:routemaster-dev queue:foo status:instant]]) }
+    it {expect(@events).to include(['jobs.count', 1, %w[env:test app:routemaster-dev queue:foo status:scheduled]]) }
+
+    it {expect(@events).to include(['redis.bytes_used', a_kind_of(Fixnum), a_kind_of(Array)]) }
+    it {expect(@events).to include(['redis.low_mark',   a_kind_of(Fixnum), a_kind_of(Array)]) }
+    it {expect(@events).to include(['redis.high_mark',  a_kind_of(Fixnum), a_kind_of(Array)]) }
   end
 end

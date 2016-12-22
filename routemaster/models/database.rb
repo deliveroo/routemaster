@@ -10,18 +10,24 @@ module Routemaster
       include Mixins::Redis
 
       def too_full?
-        (max_mem - bytes_used) < min_free
+        bytes_used > high_mark
       end
 
       def empty_enough?
-        (max_mem - bytes_used) > 2 * min_free
+        bytes_used < low_mark
       end
 
       def bytes_used
         _redis.info('memory')['used_memory'].to_i
       end
 
-      private
+      def low_mark
+        max_mem - 2 * min_free
+      end
+
+      def high_mark
+        max_mem - min_free
+      end
 
       def max_mem
         ENV.fetch('ROUTEMASTER_REDIS_MAX_MEM').to_i

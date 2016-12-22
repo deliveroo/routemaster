@@ -21,6 +21,10 @@ describe Routemaster::Models::Database do
     end
   end
 
+  it { expect(subject.max_mem).to eq(max_mem) }
+  it { expect(subject.high_mark).to eq(max_mem - min_free) }
+  it { expect(subject.low_mark).to eq(max_mem - 2 * min_free) }
+
   describe '#empty_enough?' do
     it 'is true when the db is empty' do
       expect(subject).to be_empty_enough
