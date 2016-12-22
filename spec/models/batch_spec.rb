@@ -67,16 +67,6 @@ describe Routemaster::Models::Batch do
       end
     end
 
-    shared_examples 'retrying' do
-      it 'broadcasts retried_ingestion' do
-        listener = double
-        Wisper.subscribe(listener) do
-          expect(listener).to receive(:retried_ingestion).once
-          perform
-        end
-      end
-    end
-
     context 'when there is no batch' do
       it_behaves_like 'event adder'
 
@@ -98,7 +88,6 @@ describe Routemaster::Models::Batch do
         end
 
         it_behaves_like 'event adder'
-        # it_behaves_like 'retrying'
       end
     end
 
@@ -121,18 +110,14 @@ describe Routemaster::Models::Batch do
         let(:expected_events_removed)  { 1 }
         let(:expected_batch_length)    { 1 }
         let(:during_ingest) { batch.delete }
-        # it { binding.pry ; perform ; binding.pry }
         it_behaves_like 'event adder'
-        it_behaves_like 'retrying'
       end
 
       context 'when the current batch is promoted in flight' do
         let(:expected_batches_added) { 1 }
         let(:expected_batch_length)  { 1 }
         let(:during_ingest) { batch.promote }
-        # it { binding.pry ; perform ; binding.pry }
         it_behaves_like 'event adder'
-        it_behaves_like 'retrying'
       end
     end
 
