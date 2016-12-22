@@ -17,11 +17,8 @@ module Routemaster
 
       class Retry < StandardError
         attr_reader :delay
-
-        DEFAULT_DELAY = 10_000 # milliseconds
-
-        def initialize(delay = nil)
-          @delay = delay ? delay : (DEFAULT_DELAY/2 + rand(DEFAULT_DELAY))
+        def initialize(delay)
+          @delay = delay
         end
       end
 

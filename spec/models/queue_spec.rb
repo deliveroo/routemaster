@@ -108,7 +108,7 @@ describe Routemaster::Models::Queue do
       end
 
       context 'when Retry is raised' do
-        let(:callback) { ->(job) { raise described_class::Retry } }
+        let(:callback) { ->(job) { raise described_class::Retry,1 } }
         
         it 'reschedules the job' do
           perform

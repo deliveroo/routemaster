@@ -10,7 +10,7 @@ module Routemaster
 
       def initialize(name:, args:[], run_at:nil, data:nil)
         @name   = name
-        @args   = args.kind_of?(Array) ? args : [args]
+        @args   = Array(args)
         @run_at = run_at
         @data   = data
       end
