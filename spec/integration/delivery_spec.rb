@@ -3,7 +3,7 @@ require 'spec/support/integration'
 require 'routemaster/client'
 require 'routemaster/models/subscription'
 
-describe 'Event delivery', type: :acceptance do
+describe 'Event delivery', type: :acceptance, slow: true do
   let(:processes) { Acceptance::ProcessLibrary.new }
 
   before { WebMock.disable! }

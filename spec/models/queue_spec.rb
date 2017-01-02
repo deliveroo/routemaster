@@ -88,7 +88,7 @@ describe Routemaster::Models::Queue do
     let(:callback) { ->(job) { @job = job} }
     let(:perform) { subject.pop('foo', &callback) }
 
-    context 'when there is no job' do
+    context 'when there is no job', slow: true do
       it 'is falsy' do
         expect(perform).to be_falsy
       end

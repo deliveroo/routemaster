@@ -5,7 +5,7 @@ require 'routemaster/models/subscriber'
 require 'routemaster/models/topic'
 require 'routemaster/models/batch'
 
-describe 'Client integration' do
+describe 'Client integration', slow:true do
   let(:processes) { Acceptance::ProcessLibrary.new }
   before { WebMock.disable! }
 

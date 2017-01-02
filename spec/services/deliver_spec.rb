@@ -110,7 +110,7 @@ describe Routemaster::Services::Deliver do
         it_behaves_like 'failure'
       end
 
-      context 'with fake local server' do
+      context 'with fake local server', slow: true do
         let(:port) { 12024 }
         let(:callback) { "https://127.0.0.1:#{port}/callback" }
 
