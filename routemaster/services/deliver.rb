@@ -5,6 +5,7 @@ require 'faraday'
 require 'typhoeus'
 require 'typhoeus/adapters/faraday'
 require 'json'
+require 'wisper'
 
 module Routemaster
   module Services
@@ -12,6 +13,7 @@ module Routemaster
     class Deliver
       include Mixins::Log
       include Mixins::LogException
+      include Wisper::Publisher
 
       CONNECT_TIMEOUT = ENV.fetch('ROUTEMASTER_CONNECT_TIMEOUT').to_i
       TIMEOUT         = ENV.fetch('ROUTEMASTER_TIMEOUT').to_i
@@ -46,17 +48,16 @@ module Routemaster
             post.headers['Content-Type'] = 'application/json'
             post.body = data.to_json
           end
-        rescue Faraday::Error::ClientError => e
+          raise "HTTP #{response.status}" unless response.success?
+        rescue RuntimeError, Faraday::Error::ClientError => e
+          _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
+          broadcast(:delivery_failed, name: @subscriber.name, count: data.length)
           raise CantDeliver.new("#{e.class.name}: #{e.message}")
         end
 
-        if response.success?
-          _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
-          return true
-        end
-
-        _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
-        raise CantDeliver.new("HTTP #{response.status}")
+        _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
+        broadcast(:delivery_succeeded, name: @subscriber.name, count: data.length)
+        true
       end
 
 

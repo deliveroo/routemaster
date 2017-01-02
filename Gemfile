@@ -59,6 +59,7 @@ group :development do
   # unit/functional tests
   gem 'rspec',          require: false
   gem 'rspec-its',      require: false
+  gem 'wisper-rspec',   require: false
   # integration tests
   gem 'rack-test',      require: false
   # running tests automatically

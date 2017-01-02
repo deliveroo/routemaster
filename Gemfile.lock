@@ -138,6 +138,7 @@ GEM
       crack (>= 0.3.2)
       hashdiff
     wisper (1.6.1)
+    wisper-rspec (0.0.2)
 
 PLATFORMS
   ruby
@@ -175,6 +176,7 @@ DEPENDENCIES
   typhoeus
   webmock
   wisper
+  wisper-rspec
 
 RUBY VERSION
    ruby 2.3.3p222

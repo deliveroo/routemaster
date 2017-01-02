@@ -3,6 +3,7 @@ require 'routemaster/mixins/assert'
 require 'routemaster/models/batch'
 require 'routemaster/models/message'
 require 'routemaster/models/job'
+require 'wisper'
 
 module Routemaster
   module Services
@@ -10,6 +11,7 @@ module Routemaster
     # update statistics.
     class Ingest
       include Mixins::Assert
+      include Wisper::Publisher
 
       def initialize(topic:, event:, queue:)
         _assert(event.topic == topic.name)
@@ -25,10 +27,10 @@ module Routemaster
 
           job = Models::Job.new(name: 'batch', args: batch.uid, run_at: batch.deadline)
           @queue.push(job)
-
           @queue.promote(job) if batch.full?
         end
-        @topic.increment_count
+        broadcast(:event_ingested, topic: @topic)
+        @topic.increment_count # XXX move to event handler
         self
       end
     end

@@ -35,9 +35,13 @@ module Routemaster
 
       def subscriber
         @subscriber ||= begin
-          return if _subscriber_name.nil?
-          Subscriber.find(_subscriber_name)
+          return if subscriber_name.nil?
+          Subscriber.find(subscriber_name)
         end
+      end
+
+      def subscriber_name
+        @subscriber_name ||= _redis.lindex(_batch_key, 0)
       end
 
 
@@ -119,9 +123,9 @@ module Routemaster
       def delete
         count = _redis_lua_run(
           'batch_delete',
-          argv: [@uid, PREFIX_COUNT, _subscriber_name])
-        broadcast(:events_removed, name: _subscriber_name, count: count)
           keys: [_batch_key, _index_key, _batch_ref_key, _batch_gauge_key, _event_gauge_key],
+          argv: [@uid, PREFIX_COUNT, subscriber_name])
+        broadcast(:events_removed, name: subscriber_name, count: count)
         self
       end
 
@@ -150,7 +154,7 @@ module Routemaster
               keys: [batch_ref_key, _batch_key(uid), _batch_key(alt_uid), _index_key, _batch_gauge_key, _event_gauge_key],
               argv: [uid, alt_uid, data, subscriber.name, PREFIX_COUNT, subscriber.max_events, now])
           
-          broadcast(:events_added, name: subscriber.name, count: 1)
+          broadcast(:event_added, name: subscriber.name)
           new(subscriber: subscriber, uid: actual_uid, deadline: deadline)
         end
 
@@ -198,7 +202,7 @@ module Routemaster
         end
 
         def _batch_key(uid)
-          uid ? "batch:#{uid}" : nil
+          uid ? "batches:#{uid}" : nil
         end
       end
       extend ClassMethods
@@ -207,13 +211,8 @@ module Routemaster
       private
 
 
-      def _subscriber_name
-        @_subscriber_name ||= _redis.lindex(_batch_key, 0)
-      end
-
-
       def _batch_ref_key
-        self.class.send(:_batch_ref_key, _subscriber_name)
+        self.class.send(:_batch_ref_key, subscriber_name)
       end
 
 

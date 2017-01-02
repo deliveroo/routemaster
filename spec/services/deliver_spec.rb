@@ -1,10 +1,11 @@
 require 'spec_helper'
-require 'routemaster/services/deliver'
-require 'routemaster/models/subscriber'
 require 'spec/support/persistence'
 require 'spec/support/events'
 require 'spec/support/webmock'
+require 'spec/support/wisper'
 require 'timecop'
+require 'routemaster/services/deliver'
+require 'routemaster/models/subscriber'
 
 
 describe Routemaster::Services::Deliver do
@@ -35,6 +36,11 @@ describe Routemaster::Services::Deliver do
         to_return(status: callback_status, body: '')
     end
 
+    shared_examples 'a broadcaster' do |event, count|
+      it 'broadcasts' do
+        expect { perform rescue nil }.to broadcast(event, name: 'alice', count: count)
+      end
+    end
 
     context 'when there are no events' do
       it 'passes' do
@@ -45,6 +51,8 @@ describe Routemaster::Services::Deliver do
         perform
         expect(@stub).to have_been_requested
       end
+
+      it_behaves_like 'a broadcaster', :delivery_succeeded, 0
     end
 
     context 'when there are events' do
@@ -79,10 +87,14 @@ describe Routemaster::Services::Deliver do
         expect(events.last['url']).to match(/\/3$/)
       end
 
+      it_behaves_like 'a broadcaster', :delivery_succeeded, 3
+
       shared_examples 'failure' do
         it "raises a CantDeliver exception" do
           expect { perform }.to raise_error(described_class::CantDeliver)
         end
+
+        it_behaves_like 'a broadcaster', :delivery_failed, 3
       end
 
       context 'when the callback 500s' do
@@ -109,6 +121,7 @@ describe Routemaster::Services::Deliver do
             Thread.new do
               s = TCPServer.new port
               s.accept
+              s.close
             end
           end
 
@@ -118,6 +131,7 @@ describe Routemaster::Services::Deliver do
         end
 
         context 'when connection fails' do
+          # no server thread started here
           it_behaves_like 'failure'
         end
       end
