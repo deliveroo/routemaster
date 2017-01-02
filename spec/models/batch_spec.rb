@@ -44,16 +44,16 @@ describe Routemaster::Models::Batch do
         it { is_expected.to be_current }
       end
 
-      describe 'counters' do
+      describe 'gauges' do
         it 'increments the batch counter' do
           expect { perform }.to change {
-            described_class.counters[:batches]['alice']
+            described_class.gauges[:batches]['alice']
           }.by(expected_batches_added - expected_batches_removed)
         end
 
         it 'increments the event counter' do
           expect { perform }.to change {
-            described_class.counters[:events]['alice']
+            described_class.gauges[:events]['alice']
           }.by(expected_events_added - expected_events_removed)
         end
       end
@@ -173,16 +173,16 @@ describe Routemaster::Models::Batch do
       expect { perform }.to change { batch.current? }.to(false)
     end
 
-    describe 'counters' do
+    describe 'gauges' do
       it 'increments the batch counter' do
         expect { perform }.to change {
-          described_class.counters[:batches]['alice']
+          described_class.gauges[:batches]['alice']
         }.by(-1)
       end
 
       it 'increments the event counter' do
         expect { perform }.to change {
-          described_class.counters[:events]['alice']
+          described_class.gauges[:events]['alice']
         }.by(-2)
       end
     end

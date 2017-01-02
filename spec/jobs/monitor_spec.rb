@@ -12,7 +12,7 @@ describe Routemaster::Jobs::Monitor do
       @events << args
     end
 
-    allow(Routemaster::Models::Batch).to receive(:counters).and_return(
+    allow(Routemaster::Models::Batch).to receive(:gauges).and_return(
       batches: {
         'alice' => 1,
         'bob'   => 4,

@@ -18,7 +18,7 @@ module Routemaster
       end
 
       def call
-        Models::Batch.counters.each_pair do |type, data|
+        Models::Batch.gauges.each_pair do |type, data|
           data.each_pair do |name, count|
             @dispatcher.call(
               "subscriber.queue.#{type}",

@@ -172,11 +172,11 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
   An index for the set of all batches.
   The score is the batch's creation timestamp; values are batch UIDs.
 
-`batches:counters:event` (hash)
+`batches:gauges:event` (hash)
 
   Number of currently extant events, per subscriber name.
 
-`batches:counters:batch` (hash)
+`batches:gauges:batch` (hash)
 
   Number of currently extant batches, per subscriber name.
 
