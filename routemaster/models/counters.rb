@@ -1,8 +1,10 @@
 require 'routemaster/models'
 require 'routemaster/mixins/redis'
 require 'routemaster/mixins/log'
+require 'core_ext/hash'
 require 'monitor'
 require 'msgpack'
+require 'singleton'
 
 module Routemaster
   module Models
@@ -17,21 +19,21 @@ module Routemaster
         @cv   = @data.new_cond
       end
 
+      # Stops the buffering thread and flushes the buffer
       def finalize
-        return unless @running
+        return self unless @running
         _log.info { 'finalizing counters buffer' }
         @running = false
         @data.synchronize { @cv.broadcast }
         @thread.join
         @thread = nil
-        nil
+        self
       end
 
       # Increment the counter for this `name` and `tags` by `count`, locally.
       # The local increments will be flushed to Redis regularly in another
       # thread.
       def incr(name, count: 1, **tags)
-        _log.warn { "incrementing #{name} (#{tags.inspect})" }
         _autostart
         @data.synchronize do
           @data[[name, tags]] += count
@@ -44,31 +46,28 @@ module Routemaster
       def flush
         _log.debug { 'flushing counters buffer' }
         data = @data.synchronize { @data.dup.tap { @data.clear } }
-        data.keys.each do |k|
-          data[_field(*k)] = data.delete(k)
-        end
         _redis.pipelined do |p|
-          data.each_pair do |field, count|
+          _serialize(data).each_pair do |field, count|
             p.hincrby(_key, field, count)
           end
         end
         self
       end
 
-      # Return a list of counters from the shared Redis store, and clear it.
+      # Return the current map of counters from the shared Redis store
+      def peek
+        _deserialize(_redis.hgetall(_key))
+      end
+
+
+      # Return a map of counters from the shared Redis store, and clear it.
       # Each item is a triplet of name, tags, and counter value.
       def dump
-        {}.tap do |result|
-          data,_ = _redis.multi do |m|
-            m.hgetall(_key)
-            m.del(_key)
-          end
-
-          data.each_pair do |f,v|
-            name, tags = MessagePack.load(f)
-            result[[name, *tags]] = Integer(v)
-          end
+        data, _ = _redis.multi do |m|
+          m.hgetall(_key)
+          m.del(_key)
         end
+        _deserialize(data)
       end
 
 
@@ -88,6 +87,24 @@ module Routemaster
           flush
         end
         flush
+      end
+
+      def _serialize(data)
+        {}.tap do |h|
+          data.each_pair do |(name,options), v|
+            k = MessagePack.dump([name, options.to_a.sort])
+            h[k] = v
+          end
+        end
+      end
+
+      def _deserialize(data)
+        Hash.new(0).tap do |result|
+          data.each_pair do |f,v|
+            name, tags = MessagePack.load(f)
+            result[[name, Hash[tags].symbolize_keys]] = Integer(v)
+          end
+        end
       end
 
       def _field(name, options)

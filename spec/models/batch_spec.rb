@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'spec/support/events'
-require 'spec/support/wisper'
+require 'spec/support/counters'
 require 'spec/support/persistence'
 require 'routemaster/models/batch'
 require 'routemaster/models/subscriber'
@@ -59,8 +59,8 @@ describe Routemaster::Models::Batch do
         end
       end
 
-      it 'broadcasts events_added' do
-        expect { perform }.to broadcast(:event_added, name: 'alice')
+      it 'increments events.added' do
+        expect { perform }.to change { get_counter('events.added', queue: 'alice') }.by(expected_events_added)
       end
     end
 
@@ -184,8 +184,8 @@ describe Routemaster::Models::Batch do
       end
     end
 
-    it 'broadcasts' do
-      expect { perform }.to broadcast(:events_removed, name: 'alice', count: 2)
+    it 'increments events.removed' do
+      expect { perform }.to change { get_counter('events.removed', queue: 'alice') }.by(2)
     end
   end
 

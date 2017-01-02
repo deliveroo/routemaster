@@ -5,8 +5,8 @@ require 'routemaster/models/subscriber'
 require 'routemaster/mixins/redis'
 require 'routemaster/mixins/assert'
 require 'routemaster/mixins/log'
+require 'routemaster/mixins/counters'
 require 'routemaster/services/codec'
-require 'wisper'
 
 module Routemaster
   module Models
@@ -15,7 +15,7 @@ module Routemaster
       include Mixins::Redis
       include Mixins::Assert
       include Mixins::Log
-      include Wisper::Publisher
+      include Mixins::Counters
 
       Inconsistency    = Class.new(RuntimeError)
 
@@ -125,13 +125,13 @@ module Routemaster
           'batch_delete',
           keys: [_batch_key, _index_key, _batch_ref_key, _batch_gauge_key, _event_gauge_key],
           argv: [@uid, PREFIX_COUNT, subscriber_name])
-        broadcast(:events_removed, name: subscriber_name, count: count)
+        _counters.incr('events.removed', queue: subscriber_name, count: count)
         self
       end
 
 
       module ClassMethods
-        include Wisper::Publisher
+        include Mixins::Counters
 
         # Add the data to the subscriber's current batch. A new batch will be
         # created as needed. The batch will be promoted if it's full.
@@ -154,7 +154,7 @@ module Routemaster
               keys: [batch_ref_key, _batch_key(uid), _batch_key(alt_uid), _index_key, _batch_gauge_key, _event_gauge_key],
               argv: [uid, alt_uid, data, subscriber.name, PREFIX_COUNT, subscriber.max_events, now])
           
-          broadcast(:event_added, name: subscriber.name)
+          _counters.incr('events.added', queue: subscriber.name)
           new(subscriber: subscriber, uid: actual_uid, deadline: deadline)
         end
 

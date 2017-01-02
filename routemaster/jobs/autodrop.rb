@@ -2,7 +2,7 @@ require 'routemaster/jobs'
 require 'routemaster/models/database'
 require 'routemaster/models/subscriber'
 require 'routemaster/mixins/log'
-require 'wisper'
+require 'routemaster/mixins/counters'
 
 module Routemaster
   module Jobs
@@ -12,7 +12,7 @@ module Routemaster
     # until we're below the low-water mark.
     class Autodrop
       include Mixins::Log
-      include Wisper::Publisher
+      include Mixins::Counters
 
       BATCH_SIZE = 100
 
@@ -30,7 +30,7 @@ module Routemaster
           Models::Batch.all.take(@batch_size).each do |batch|
             n_messages += batch.length || 0
             n_batches += 1
-            broadcast(:auto_dropped_batch, name: batch.subscriber_name, count: batch.length)
+            _counters.incr('events.autodropped', queue: batch.subscriber_name, count: batch.length)
             batch.delete
           end
         end

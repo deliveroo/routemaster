@@ -1,5 +1,3 @@
-require 'wisper'
-
 module Routemaster
   def self.now
     (Time.now.utc.to_f * 1e3).to_i
@@ -7,10 +5,6 @@ module Routemaster
 
   def self.configure(**options)
     @_config = options
-
-    require 'routemaster/services/update_counters'
-    Routemaster::Services::UpdateCounters.instance.setup
-
     counters.incr('process', type: config[:process_type], status: 'start')
     self
   end

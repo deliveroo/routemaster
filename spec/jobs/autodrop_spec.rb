@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'spec/support/persistence'
-require 'spec/support/wisper'
+require 'spec/support/counters'
 require 'routemaster/jobs/autodrop'
 require 'routemaster/models/database'
 require 'routemaster/models/subscriber'
@@ -49,9 +49,8 @@ describe Routemaster::Jobs::Autodrop do
         expect { subject.call }.to change { Routemaster::Models::Batch.all.count }.by(-2)
       end
 
-      it 'broadcasts' do
-        expect { subject.call }.
-          to broadcast(:auto_dropped_batch, name: 'alice', count: 10)
+      it 'increments events.autodropped' do
+        expect { subject.call }.to change { get_counter('events.autodropped', queue: 'alice') }.from(0).to(10)
       end
     end
   end

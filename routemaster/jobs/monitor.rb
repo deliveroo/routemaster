@@ -44,7 +44,7 @@ module Routemaster
             @dispatcher.gauge('redis.high_mark',  db.high_mark,  @tags)
           end
 
-          Models::Counters.instance.dump.each_pair do |(name, *tags),value|
+          Models::Counters.instance.dump.each_pair do |(name, tags),value|
             @dispatcher.counter(name, value, @tags + tags.map { |t| t.join(':') })
           end
         end

@@ -41,18 +41,6 @@ Details on the services above:
   memory conditions.
 
 
-## Internal events
-
-We use the `wisper` gem as a process-local event bus. Conventionally, our event
-have a single hash as a payload. This is a catalog of such events.
-
-- `event_ingested(topic:)`
-- `event_added(name:)`
-- `events_removed(name:, count:)`
-- `delivery_failed(name:, count:)`
-- `delivery_succeeded(name:, count:)`
-- `auto_dropped_batch(name:, count:)`
-
 ## Event batch lifecycle
 
 All events get batched for delivery for a particular subscriber; the data model

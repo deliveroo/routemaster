@@ -40,8 +40,8 @@ describe Routemaster::Models::Counters do
 
     it 'returns tagged counters' do
       expect(subject.dump).to eq(
-        ['foo', ['bar', 1]] => 2,
-        ['foo', ['bar', 2]] => 1,
+        ['foo', bar: 1] => 2,
+        ['foo', bar: 2] => 1,
       )
     end
 

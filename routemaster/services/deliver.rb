@@ -1,11 +1,11 @@
 require 'routemaster/services'
 require 'routemaster/mixins/log'
 require 'routemaster/mixins/log_exception'
+require 'routemaster/mixins/counters'
 require 'faraday'
 require 'typhoeus'
 require 'typhoeus/adapters/faraday'
 require 'json'
-require 'wisper'
 
 module Routemaster
   module Services
@@ -13,7 +13,7 @@ module Routemaster
     class Deliver
       include Mixins::Log
       include Mixins::LogException
-      include Wisper::Publisher
+      include Mixins::Counters
 
       CONNECT_TIMEOUT = ENV.fetch('ROUTEMASTER_CONNECT_TIMEOUT').to_i
       TIMEOUT         = ENV.fetch('ROUTEMASTER_TIMEOUT').to_i
@@ -51,12 +51,12 @@ module Routemaster
           raise "HTTP #{response.status}" unless response.success?
         rescue RuntimeError, Faraday::Error::ClientError => e
           _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
-          broadcast(:delivery_failed, name: @subscriber.name, count: data.length)
+          _counters.incr('delivery', queue: @subscriber.name, count: data.length, status: 'failure')
           raise CantDeliver.new("#{e.class.name}: #{e.message}")
         end
 
         _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
-        broadcast(:delivery_succeeded, name: @subscriber.name, count: data.length)
+        _counters.incr('delivery', queue: @subscriber.name, count: data.length, status: 'success')
         true
       end
 

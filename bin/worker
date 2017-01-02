@@ -2,7 +2,6 @@
 
 require_relative '../config/bootstrap.rb'
 require 'routemaster/models/counters'
-require 'routemaster/services/update_counters'
 require 'routemaster/services/thread_group'
 require 'routemaster/services/worker'
 require 'routemaster/services/ticker'
@@ -14,8 +13,7 @@ Routemaster.configure(
   redis_pool_size: Integer(ENV.fetch('ROUTEMASTER_WORKER_THREADS')) + 2,
   process_type:    'worker',
 )
-# Routemaster::Services::UpdateCounters.instance.setup
-# Routemaster.counters.incr('process', type: 'worker', status: 'start')
+
 
 _log.info { 'creating thread group' }
 Routemaster::Services::ThreadGroup.new.tap do |group|
@@ -51,7 +49,7 @@ Routemaster::Services::ThreadGroup.new.tap do |group|
   group.wait
 end
 
-Routemaster.teardown
 
+Routemaster.teardown
 _log.info { 'job worker: completed' }
 Kernel.exit(0)

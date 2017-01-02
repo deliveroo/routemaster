@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'spec/support/persistence'
 require 'spec/support/events'
 require 'spec/support/webmock'
-require 'spec/support/wisper'
+require 'spec/support/counters'
 require 'timecop'
 require 'routemaster/services/deliver'
 require 'routemaster/models/subscriber'
@@ -36,9 +36,11 @@ describe Routemaster::Services::Deliver do
         to_return(status: callback_status, body: '')
     end
 
-    shared_examples 'a broadcaster' do |event, count|
-      it 'broadcasts' do
-        expect { perform rescue nil }.to broadcast(event, name: 'alice', count: count)
+    shared_examples 'an event counter' do |count, tag|
+      it 'increments delivery counter' do
+        expect { perform rescue nil }.to change { 
+          get_counter('delivery', tag.merge(queue: 'alice'))
+        }.by(count)
       end
     end
 
@@ -52,7 +54,7 @@ describe Routemaster::Services::Deliver do
         expect(@stub).to have_been_requested
       end
 
-      it_behaves_like 'a broadcaster', :delivery_succeeded, 0
+      it_behaves_like 'an event counter', 0, status: 'success'
     end
 
     context 'when there are events' do
@@ -87,14 +89,14 @@ describe Routemaster::Services::Deliver do
         expect(events.last['url']).to match(/\/3$/)
       end
 
-      it_behaves_like 'a broadcaster', :delivery_succeeded, 3
+      it_behaves_like 'an event counter', 3, status: 'success'
 
       shared_examples 'failure' do
         it "raises a CantDeliver exception" do
           expect { perform }.to raise_error(described_class::CantDeliver)
         end
 
-        it_behaves_like 'a broadcaster', :delivery_failed, 3
+        it_behaves_like 'an event counter', 3, status: 'failure'
       end
 
       context 'when the callback 500s' do

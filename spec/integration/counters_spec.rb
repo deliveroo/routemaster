@@ -1,6 +1,7 @@
 require 'spec_helper'
 require 'spec/support/integration'
 require 'spec/support/persistence'
+require 'spec/support/counters'
 require 'routemaster'
 
 describe 'Process counters', slow:true do
@@ -9,33 +10,32 @@ describe 'Process counters', slow:true do
 
   before { ENV['ROUTEMASTER_COUNTER_FLUSH_INTERVAL'] = '1' }
 
-  shared_examples 'start and stop' do |type_tag, count|
-    let(:counters) { Routemaster.counters.dump }
+  shared_examples 'start and stop' do |count, type_tag|
     before { subject.start }
     after  { subject.terminate }
 
     it 'starts cleanly' do
       subject.wait_start
       sleep 2 # enough time for the flusher thread to trigger
-      expect(counters[['process', %w[status start], type_tag]]).to eq(count)
+      expect(get_counter('process', type_tag.merge(status: 'start'))).to eq(count)
+      # FIXME: use wait_log to avoid the sleeping (proper integration)
     end
 
     it 'stops cleanly' do
       subject.wait_start
       subject.stop.wait_stop
-      expect(counters[['process', %w[status start], type_tag]]).to eq(count)
-      expect(counters[['process', %w[status stop],  type_tag]]).to eq(count)
+      expect(get_counter('process', type_tag.merge(status: 'stop'))).to eq(count)
     end
   end
 
   context 'watch worker' do
     subject { processes.watch }
-    include_examples 'start and stop', %w[type worker], 1
+    include_examples 'start and stop', 1, type: 'worker'
   end
 
   context 'web worker' do
     subject { processes.web }
-    include_examples 'start and stop', %w[type web], 2
+    include_examples 'start and stop', 2, type: 'web'
   end
 end
 
