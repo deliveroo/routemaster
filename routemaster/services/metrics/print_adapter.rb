@@ -14,7 +14,7 @@ module Routemaster
         end
 
         def gauge(name, value, tags)
-          _log.info("#{__method__}:#{name}:#{value} (#{tags.join(",")})")
+          _log.info("#{__callee__}:#{name}:#{value} (#{tags.join(",")})")
         end
 
         alias_method :counter, :gauge

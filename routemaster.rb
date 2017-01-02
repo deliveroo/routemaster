@@ -7,6 +7,16 @@ module Routemaster
 
   def self.configure(**options)
     @_config = options
+
+    require 'routemaster/services/update_counters'
+    Routemaster::Services::UpdateCounters.instance.setup
+
+    counters.incr('process', type: config[:process_type], status: 'start')
+    self
+  end
+
+  def self.teardown
+    counters.incr('process', type: config[:process_type], status: 'stop').finalize
   end
 
   def self.config

@@ -184,6 +184,11 @@ The following gauge metrics will be reported every 10 seconds:
 
 as well as the following counter metrics:
 
+- `events.published` (tagged by topic)
+- `events.autodropped` (tagged by subscriber)
+- `events.removed` (idem)
+- `events.added` (idem)
+- `delivery` (one count per event, tagged by status and by subscriber)
 - `process` (tagged with `status:start` or `:stop`, and `type:web` or
   `:worker`), incremented when processes boot or shut down (cleanly)
 

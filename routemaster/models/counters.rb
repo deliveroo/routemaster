@@ -31,6 +31,7 @@ module Routemaster
       # The local increments will be flushed to Redis regularly in another
       # thread.
       def incr(name, count: 1, **tags)
+        _log.warn { "incrementing #{name} (#{tags.inspect})" }
         _autostart
         @data.synchronize do
           @data[[name, tags]] += count
@@ -41,6 +42,7 @@ module Routemaster
       # Flush the counters in memory by incrementing persistent storage and
       # reset them.
       def flush
+        _log.debug { 'flushing counters buffer' }
         data = @data.synchronize { @data.dup.tap { @data.clear } }
         data.keys.each do |k|
           data[_field(*k)] = data.delete(k)
@@ -85,7 +87,6 @@ module Routemaster
           @data.synchronize { @cv.wait(_flush_interval) }
           flush
         end
-        _log.info { 'flushing counters buffer' }
         flush
       end
 

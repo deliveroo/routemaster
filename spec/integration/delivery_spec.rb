@@ -68,7 +68,28 @@ describe 'Event delivery', type: :acceptance, slow: true do
     5.times do |index|
       client.created('cats', "https://example.com/cats/#{index}")
     end
-    # binding.pry
     processes.watch.wait_log %r{delivered 5 events}
   end
+
+  it 'emits ingestion metrics' do
+    client.created('cats', 'https://example.com/cats/1')
+    client.created('cats', 'https://example.com/cats/2')
+    client.created('cats', 'https://example.com/cats/3')
+    processes.watch.wait_log %r(counter:events.published:3.*topic:cats)
+  end
+
+  it 'emits queueing metrics' do
+    subscribe
+    client.created('cats', 'https://example.com/cats/2')
+    client.created('cats', 'https://example.com/cats/3')
+    processes.watch.wait_log %r(counter:events.added:2.*queue:demo)
+  end
+
+  it 'emits delivery metrics' do
+    subscribe
+    client.created('cats', 'https://example.com/cats/2')
+    client.created('cats', 'https://example.com/cats/3')
+    processes.watch.wait_log %r(counter:delivery:2.*queue:demo)
+  end
 end
+
