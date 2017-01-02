@@ -1,3 +1,5 @@
+require 'wisper'
+
 module Routemaster
   def self.now
     (Time.now.utc.to_f * 1e3).to_i
@@ -24,6 +26,13 @@ module Routemaster
     @_aux_queue ||= begin
       require 'routemaster/models/queue'
       Models::Queue.new(name: 'aux')
+    end
+  end
+
+  def self.counters
+    @_counters ||= begin
+      require 'routemaster/models/counters'
+      Models::Counters.instance
     end
   end
 end

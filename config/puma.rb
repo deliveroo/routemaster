@@ -200,3 +200,10 @@ worker_boot_timeout Integer(ENV.fetch('PUMA_BOOT_TIMEOUT'))
 # activate_control_app 'unix:///var/run/pumactl.sock', { auth_token: '12345' }
 # activate_control_app 'unix:///var/run/pumactl.sock', { no_token: true }threads 4,16
 
+on_worker_boot do
+  Routemaster.counters.incr('process', type: 'web', status: 'start')
+end
+
+on_worker_shutdown do
+  Routemaster.counters.incr('process', type: 'web', status: 'stop').finalize
+end

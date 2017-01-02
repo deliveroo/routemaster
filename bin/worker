@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require_relative '../config/bootstrap.rb'
+require 'routemaster/models/counters'
 require 'routemaster/services/thread_group'
 require 'routemaster/services/worker'
 require 'routemaster/services/ticker'
@@ -13,6 +14,7 @@ Routemaster.configure(
   # the tickers to enqueue their jobs
   redis_pool_size: Integer(ENV.fetch('ROUTEMASTER_WORKER_THREADS')) + 2
 )
+Routemaster.counters.incr('process', type: 'worker', status: 'start')
 
 _log.info { 'creating thread group' }
 Routemaster::Services::ThreadGroup.new.tap do |group|
@@ -47,6 +49,8 @@ Routemaster::Services::ThreadGroup.new.tap do |group|
   _log.info { 'job worker: started' }
   group.wait
 end
+
+Routemaster.counters.incr('process', type: 'worker', status: 'stop').finalize
 
 _log.info { 'job worker: completed' }
 Kernel.exit(0)
