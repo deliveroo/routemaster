@@ -1,16 +1,18 @@
 require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/jobs/monitor'
+require 'routemaster/services/metrics/emit'
 
 describe Routemaster::Jobs::Monitor do
-  let(:dispatcher) { instance_double 'Routemaster::Services::DeliverMetric' }
+  let(:dispatcher) { instance_double Routemaster::Services::Metrics::Emit }
   subject { described_class.new(dispatcher: dispatcher) }
 
   before do
-    @events = []
-    allow(dispatcher).to receive(:call) do |*args|
-      @events << args
-    end
+    @gauges = []
+    @counters = []
+    allow(dispatcher).to receive(:gauge)   { |*args| @gauges   << args }
+    allow(dispatcher).to receive(:counter) { |*args| @counters << args }
+    allow(dispatcher).to receive(:batched).and_yield
 
     allow(Routemaster::Models::Batch).to receive(:gauges).and_return(
       batches: {
@@ -32,19 +34,21 @@ describe Routemaster::Jobs::Monitor do
     end
   end
 
-  describe 'dispatches metrics' do
+  describe 'dispatches gauges' do
     before { subject.call }
 
-    it { expect(@events).to include(['subscriber.queue.batches', 1,  array_including('subscriber:alice')]) }
-    it {expect(@events).to include(['subscriber.queue.batches', 4,  array_including('subscriber:bob')]) }
-    it {expect(@events).to include(['subscriber.queue.events',  12, array_including('subscriber:alice')]) }
-    it {expect(@events).to include(['subscriber.queue.events',  42, array_including('subscriber:bob')]) }
+    it { expect(@gauges).to include(['subscriber.queue.batches',  1, array_including('subscriber:alice')]) }
+    it { expect(@gauges).to include(['subscriber.queue.batches',  4, array_including('subscriber:bob')]) }
+    it { expect(@gauges).to include(['subscriber.queue.events',  12, array_including('subscriber:alice')]) }
+    it { expect(@gauges).to include(['subscriber.queue.events',  42, array_including('subscriber:bob')]) }
 
-    it {expect(@events).to include(['jobs.count', 2, %w[env:test app:routemaster-dev queue:foo status:instant]]) }
-    it {expect(@events).to include(['jobs.count', 1, %w[env:test app:routemaster-dev queue:foo status:scheduled]]) }
+    it { expect(@gauges).to include(['jobs.count', 2, array_including(%w[queue:foo status:instant])]) }
+    it { expect(@gauges).to include(['jobs.count', 1, array_including(%w[queue:foo status:scheduled])]) }
 
-    it {expect(@events).to include(['redis.bytes_used', a_kind_of(Fixnum), a_kind_of(Array)]) }
-    it {expect(@events).to include(['redis.low_mark',   a_kind_of(Fixnum), a_kind_of(Array)]) }
-    it {expect(@events).to include(['redis.high_mark',  a_kind_of(Fixnum), a_kind_of(Array)]) }
+    it { expect(@gauges).to include(['redis.bytes_used', a_kind_of(Fixnum), a_kind_of(Array)]) }
+    it { expect(@gauges).to include(['redis.low_mark',   a_kind_of(Fixnum), a_kind_of(Array)]) }
+    it { expect(@gauges).to include(['redis.high_mark',  a_kind_of(Fixnum), a_kind_of(Array)]) }
+  end
+
   end
 end

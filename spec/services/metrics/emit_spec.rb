@@ -1,14 +1,10 @@
 require 'spec_helper'
-require 'routemaster/services/deliver_metric'
 require 'spec/support/env'
+require 'routemaster/services/metrics/emit'
+require 'routemaster/services/metrics/print_adapter'
+require 'routemaster/services/metrics/datadog_adapter'
 
-describe Routemaster::Services::DeliverMetric do
-  # predeclare classes so we can actually test loading
-  module Routemaster::Services::MetricsCollectors
-    Print = Class.new
-    Datadog = Class.new
-  end
-
+describe Routemaster::Services::Metrics::Emit do
   shared_examples 'delivery' do
     before { ENV['METRIC_COLLECTION_SERVICE'] = name }
 
@@ -17,20 +13,20 @@ describe Routemaster::Services::DeliverMetric do
     end
 
     it 'dispatches to the delivery service' do 
-      expect(service).to receive(:perform).with('my.metric', 1234, ['foo:bar'])
-      subject.call('my.metric', 1234, ['foo:bar'])
+      expect(service).to receive(:gauge).with('my.metric', 1234, ['foo:bar'])
+      subject.gauge('my.metric', 1234, ['foo:bar'])
     end
   end
   
   context 'when using logs' do
-    let(:service) { Routemaster::Services::MetricsCollectors::Print.instance }
+    let(:service) { Routemaster::Services::Metrics::PrintAdapter.instance }
     let(:name) { 'print' }
 
     include_examples 'delivery'
   end
 
   context 'when using datadog' do
-    let(:service) { Routemaster::Services::MetricsCollectors::Datadog.instance }
+    let(:service) { Routemaster::Services::Metrics::DatadogAdapter.instance }
     let(:name) { 'datadog' }
 
     before do
