@@ -21,10 +21,12 @@ module Routemaster
 
       # Stops the buffering thread and flushes the buffer
       def finalize
-        return self unless @running
-        _log.info { 'finalizing counters buffer' }
-        @running = false
-        @data.synchronize { @cv.broadcast }
+        @data.synchronize do
+          return self unless @running
+          _log.info { 'finalizing counters buffer' }
+          @running = false
+          @cv.broadcast
+        end
         @thread.join
         @thread = nil
         self
@@ -74,8 +76,10 @@ module Routemaster
       private
 
       def _autostart
-        return if @running
-        @running  = true
+        @data.synchronize do
+          return if @running
+          @running = true
+        end
         @thread = Thread.new(&method(:_flusher_thread))
         Thread.pass
       end
