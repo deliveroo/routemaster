@@ -12,10 +12,11 @@ module Routemaster
 
           require "routemaster/services/metrics/#{service}_adapter"
 
-          @adapter = case service
+          @adapter =
+            case service
             when 'print'   then Metrics::PrintAdapter.instance
             when 'datadog' then Metrics::DatadogAdapter.instance
-          end
+            end
         end
 
         delegate %i[batched counter gauge] => :@adapter
