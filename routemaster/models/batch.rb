@@ -164,8 +164,7 @@ module Routemaster
 
 
         def scrub
-          # TODO:
-          # iterate over all batches so the caller can enqueue them
+          raise NotImplementedError
         end
 
 
