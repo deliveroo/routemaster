@@ -62,8 +62,6 @@ group :development do
   gem 'guard-rspec',    require: false
   # testing outbound HTTP
   gem 'webmock',        require: false
-  # support time-dependent tests
-  gem 'timecop',        require: false
   # better REPL
   gem 'pry-byebug'
   gem 'pry-remote'
