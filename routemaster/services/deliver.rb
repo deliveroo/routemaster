@@ -68,8 +68,8 @@ module Routemaster
         @_conn ||= Faraday.new(@subscriber.callback, ssl: { verify: _verify_ssl? }) do |c|
           c.adapter :typhoeus
           c.basic_auth(@subscriber.uuid, 'x')
-          c.options[:open_timeout] = CONNECT_TIMEOUT
-          c.options[:timeout] = TIMEOUT
+          c.options.open_timeout = CONNECT_TIMEOUT
+          c.options.timeout      = TIMEOUT
         end
       end
 

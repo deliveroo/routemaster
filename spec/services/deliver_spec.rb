@@ -3,10 +3,10 @@ require 'spec/support/persistence'
 require 'spec/support/events'
 require 'spec/support/webmock'
 require 'spec/support/counters'
-require 'timecop'
+# require 'timecop'
 require 'routemaster/services/deliver'
 require 'routemaster/models/subscriber'
-
+require 'timeout'
 
 describe Routemaster::Services::Deliver do
   let(:buffer) { Array.new }
@@ -26,7 +26,9 @@ describe Routemaster::Services::Deliver do
   end
 
   describe '#call' do
-    let(:perform) { subject.call }
+    let(:perform) do
+      Timeout.timeout(5) { subject.call }
+    end
     let(:callback_status) { 204 }
 
     before do
@@ -119,15 +121,17 @@ describe Routemaster::Services::Deliver do
         before { WebMock.disable! }
 
         context 'when delivery times out' do
+          let(:q) { Queue.new }
           let!(:listening_thread) do
             Thread.new do
               s = TCPServer.new port
               s.accept
+              q.pop
               s.close
             end
           end
 
-          after { listening_thread.join }
+          after { q.push :done ; listening_thread.join }
 
           it_behaves_like 'failure'
         end
