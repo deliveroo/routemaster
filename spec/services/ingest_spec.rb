@@ -57,7 +57,7 @@ module Routemaster
 
     it 'promotes delivery job if batch full' do
       perform
-      expect(queue.dump.select { |j| j.run_at.nil? }).not_to be_empty
+      expect(queue.jobs.select { |j| j.run_at.nil? }).not_to be_empty
     end
 
     it 'promotes batch job if batch full' do

@@ -28,7 +28,7 @@ module Routemaster
         # loop through queues, removing messages
         until @database.empty_enough?
           Models::Batch.all.take(@batch_size).each do |batch|
-            n_messages += batch.length || 0
+            n_messages += batch.length
             n_batches += 1
             _counters.incr('events.autodropped', queue: batch.subscriber_name, count: batch.length)
             batch.delete

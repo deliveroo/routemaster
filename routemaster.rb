@@ -3,10 +3,14 @@ module Routemaster
     (Time.now.utc.to_f * 1e3).to_i
   end
 
+  DEFAULTS = {
+    redis_pool_size: 1,
+    process_type:    'unknown',
+  }.freeze
+
   def self.configure(**options)
-    @_config = options
+    @_config = DEFAULTS.merge(options)
     counters.incr('process', type: config[:process_type], status: 'start')
-    self
   end
 
   def self.teardown
@@ -14,9 +18,7 @@ module Routemaster
   end
 
   def self.config
-    {
-      redis_pool_size: 1
-    }.merge(@_config || {})
+    @_config || DEFAULTS
   end
 
   def self.batch_queue

@@ -26,7 +26,7 @@ module Routemaster
       attr_reader :uid, :deadline
 
 
-      def initialize(uid:, deadline:nil, subscriber:nil)
+      def initialize(uid:, deadline: nil, subscriber: nil)
         @uid        = uid
         @deadline   = deadline
         @subscriber = subscriber
@@ -49,7 +49,7 @@ module Routemaster
       def length
         @_length ||= begin
           raw = _redis.llen(_batch_key)
-          return if raw.nil? || raw.zero?
+          return 0 if raw.nil? || raw.zero?
           raise Inconsistency, @uid if raw < PREFIX_COUNT
           raw - PREFIX_COUNT
         end
@@ -62,8 +62,15 @@ module Routemaster
       end
 
 
+      # Is this batch deliverable?
+      def valid?
+        subscriber && data&.any?
+      end
+
+
+      # Has the batch reached capacity?
       def full?
-        length && length >= subscriber.max_events
+        length && subscriber && length >= subscriber.max_events
       end
 
 
@@ -87,11 +94,12 @@ module Routemaster
       end
 
 
-      # Returns the list of (serialised) payloads in the batch
+      # Returns the list of (serialised) payloads in the batch.
+      # Memoised.
       # 
       # It is not an error if the batch no longer exists.
       def data
-        _redis.lrange(_batch_key, PREFIX_COUNT, -1)
+        @_data ||= _redis.lrange(_batch_key, PREFIX_COUNT, -1)
       end
 
 
@@ -167,11 +175,6 @@ module Routemaster
         end
 
 
-        def scrub
-          raise NotImplementedError
-        end
-
-
         def all
           Iterator.new
         end
@@ -232,7 +235,7 @@ module Routemaster
           @batch_size = batch_size
         end
 
-        # Yied all know batches, in creation order.
+        # Yields all know batches, in creation order.
         def each
           _redis.zscan_each(Batch.send(:_index_key), count: @batch_size) do |uid, score|
             yield Batch.new(uid: uid, deadline: score)

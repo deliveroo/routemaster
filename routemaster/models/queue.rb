@@ -30,7 +30,7 @@ module Routemaster
 
       # Returns a list of all queued jobs.
       # Only use this for testing.
-      def dump
+      def jobs
         [].tap do |result|
           _redis.lrange(_queue_key, 0, -1).each do |raw|
             result << Job.load(raw)
@@ -43,9 +43,10 @@ module Routemaster
 
       
       # Returns the job currently being run by `worker_id`.
-      def running(worker_id)
+      # Empty if no jobs are running, or the worker isn't known.
+      def running_jobs(worker_id)
         raw = _redis.lrange(_pending_key(worker_id), 0, 0)
-        return unless raw
+        return [] unless raw
         raw.map { |x| Job.load(x) }
       end
 
@@ -93,7 +94,6 @@ module Routemaster
         return if job_data.nil?
 
         job = Job.load(job_data)
-        # _log.debug { "queue.#{@name} yiedling #{job.inspect}" }
         yield job
 
         _redis_lua_run(
