@@ -234,13 +234,13 @@ describe Routemaster::Models::Queue do
 
     it 'unmarks the job as pending' do
       expect { perform }.to change { 
-        subject.running('foo')
+        subject.running_jobs('foo')
       }.from([job1]).to([])
     end
 
     it 'does not affect non-running workers' do
       expect { perform }.not_to change {
-        subject.running('qux')
+        subject.running_jobs('qux')
       }
     end
   end

@@ -68,7 +68,7 @@ describe 'Event delivery', type: :acceptance do
     5.times do |index|
       client.created('cats', "https://example.com/cats/#{index}")
     end
-    # binding.pry
+
     processes.watch.wait_log %r{delivered 5 events}
   end
 end

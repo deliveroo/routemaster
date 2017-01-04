@@ -7,7 +7,7 @@ require 'spec/support/persistence'
 
 describe Routemaster::Jobs::Autodrop do
   subject { described_class.new(batch_size: 2, database: database) }
-  let(:database) { double 'database' }
+  let(:database) { instance_double Routemaster::Models::Database }
   let(:too_full) {[ false ]}
   let(:empty_enough) {[ true ]}
 

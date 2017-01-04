@@ -5,7 +5,7 @@ require 'spec/support/dummy'
 require 'spec/support/env'
 require 'routemaster/jobs/batch'
 require 'routemaster/services/codec'
-# require 'routemaster/services/deliver'
+require 'routemaster/services/deliver'
 
 module Routemaster
   describe Jobs::Batch do
@@ -17,7 +17,7 @@ module Routemaster
       end
     }
     let(:messages) { [make_event, make_event] }
-    let(:delivery) { double 'delivery', call:nil }
+    let(:delivery) { double 'delivery', call: nil }
     let(:perform) { 
       begin
         subject.call(batch.uid)
@@ -40,6 +40,7 @@ module Routemaster
     end
 
     describe '#call' do
+      it { subject.call(batch.uid) }
       it { expect { perform }.not_to change { @error } }
 
       it 'attempts delivery' do

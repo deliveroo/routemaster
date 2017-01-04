@@ -26,7 +26,7 @@ module Routemaster
       attr_reader :uid, :deadline
 
 
-      def initialize(uid:, deadline:nil, subscriber:nil)
+      def initialize(uid:, deadline: nil, subscriber: nil)
         @uid        = uid
         @deadline   = deadline
         @subscriber = subscriber
@@ -163,11 +163,6 @@ module Routemaster
         end
 
 
-        def scrub
-          raise NotImplementedError
-        end
-
-
         def all
           Iterator.new
         end
@@ -233,7 +228,7 @@ module Routemaster
           @batch_size = batch_size
         end
 
-        # Yied all know batches, in creation order.
+        # Yields all know batches, in creation order.
         def each
           _redis.zscan_each(Batch.send(:_index_key), count: @batch_size) do |uid, score|
             yield Batch.new(uid: uid, deadline: score)

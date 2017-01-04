@@ -25,10 +25,10 @@ Controllers use a variety of models to perform, in a traditional MVC approach.
 
 ### Worker process
 
-This process (of which multiuple instances can be run) executes a number of
+This process (of which multiple instances can be run) executes a number of
 threads concurrently.
 
-- A group a `ROUTEMASTER_WORKER_THREADS` threads runs the `main` job queue
+- A group of `ROUTEMASTER_WORKER_THREADS` threads runs the `main` job queue
   which delivers batches.
 - A single thread executes non-delivery jobs from the `aux` queue (monitoring,
   auto-dropping, promotion of scheduled jobs)
