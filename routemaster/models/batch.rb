@@ -90,11 +90,12 @@ module Routemaster
       end
 
 
-      # Returns the list of (serialised) payloads in the batch
+      # Returns the list of (serialised) payloads in the batch.
+      # Memoised.
       # 
       # It is not an error if the batch no longer exists.
       def data
-        _redis.lrange(_batch_key, PREFIX_COUNT, -1)
+        @_data ||= _redis.lrange(_batch_key, PREFIX_COUNT, -1)
       end
 
 
