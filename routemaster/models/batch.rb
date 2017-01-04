@@ -45,7 +45,7 @@ module Routemaster
       def length
         @_length ||= begin
           raw = _redis.llen(_batch_key)
-          return if raw.nil? || raw.zero?
+          return 0 if raw.nil? || raw.zero?
           raise Inconsistency, @uid if raw < PREFIX_COUNT
           raw - PREFIX_COUNT
         end
@@ -58,8 +58,15 @@ module Routemaster
       end
 
 
+      # Is this batch deliverable?
+      def valid?
+        subscriber && data&.any?
+      end
+
+
+      # Has the batch reached capacity?
       def full?
-        length && length >= subscriber.max_events
+        length && subscriber && length >= subscriber.max_events
       end
 
 

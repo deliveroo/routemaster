@@ -30,7 +30,7 @@ module Routemaster
 
       # Returns a list of all queued jobs.
       # Only use this for testing.
-      def dump
+      def jobs
         [].tap do |result|
           _redis.lrange(_queue_key, 0, -1).each do |raw|
             result << Job.load(raw)

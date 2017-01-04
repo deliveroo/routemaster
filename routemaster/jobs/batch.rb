@@ -22,7 +22,7 @@ module Routemaster
         data = batch.data
 
         # handle unsubscription, autodrop
-        if subscriber.nil? || data.nil? || data.empty?
+        unless batch.valid?
           batch.delete
           return self
         end
