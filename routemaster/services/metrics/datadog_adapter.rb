@@ -28,7 +28,7 @@ module Routemaster
 
         def gauge(name, value, tags)
           synchronize do
-            @dog.emit_point(name, value, tags: tags, type: __callee__.to_s)
+            @dog.emit_point("routemaster.#{name}", value, tags: tags, type: __callee__.to_s)
           end
         end
 
