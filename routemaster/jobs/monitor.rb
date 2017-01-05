@@ -38,10 +38,12 @@ module Routemaster
           end
 
           Models::Database.instance.tap do |db|
-            @dispatcher.gauge('redis.bytes_used', db.bytes_used, @tags)
-            @dispatcher.gauge('redis.max_mem',    db.max_mem,    @tags)
-            @dispatcher.gauge('redis.low_mark',   db.low_mark,   @tags)
-            @dispatcher.gauge('redis.high_mark',  db.high_mark,  @tags)
+            @dispatcher.gauge('redis.bytes_used',    db.bytes_used,     @tags)
+            @dispatcher.gauge('redis.max_mem',       db.max_mem,        @tags)
+            @dispatcher.gauge('redis.low_mark',      db.low_mark,       @tags)
+            @dispatcher.gauge('redis.high_mark',     db.high_mark,      @tags)
+            @dispatcher.gauge('redis.used_cpu_sys',  db.used_cpu_sys,   @tags)
+            @dispatcher.gauge('redis.used_cpu_user', db.used_cpu_user,  @tags)
           end
 
           Models::Counters.instance.dump.each_pair do |(name, tags),value|

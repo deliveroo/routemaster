@@ -36,6 +36,12 @@ module Routemaster
       def min_free
         ENV.fetch('ROUTEMASTER_REDIS_MIN_FREE').to_i
       end
+
+      def used_cpu_sys
+        _redis.info('cpu')[__callee__].to_f
+      end
+
+      alias_method :used_cpu_user, :used_cpu_sys
     end
   end
 end
