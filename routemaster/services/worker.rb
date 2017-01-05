@@ -14,7 +14,7 @@ module Routemaster
 
       attr_reader :id
 
-      def initialize(id: nil, queue:)
+      def initialize(id: nil, queue: nil)
         @id = id || SecureRandom.urlsafe_base64(15)
         @queue = queue
       end
@@ -38,6 +38,16 @@ module Routemaster
         raw = _redis.hget(_index_key, @id)
         return if raw.nil?
         Integer(raw)
+      end
+
+      def ==(other)
+        other.kind_of?(self.class) && other.id == @id
+      end
+
+      def self.each
+        _redis.hkeys('workers').each do |id|
+          yield new(id: id)
+        end
       end
 
       private

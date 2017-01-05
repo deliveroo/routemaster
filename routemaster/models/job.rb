@@ -1,6 +1,7 @@
 require 'routemaster/models'
 require 'routemaster/mixins/redis'
 require 'msgpack'
+require 'core_ext/string'
 
 module Routemaster
   module Models
@@ -17,7 +18,7 @@ module Routemaster
 
       def perform
         require "routemaster/jobs/#{@name}"
-        Routemaster::Jobs.const_get(@name.capitalize).new.call(*@args)
+        Routemaster::Jobs.const_get(@name.camelize).new.call(*@args)
       end
 
       def dump
