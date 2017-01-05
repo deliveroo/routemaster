@@ -126,23 +126,33 @@ describe Routemaster::Services::Deliver do
       end
 
       context 'with fake local server', slow: true do
-        let(:port) { 12024 }
+        let(:port) { 1024 + rand(30_000) }
         let(:callback) { "https://127.0.0.1:#{port}/callback" }
 
         before { WebMock.disable! }
 
         context 'when delivery times out' do
           let(:q) { Queue.new }
-          let!(:listening_thread) do
+          let(:listening_thread) do
             Thread.new do
+              Thread.current.abort_on_exception = true
               s = TCPServer.new port
+              q.push :started
               s.accept
               q.pop
               s.close
             end
           end
 
-          after { q.push :done ; listening_thread.join }
+          before do
+            listening_thread
+            q.pop # wait for server to start
+          end
+
+          after do
+            q.push :done
+            listening_thread.join # wait for server to complete
+          end
 
           it_behaves_like 'failure'
         end
