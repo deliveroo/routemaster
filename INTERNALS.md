@@ -2,13 +2,11 @@
 
 Routemaster runs as 3 processes (see `Procfile`):
 
-- `web`, which serves the HTTP API. In particular, it receives events and stores
-  them in Redis.
+- `web`, which serves the HTTP API. In particular, it ingests events, stores
+  them in batches per subscriber (in Redis), and schedules delivery jobs.
 
-- `watch`, which listens to Redis for events and eventually dispatches them
-  to subscribers over HTTP.
-
-- `monitor`, which runs scheduled tasks.
+- `worker`, which runs asynchronous jobs - both event batch delivery to
+  subscribers, and scheduled jobs like delivery of monitoring telemetry.
 
 ### Web process
 
@@ -20,7 +18,8 @@ Serves endpoints through 3 controllers:
 - `Subscription`, to create subscriptions;
 - `Topic`, to post events.
 
-Controllers use a variety of models to perform, in a traditional MVC approach.
+Controllers use a variety of service classes models to perform, in a traditional
+MVC approach.
 
 
 ### Worker process
@@ -30,15 +29,16 @@ threads concurrently.
 
 - A group of `ROUTEMASTER_WORKER_THREADS` threads runs the `main` job queue
   which delivers batches.
-- A single thread executes non-delivery jobs from the `aux` queue (monitoring,
-  auto-dropping, promotion of scheduled jobs)
+- A single thread executes non-delivery jobs from the `aux` queue
 - A number of ticker threads schedule auxilliary jobs.
 
-Details on the services above:
+Jobs include:
 
-- `Monitor` delivers gauge metrics to metric adapters;
-- `Autodrop` automatically removes the oldest messages from queues under low
-  memory conditions.
+- `Batch` delivers a batch of events to a subscriber over HTTP.
+- `Monitor` delivers telemetry to metric adapters.
+- `Autodrop` automatically deletes the oldest batches under low memory
+  conditions.
+- `Schedule` promotes scheduled (deferred) jobs to the main job queue.
 
 
 ## Internal events
@@ -61,7 +61,7 @@ at most one _current_ batch which receives new events, although in edge cases
 (high concurrency) more than one current batch might get created.
 
 When the batch is either full or stale, it gets promoted to _ready_ - another
-_current_ batch may then be created which the first awaits delivery.
+_current_ batch may then be created while the first awaits delivery.
 
 Finally, batches get deleted once they have been delivered; or when the
 auto-dropper removes them (because the system is running out of storage space).
@@ -138,7 +138,8 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
 `topic:{name}`
 
   A hash containing metadata has about a topic. Keys:
-  - `publisher`: the UUID of the (singly authorized) publisher
+  - `publisher`: the UUID of the authorized publisher (only one publisher can
+    emit events for a given topic)
   - `counter`: the cumulative number of events received
 
 `subscriber:{token}`
@@ -188,10 +189,10 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
 
 `jobs:scheduled:{q}` (sorted set)
 
-  Jobs scheduled for later execution, scored by their deadline timestamp.
-  Jobs a represented as above.
+  Jobs scheduled for later execution on the queue named `{q}`, scored by their
+  deadline timestamp.  Jobs are represented as above.
 
-`jobs:queue:{q}` (list)
+`jobs:instant:{q}` (list)
 
   Jobs in the "instant" state, for immediate execution.
 
@@ -199,6 +200,8 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
 
   A list of at most 1 element, containing the job currently being processed by
   worker `{worker}`.
+  NB: this is represented as a list so that atomic operations can be used (eg.
+  `BRPOPLPUSH`) and no jobs ever get lost.
 
 `workers` (hash)
 
