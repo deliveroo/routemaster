@@ -4,8 +4,6 @@ require 'routemaster/models/subscriber'
 require 'spec/support/persistence'
 require 'spec/support/events'
 require 'spec/support/webmock'
-require 'timecop'
-
 
 describe Routemaster::Services::Deliver do
   let(:buffer) { Array.new }
@@ -98,26 +96,38 @@ describe Routemaster::Services::Deliver do
         it_behaves_like 'failure'
       end
 
-      context 'with fake local server' do
-        let(:port) { 12024 }
+      context 'with fake local server', slow: true do
+        let(:port) { 1024 + rand(30_000) }
         let(:callback) { "https://127.0.0.1:#{port}/callback" }
 
         before { WebMock.disable! }
 
         context 'when delivery times out' do
-          let!(:listening_thread) do
+          let(:q) { Queue.new }
+          let(:listening_thread) do
             Thread.new do
+              Thread.current.abort_on_exception = true
               s = TCPServer.new port
+              q.push :started
               s.accept
             end
           end
 
-          after { listening_thread.join }
+          before do
+            listening_thread
+            q.pop # wait for server to start
+          end
+
+          after do
+            q.push :done
+            listening_thread.join # wait for server to complete
+          end
 
           it_behaves_like 'failure'
         end
 
         context 'when connection fails' do
+          # no server thread started here
           it_behaves_like 'failure'
         end
       end
