@@ -175,7 +175,7 @@ module Routemaster
       end
 
       def _queue_key
-        "jobs:queue:#{@name}"
+        "jobs:instant:#{@name}"
       end
 
       def _index_key

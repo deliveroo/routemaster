@@ -5,7 +5,6 @@ require 'spec/support/webmock'
 require 'spec/support/counters'
 require 'routemaster/services/deliver'
 require 'routemaster/models/subscriber'
-require 'timeout'
 
 describe Routemaster::Services::Deliver do
   let(:buffer) { Array.new }
@@ -25,9 +24,7 @@ describe Routemaster::Services::Deliver do
   end
 
   describe '#call' do
-    let(:perform) do
-      Timeout.timeout(5) { subject.call }
-    end
+    let(:perform) { subject.call }
     let(:callback_status) { 204 }
 
     before do

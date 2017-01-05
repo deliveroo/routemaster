@@ -34,7 +34,7 @@ describe Routemaster::Services::Metrics::DatadogAdapter do
         expect_any_instance_of(Dogapi::Client).
           to receive(:emit_point).
           with(
-            'test.metric',
+            'routemaster.test.metric',
             10.5,
             tags: %w[app:routemaster env:test],
             type: 'gauge'
