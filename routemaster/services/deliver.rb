@@ -32,23 +32,13 @@ module Routemaster
       def call
         _log.debug { "starting delivery to '#{@subscriber.name}'" }
 
-        # assemble data
-        data = @buffer.map do |event|
-          {
-            topic: event.topic,
-            type:  event.type,
-            url:   event.url,
-            t:     event.timestamp
-          }
-        end
-
         error = nil
         start_at = Routemaster.now
         begin
           # send data
           response = _conn.post do |post|
             post.headers['Content-Type'] = 'application/json'
-            post.body = data.to_json
+            post.body = _data.to_json
           end
           error = CantDeliver.new("HTTP #{response.status}") unless response.success?
         rescue Faraday::Error::ClientError => e
@@ -58,10 +48,10 @@ module Routemaster
         t = Routemaster.now - start_at
         status = error ? 'failure' : 'success'
 
-        _counters.incr('delivery.events',  queue: @subscriber.name, count: data.length, status: status)
-        _counters.incr('delivery.batches', queue: @subscriber.name, count: 1,           status: status)
-        _counters.incr('delivery.time',    queue: @subscriber.name, count: t,           status: status)
-        _counters.incr('delivery.time2',   queue: @subscriber.name, count: t*t,         status: status)
+        _counters.incr('delivery.events',  queue: @subscriber.name, count: _data.length, status: status)
+        _counters.incr('delivery.batches', queue: @subscriber.name, count: 1,            status: status)
+        _counters.incr('delivery.time',    queue: @subscriber.name, count: t,            status: status)
+        _counters.incr('delivery.time2',   queue: @subscriber.name, count: t*t,          status: status)
         
         if error
           _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
@@ -76,6 +66,19 @@ module Routemaster
       private
 
 
+      # assemble data
+      def _data
+        @_data ||= @buffer.map do |event|
+          {
+            topic: event.topic,
+            type:  event.type,
+            url:   event.url,
+            t:     event.timestamp
+          }
+        end
+      end
+
+
       def _conn
         @_conn ||= Faraday.new(@subscriber.callback, ssl: { verify: _verify_ssl? }) do |c|
           c.adapter :typhoeus
@@ -84,6 +87,7 @@ module Routemaster
           c.options.timeout      = TIMEOUT
         end
       end
+
 
       def _verify_ssl?
         !!( ENV.fetch('ROUTEMASTER_SSL_VERIFY') =~ /^(true|on|yes|1)$/i )
