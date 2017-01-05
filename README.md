@@ -192,6 +192,7 @@ as well as the following counter metrics:
     - `delivery.events` (one count per event)
     - `delivery.batches` (one count per batch)
     - `delivery.time` (sum of delivery times in milliseconds)
+    - `delivery.time2` (sum of delivery times squared)
 - `process` (tagged with `status:start` or `:stop`, and `type:web` or
   `:worker`), incremented when processes boot or shut down (cleanly)
 
