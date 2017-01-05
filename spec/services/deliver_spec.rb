@@ -38,10 +38,22 @@ describe Routemaster::Services::Deliver do
     end
 
     shared_examples 'an event counter' do |count, tag|
-      it 'increments delivery counter' do
+      it 'increments delivery.events counter' do
         expect { perform rescue nil }.to change { 
-          get_counter('delivery', tag.merge(queue: 'alice'))
+          get_counter('delivery.events', tag.merge(queue: 'alice'))
         }.by(count)
+      end
+
+      it 'increments delivery.batches counter' do
+        expect { perform rescue nil }.to change { 
+          get_counter('delivery.batches', tag.merge(queue: 'alice'))
+        }.by(1)
+      end
+
+      it 'increments delivery.time counter' do
+        expect { perform rescue nil }.to change { 
+          get_counter('delivery.batches', tag.merge(queue: 'alice'))
+        }
       end
     end
 

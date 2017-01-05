@@ -42,21 +42,33 @@ module Routemaster
           }
         end
 
-        # send data
+        error = nil
+        start_at = Routemaster.now
         begin
+          # send data
           response = _conn.post do |post|
             post.headers['Content-Type'] = 'application/json'
             post.body = data.to_json
           end
-          raise "HTTP #{response.status}" unless response.success?
-        rescue RuntimeError, Faraday::Error::ClientError => e
-          _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
-          _counters.incr('delivery', queue: @subscriber.name, count: data.length, status: 'failure')
-          raise CantDeliver.new("#{e.class.name}: #{e.message}")
+          error = CantDeliver.new("HTTP #{response.status}") unless response.success?
+        rescue Faraday::Error::ClientError => e
+          error = CantDeliver.new("#{e.class.name}: #{e.message}")
         end
 
-        _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
-        _counters.incr('delivery', queue: @subscriber.name, count: data.length, status: 'success')
+        t = Routemaster.now - start_at
+        status = error ? 'failure' : 'success'
+
+        _counters.incr('delivery.events',  queue: @subscriber.name, count: data.length, status: status)
+        _counters.incr('delivery.batches', queue: @subscriber.name, count: 1,           status: status)
+        _counters.incr('delivery.time',    queue: @subscriber.name, count: t,           status: status)
+        _counters.incr('delivery.time2',   queue: @subscriber.name, count: t*t,         status: status)
+        
+        if error
+          _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
+          raise error
+        else
+          _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
+        end
         true
       end
 
