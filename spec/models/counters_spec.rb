@@ -27,6 +27,14 @@ describe Routemaster::Models::Counters do
       subject.incr :foo, bar: 2
       subject.flush
     end
+
+    context 'on overflow' do
+      before { subject.incr(:foo, count: 2**63 - 1).flush }
+      let(:perform) { subject.incr(:foo).flush }
+
+      it { expect { perform }.not_to raise_error }
+      it { expect { perform }.to change { subject.dump[['foo', {}]] }.to(1) }
+    end
   end
 
   describe '#dump' do
@@ -43,11 +51,6 @@ describe Routemaster::Models::Counters do
         ['foo', bar: 1] => 2,
         ['foo', bar: 2] => 1,
       )
-    end
-
-    it 'resets counters' do
-      subject.dump
-      expect(subject.dump).to be_empty
     end
   end
 

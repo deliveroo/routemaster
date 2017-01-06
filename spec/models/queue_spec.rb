@@ -25,13 +25,13 @@ describe Routemaster::Models::Queue do
 
       it 'persists the job' do
         perform
-        expect(subject.dump).to eq([job])
+        expect(subject.jobs).to eq([job])
       end
 
       shared_examples 'deduplicates' do
         it 'does not queue an identical job' do
           subject.push(job)
-          expect(subject.dump.length).to eq(1)
+          expect(subject.jobs.length).to eq(1)
         end
 
         it 'returns false' do
@@ -60,12 +60,6 @@ describe Routemaster::Models::Queue do
       let(:job) { make_job(at: 4567) }
       it_behaves_like 'pusher'
     end
-
-    # it 'deduplicates between instant/scheduled' do
-    #   subject.push make_job
-    #   subject.push make_job(at: Routemaster.now + 1_000)
-    #   expect(subject.dump.length).to eq(1)
-    # end
   end
 
   describe '#length' do
@@ -105,7 +99,7 @@ describe Routemaster::Models::Queue do
 
       it 'removes the job' do
         perform
-        expect(subject.dump).to eq([])
+        expect(subject.jobs).to eq([])
       end
 
       context 'when Retry is raised' do
@@ -113,8 +107,8 @@ describe Routemaster::Models::Queue do
         
         it 'reschedules the job' do
           perform
-          expect(subject.dump).to eq([make_job])
-          expect(subject.dump.first.run_at).not_to be_nil
+          expect(subject.jobs).to eq([make_job])
+          expect(subject.jobs.first.run_at).not_to be_nil
         end
       end
 
@@ -123,7 +117,7 @@ describe Routemaster::Models::Queue do
 
         it 'removes the job' do
           perform rescue nil
-          expect(subject.dump).to be_empty
+          expect(subject.jobs).to be_empty
         end
 
         it 'raises the error' do
@@ -145,7 +139,7 @@ describe Routemaster::Models::Queue do
       end
 
       it 'does not add the job' do
-        expect { perform }.not_to change { subject.dump }
+        expect { perform }.not_to change { subject.jobs }
       end
     end
 
@@ -158,7 +152,7 @@ describe Routemaster::Models::Queue do
       end
 
       it 'removes the deadline' do
-        expect { perform }.to change { subject.dump.first.run_at }.to(nil)
+        expect { perform }.to change { subject.jobs.first.run_at }.to(nil)
       end
     end
 
@@ -171,7 +165,7 @@ describe Routemaster::Models::Queue do
       end
 
       it 'removes the deadline' do
-        expect { perform }.not_to change { subject.dump.first.run_at }
+        expect { perform }.not_to change { subject.jobs.first.run_at }
       end
     end
   end
@@ -196,12 +190,12 @@ describe Routemaster::Models::Queue do
 
     context 'with 10 jobs' do
       it 'does not add or remove jobs' do
-        expect { perform }.not_to change { subject.dump.length }
+        expect { perform }.not_to change { subject.jobs.length }
       end
 
       it 'schedules the jobs below the deadline' do
         perform
-        subject.dump.each do |job|
+        subject.jobs.each do |job|
           if job.args.first <= 5
             expect(job.run_at).to be_nil
           else
@@ -230,18 +224,18 @@ describe Routemaster::Models::Queue do
     end
 
     it 're-adds the job' do
-      expect { perform }.to change { subject.dump }.to([job1])
+      expect { perform }.to change { subject.jobs }.to([job1])
     end
 
     it 'unmarks the job as pending' do
       expect { perform }.to change { 
-        subject.running('foo')
+        subject.running_jobs('foo')
       }.from([job1]).to([])
     end
 
     it 'does not affect still-running workers' do
       expect { perform }.not_to change {
-        subject.running('qux')
+        subject.running_jobs('qux')
       }
     end
 

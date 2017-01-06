@@ -56,4 +56,9 @@ describe Routemaster::Models::Database do
       expect(subject).to be_too_full
     end
   end
+
+  describe '#used_cpu_*' do
+    it { expect(subject.used_cpu_sys).to  be_a_kind_of(Integer) }
+    it { expect(subject.used_cpu_user).to be_a_kind_of(Integer) }
+  end
 end

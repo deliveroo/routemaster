@@ -181,6 +181,8 @@ The following gauge metrics will be reported every 10 seconds:
 - `jobs.count` (tagged by queue and status)
 - `redis.bytes_used`, `.max_mem`, `.low_mark`, and `.high_mark` (the latter 3
   begin the autdropper thresholds)
+- `redis.used_cpu_user` and `.used_cpu_sys` (cumulative CPU milliseconds used by
+  the storage backend since boot)
 
 as well as the following counter metrics:
 

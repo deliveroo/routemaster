@@ -14,10 +14,12 @@ module Routemaster
       include Mixins::Redis
       include Mixins::Log
 
+
       def initialize
         @data = Hash.new(0).extend(MonitorMixin)
         @cv   = @data.new_cond
       end
+
 
       # Stops the buffering thread and flushes the buffer
       def finalize
@@ -32,6 +34,7 @@ module Routemaster
         self
       end
 
+
       # Increment the counter for this `name` and `tags` by `count`, locally.
       # The local increments will be flushed to Redis regularly in another
       # thread.
@@ -43,37 +46,39 @@ module Routemaster
         self
       end
 
+
       # Flush the counters in memory by incrementing persistent storage and
-      # reset them.
+      # zero their in-memory value.
+      # Counters that might otherwise overflow will be reset.
       def flush
         _log.debug { 'flushing counters buffer' }
         data = @data.synchronize { @data.dup.tap { @data.clear } }
-        _redis.pipelined do |p|
-          _serialize(data).each_pair do |field, count|
-            p.hincrby(_key, field, count)
-          end
-        end
+        return self unless data.any?
+        _redis_lua_run(
+          'counters_flush',
+          keys: [_key],
+          argv: _serialize(data).flatten)
         self
       end
 
+
       # Return the current map of counters from the shared Redis store
-      def peek
+      def dump
         _deserialize(_redis.hgetall(_key))
       end
 
 
-      # Return a map of counters from the shared Redis store, and clear it.
-      # Each item is a triplet of name, tags, and counter value.
-      def dump
-        data, _ = _redis.multi do |m|
-          m.hgetall(_key)
-          m.del(_key)
+      # Reset both the local and persisted counters
+      def reset
+        @data.synchronize do
+          @data.clear
+          _redis.del(_key)
         end
-        _deserialize(data)
       end
 
 
       private
+
 
       def _autostart
         @data.synchronize do
@@ -84,6 +89,7 @@ module Routemaster
         Thread.pass
       end
 
+
       def _flusher_thread
         Thread.current.abort_on_exception = true
         while @running
@@ -92,6 +98,7 @@ module Routemaster
         end
         flush
       end
+
 
       def _serialize(data)
         {}.tap do |h|
@@ -102,6 +109,7 @@ module Routemaster
         end
       end
 
+
       def _deserialize(data)
         Hash.new(0).tap do |result|
           data.each_pair do |f,v|
@@ -111,13 +119,16 @@ module Routemaster
         end
       end
 
+
       def _field(name, options)
         MessagePack.dump([name, options.to_a.sort])
       end
 
+
       def _key
         'counters'
       end
+
 
       def _flush_interval
         ENV.fetch('ROUTEMASTER_COUNTER_FLUSH_INTERVAL').to_i

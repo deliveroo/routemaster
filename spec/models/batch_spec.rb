@@ -214,10 +214,29 @@ describe Routemaster::Models::Batch do
     context 'when the batch was deleted' do
       before { subject.promote.delete }
 
-      it { expect(result).to be_nil }
+      it { expect(result).to eq(0) }
     end
   end
 
+
+  describe '#valid?' do
+    let(:batch) { do_ingest(3) }
+    subject { batch.reload }
+
+    it 'is false when the batch was deleted' do
+      batch.delete
+      expect(subject).not_to be_valid
+    end
+
+    it 'is false when the subscriber was deleted' do
+      subscriber.destroy
+      expect(subject).not_to be_valid
+    end
+
+    it 'is true otherwise' do
+      expect(subject).to be_valid
+    end
+  end
 
   describe '#full?' do
     it 'is true when the batch is full' do
