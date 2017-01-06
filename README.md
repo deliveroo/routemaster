@@ -1,4 +1,5 @@
-## Routemaster [![Build](https://api.travis-ci.org/deliveroo/routemaster.svg?branch=master)](https://travis-ci.org/deliveroo/routemaster) [![Code Climate](https://codeclimate.com/github/deliveroo/routemaster/badges/gpa.svg)](https://codeclimate.com/github/deliveroo/routemaster) [![Test Coverage](https://codeclimate.com/github/deliveroo/routemaster/badges/coverage.svg)](https://codeclimate.com/github/deliveroo/routemaster/coverage)
+## Routemaster [![Build](https://api.travis-ci.org/deliveroo/routemaster.svg?branch=master)](https://travis-ci.org/deliveroo/routemaster) [![Code Climate](https://codeclimate.com/github/deliveroo/routemaster/badges/gpa.svg)](https://codeclimate.com/github/deliveroo/routemaster) [![Test Coverage](https://codeclimate.com/github/deliveroo/routemaster/badges/coverage.svg)](https://codeclimate.com/github/deliveroo/routemaster/coverage) [![Dependency Status](https://gemnasium.com/badges/github.com/deliveroo/routemaster.svg)](https://gemnasium.com/github.com/deliveroo/routemaster)
+
 
 [Intro](#the-basics)
 | [Rationale](#rationale)
