@@ -38,7 +38,9 @@ module Routemaster
       end
 
       def used_cpu_sys
-        _redis.info('cpu')[__callee__].to_f
+        raw = _redis.info('cpu')[__callee__.to_s]
+        return if raw.nil?
+        (raw.to_f * 1e3).to_i
       end
 
       alias_method :used_cpu_user, :used_cpu_sys
