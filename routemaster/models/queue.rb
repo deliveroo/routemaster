@@ -149,7 +149,7 @@ module Routemaster
           count = _redis_lua_run(
             'queue_scrub',
             keys: [key, _queue_key, _index_key])
-          _counters.incr('jobs.scrubbed', queue: name)
+          _counters.incr('jobs.scrubbed', queue: name, count: count)
           _log.warn { "scrubbed worker.#{worker_id}" }
         end
       end
