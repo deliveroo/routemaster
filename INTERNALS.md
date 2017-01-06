@@ -201,3 +201,7 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
 
   Job identifiers are formatted as batch UIDs.
 
+`counters` (hash)
+
+  Telemetry counters.
+
