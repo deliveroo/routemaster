@@ -5,7 +5,7 @@ module Routemaster
     class Fail
       include Mixins::Log
 
-      def call(*args)
+      def call(*)
         raise 'failing job'
       end
     end
