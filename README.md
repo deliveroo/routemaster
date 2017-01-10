@@ -419,7 +419,7 @@ Routermaster provides monitoring endpoints:
 - `<oldest>`: timestamp (seconds since epoch) of the oldest pending event.
 
 
-Monitoring resources can be queries by clients with a UUID included in `ROUTEMASTER_MONITORS`.
+Monitoring resources can be queries by clients with a UUID included in `ROUTEMASTER_CLIENTS`.
 
 Routemaster does not, and will not include an UI for monitoring, as that would
 complexify its codebase too much (it's a separate concern, really).
