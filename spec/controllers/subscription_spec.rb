@@ -20,7 +20,10 @@ describe Routemaster::Controllers::Subscription do
     let(:subscription) do
       Routemaster::Models::Subscription.new(
         subscriber: 'charlie'
-      )
+      ).tap do |sub|
+        sub.callback = 'https://example.com/events'
+        sub.uuid = 's3cr3t'
+      end
     end
 
     let(:perform) { get "/subscriptions" }
@@ -47,7 +50,8 @@ describe Routemaster::Controllers::Subscription do
       expect(resp)
         .to eql([{
           "subscriber" => "charlie",
-          "callback"   => nil,
+          "callback"   => 'https://example.com/events',
+          'uuid'       => 's3cr3t',
           "topics"     => ["widget"],
           "events"     => {
             "sent"   => 100,
