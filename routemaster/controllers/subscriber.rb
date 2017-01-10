@@ -85,6 +85,7 @@ module Routemaster
         payload = Models::Subscriber.map do |subscriber|
           {
             subscriber: subscriber.name,
+            uuid: subscriber.uuid,
             callback: subscriber.callback,
             topics: subscriber.topics.map(&:name),
             events: {

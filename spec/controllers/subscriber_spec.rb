@@ -9,7 +9,10 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
   let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
 
   let(:subscriber) do
-    Routemaster::Models::Subscriber.new(name: 'charlie')
+    Routemaster::Models::Subscriber.new(name: 'charlie').tap do |sub|
+      sub.callback = 'https://example.com/events'
+      sub.uuid = 's3cr3t'
+    end
   end
 
   let(:topic) do
@@ -45,7 +48,8 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
       expect(resp)
         .to eql([{
           "subscriber" => "charlie",
-          "callback"   => nil,
+          "callback"   => 'https://example.com/events',
+          'uuid'       => 's3cr3t',
           "topics"     => ["widget"],
           "events"     => {
             "sent"   => 100,
@@ -110,11 +114,13 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
     end
 
     it 'sets the subscriber callback' do
+      subscriber
       perform
       expect(subscriber.callback).to eq('https://app.example.com/events')
     end
 
     it 'sets the subscriber uuid' do
+      subscriber
       perform
       expect(subscriber.uuid).to eq('alice')
     end
