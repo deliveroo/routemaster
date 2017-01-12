@@ -24,7 +24,6 @@ module Routemaster
         return self unless @threads.any?
         _log.info { "thread_group: stopping" }
         @threads.each(&:stop)
-        @errq.close
         self
       end
 
@@ -32,6 +31,7 @@ module Routemaster
         return self unless @threads.any?
         _log.info { "thread_group: waiting" }
         @threads.each(&:wait)
+        @errq.close
         @thread = []
         _log.info { "thread_group: all threads finished" }
         self
