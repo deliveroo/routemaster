@@ -3,6 +3,7 @@ require 'routemaster/mixins/redis'
 require 'routemaster/mixins/log'
 require 'routemaster/mixins/log_exception'
 require 'routemaster/mixins/counters'
+require 'routemaster/mixins/assert'
 require 'routemaster/models/job'
 
 module Routemaster
@@ -14,6 +15,7 @@ module Routemaster
       include Mixins::Log
       include Mixins::LogException
       include Mixins::Counters
+      include Mixins::Assert
 
       attr_reader :name
 
@@ -54,7 +56,9 @@ module Routemaster
 
 
       # Count all jobs; or all jobs before the deadline, if specified.
-      def length(deadline:nil, scheduled: true, instant: true)
+      def length(deadline: nil, scheduled: true, instant: true)
+        _assert(deadline.nil? || deadline.kind_of?(Integer), 'bad deadline value')
+
         deadline ||= '+inf'
         (scheduled ? _redis.zcount(_scheduled_key, '-inf', deadline) : 0) +
         (instant ? _redis.llen(_queue_key) : 0)      
