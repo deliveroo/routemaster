@@ -1,4 +1,5 @@
-## Routemaster [![Build](https://api.travis-ci.org/deliveroo/routemaster.svg?branch=master)](https://travis-ci.org/deliveroo/routemaster) [![Code Climate](https://codeclimate.com/github/deliveroo/routemaster/badges/gpa.svg)](https://codeclimate.com/github/deliveroo/routemaster) [![Test Coverage](https://codeclimate.com/github/deliveroo/routemaster/badges/coverage.svg)](https://codeclimate.com/github/deliveroo/routemaster/coverage)
+## Routemaster [![Build](https://api.travis-ci.org/deliveroo/routemaster.svg?branch=master)](https://travis-ci.org/deliveroo/routemaster) [![Code Climate](https://codeclimate.com/github/deliveroo/routemaster/badges/gpa.svg)](https://codeclimate.com/github/deliveroo/routemaster) [![Test Coverage](https://codeclimate.com/github/deliveroo/routemaster/badges/coverage.svg)](https://codeclimate.com/github/deliveroo/routemaster/coverage) [![Dependency Status](https://gemnasium.com/badges/github.com/deliveroo/routemaster.svg)](https://gemnasium.com/github.com/deliveroo/routemaster)
+
 
 [Intro](#the-basics)
 | [Rationale](#rationale)
@@ -421,7 +422,7 @@ Routermaster provides monitoring endpoints:
 - `<oldest>`: timestamp (seconds since epoch) of the oldest pending event.
 
 
-Monitoring resources can be queries by clients with a UUID included in `ROUTEMASTER_MONITORS`.
+Monitoring resources can be queries by clients with a UUID included in `ROUTEMASTER_CLIENTS`.
 
 Routemaster does not, and will not include an UI for monitoring, as that would
 complexify its codebase too much (it's a separate concern, really).
