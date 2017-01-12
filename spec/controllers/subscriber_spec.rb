@@ -1,7 +1,9 @@
 require 'spec_helper'
 require 'routemaster/controllers/subscriber'
+require 'routemaster/services/ingest'
 require 'spec/support/rack_test'
 require 'spec/support/persistence'
+require 'spec/support/events'
 require 'json'
 
 describe Routemaster::Controllers::Subscriber, type: :controller do
@@ -14,7 +16,7 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
 
   let(:topic) do
     Routemaster::Models::Topic.new(
-      name: 'widget',
+      name: 'widgets',
       publisher: 'bob'
     )
   end
@@ -30,14 +32,9 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
     it 'lists all subscribers with required data points' do
       Routemaster::Models::Subscription.new(subscriber: subscriber, topic: topic).save
 
-      allow(Routemaster::Models::Subscriber)
-        .to receive(:each).and_yield(subscriber)
-      allow(subscriber)
-        .to receive_message_chain('queue.staleness').and_return(1000)
-      allow(subscriber)
-        .to receive(:all_topics_count).and_return(100)
-      expect(subscriber)
-        .to receive_message_chain('queue.length').and_return(50)
+      33.times do
+        Routemaster::Services::Ingest.new(topic: topic, event: make_event, queue: Routemaster.batch_queue).call
+      end
 
       perform
       resp = JSON(last_response.body)
@@ -46,11 +43,11 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
         .to eql([{
           "subscriber" => "charlie",
           "callback"   => nil,
-          "topics"     => ["widget"],
+          "topics"     => ["widgets"],
           "events"     => {
-            "sent"   => 100,
-            "queued" => 50,
-            "oldest" => 1000
+            "sent"   => nil,
+            "queued" => 33,
+            "oldest" => nil,
           }
         }]
       )
@@ -148,7 +145,7 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
 
 
   describe 'DELETE /subscriber/topics/:name' do
-    let(:perform) { delete '/subscriber/topics/widget' }
+    let(:perform) { delete '/subscriber/topics/widgets' }
 
     context 'at rest' do
       it { expect(perform.status).to eq(404) }

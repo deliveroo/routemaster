@@ -6,20 +6,6 @@ describe Routemaster::Models::Message do
 
   subject { described_class.new(options) }
 
-  describe '#uid' do
-    it 'is generated' do
-      expect(subject.uid).to match  /^[a-z0-9]{25}$/
-    end
-
-    context 'when specified' do
-      let(:options) {{ uid: 'abcd-1234' }}
-
-      it 'is honoured' do
-        expect(subject.uid).to eq('abcd-1234')
-      end
-    end
-  end
-
   describe '#timestamp' do
     it 'is generated' do
       expect(subject.timestamp).to be_within(50).of(Routemaster.now)

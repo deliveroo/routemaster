@@ -5,7 +5,7 @@ require 'routemaster/models/event'
 
 describe Routemaster::Services::Codec do
   let(:encoded) { subject.dump(message) }
-  let(:decoded) { subject.load(encoded, '1234') }
+  let(:decoded) { subject.load(encoded) }
 
   shared_examples 'codec' do
     it 'encodes successfully' do
@@ -38,7 +38,6 @@ describe Routemaster::Services::Codec do
         type:       'create',
         url:        'https://example.com/foo/1',
         timestamp:  12345,
-        uid:        '1234',
       )
     }
     include_examples 'codec'
@@ -48,7 +47,7 @@ describe Routemaster::Services::Codec do
     let(:data) { 'hello' }
 
     it 'decodes to a "fake" message' do
-      expect(subject.load(data, '1234').uid).to eq('1234')
+      expect(subject.load(data)).to be_a_kind_of(Routemaster::Models::Message)
     end
   end
 end

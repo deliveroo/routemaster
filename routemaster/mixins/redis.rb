@@ -1,7 +1,6 @@
 require 'routemaster/mixins'
+require 'connection_pool'
 require 'redis'
-require 'redis-namespace'
-require 'redis/connection/hiredis'
 
 module Routemaster
   module Mixins
@@ -12,13 +11,10 @@ module Routemaster
       end
 
       def _redis
-        @@_redis ||= ::Redis::Namespace.new(
-          ENV.fetch('ROUTEMASTER_REDIS_PREFIX'),
-          redis: ::Redis.new(url: ENV['ROUTEMASTER_REDIS_URL']))
-      end
-
-      def _redis_prefix
-        @@_redis_prefix ||= ENV.fetch('ROUTEMASTER_REDIS_PREFIX')
+        @@_redis ||=
+        ConnectionPool.wrap(size: Routemaster.config[:redis_pool_size], timeout: 2) do
+          ::Redis.new(url: ENV.fetch('ROUTEMASTER_REDIS_URL'))
+        end
       end
 
       def _redis_lua_sha(script_name)

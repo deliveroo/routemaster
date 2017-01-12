@@ -175,8 +175,11 @@ Routemaster can report various metrics to a third party services by setting the
 - [`datadog`](https://www.datadoghq.com) (requires the `DATADOG_API_KEY` and
   `DATADOG_APP_KEY` to be set)
 
-The metrics `subscription.queue.size` and `subscription.queue.staleness` will be
-reported every 5 seconds.
+The following metrics will be reported every 10 seconds:
+
+- `subscriber.queue.batches` (tagged by subscriber)
+- `subscriber.queue.events` (tagged by subscriber)
+- `jobs.count` (tagged by queue and status)
 
 
 ### Exception reporting

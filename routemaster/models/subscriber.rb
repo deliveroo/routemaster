@@ -1,7 +1,6 @@
 require 'routemaster/models/base'
 require 'routemaster/models/callback_url'
 require 'routemaster/models/user'
-require 'routemaster/models/queue'
 require 'routemaster/models/subscription'
 
 module Routemaster::Models
@@ -70,16 +69,12 @@ module Routemaster::Models
       "subscriber for '#{@name}'"
     end
 
+    def ==(other)
+      @name == other.name
+    end
+
     def topics
       Subscription.where(subscriber: self).map(&:topic)
-    end
-
-    def all_topics_count
-      topics.reduce(0) { |sum, topic| sum + topic.get_count }
-    end
-
-    def queue
-      @queue ||= Routemaster::Models::Queue.new(self)
     end
 
     extend Enumerable

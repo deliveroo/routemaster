@@ -9,10 +9,9 @@ module Routemaster
       include Mixins::Log
       include Mixins::Assert
 
-      attr_reader :uid, :timestamp
+      attr_reader :timestamp
       
       def initialize(**options)
-        @uid       = options.fetch(:uid) { SecureRandom.hex(16).to_i(16).to_s(36).rjust(25,'0') }
         @timestamp = options.fetch(:timestamp) { Routemaster.now }
         @status    = nil
 
@@ -24,11 +23,10 @@ module Routemaster
       end
 
       def inspect
-        "<#{self.class.name} @uid=\"#{@uid}\">"
+        '<%s>' % self.class.name.demodulize
       end
 
-      # Messages are equal if their _data_ (excluding UID) and timestamps are
-      # equal.
+      # Messages are equal if their data and timestamps are equal.
       def ==(other)
         to_hash == other.to_hash
       end

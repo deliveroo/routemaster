@@ -1,7 +1,6 @@
 require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/models/subscriber'
-require 'routemaster/models/queue'
 require 'routemaster/models/message'
 require 'routemaster/models/topic'
 
@@ -100,45 +99,4 @@ describe Routemaster::Models::Subscriber do
         .to eql(['photos','properties'])
     end
   end
-
-  describe '#all_topics_count' do
-    let(:properties_topic) do
-      Routemaster::Models::Topic.new({
-        name: 'properties',
-        publisher: 'demo'
-      })
-    end
-    let(:property_photos_topic) do
-      Routemaster::Models::Topic.new({
-        name: 'photos',
-        publisher: 'demo'
-      })
-    end
-
-    before do
-      Routemaster::Models::Subscription.new(topic: properties_topic, subscriber: subject).save
-      Routemaster::Models::Subscription.new(topic: property_photos_topic, subscriber: subject).save
-    end
-
-    it 'should sum the cumulative totals for all associated topics' do
-      allow(subject)
-        .to receive(:topics)
-        .and_return([properties_topic, property_photos_topic])
-      allow(properties_topic)
-        .to receive(:get_count)
-        .and_return(100)
-      allow(property_photos_topic)
-        .to receive(:get_count)
-        .and_return(200)
-
-      expect(subject.all_topics_count).to eql 300
-    end
-  end
-
-  describe '#queue' do
-    it 'is mine' do
-      expect(subject.queue.subscriber).to eq(subject)
-    end
-  end
-
 end

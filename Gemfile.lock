@@ -14,9 +14,11 @@ GEM
   specs:
     addressable (2.5.0)
       public_suffix (~> 2.0, >= 2.0.2)
+    byebug (9.0.6)
     codeclimate-test-reporter (1.0.4)
       simplecov
     coderay (1.1.1)
+    connection_pool (2.2.1)
     crack (0.4.3)
       safe_yaml (~> 1.0.0)
     diff-lcs (1.2.5)
@@ -50,7 +52,6 @@ GEM
       guard-compat (~> 1.1)
       rspec (>= 2.99.0, < 4.0)
     hashdiff (0.3.2)
-    hiredis (0.6.1)
     hirefire-resource (0.3.13)
     honeybadger (2.7.2)
     json (2.0.2)
@@ -73,8 +74,9 @@ GEM
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
       slop (~> 3.4)
-    pry-nav (0.2.4)
-      pry (>= 0.9.10, < 0.11.0)
+    pry-byebug (3.4.2)
+      byebug (~> 9.0)
+      pry (~> 0.10)
     pry-remote (0.1.8)
       pry (~> 0.9)
       slop (~> 3.0)
@@ -102,6 +104,9 @@ GEM
     rspec-expectations (3.5.0)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.5.0)
+    rspec-its (1.2.0)
+      rspec-core (>= 3.0.0)
+      rspec-expectations (>= 3.0.0)
     rspec-mocks (3.5.0)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.5.0)
@@ -145,19 +150,19 @@ PLATFORMS
 
 DEPENDENCIES
   codeclimate-test-reporter
+  connection_pool
   dogapi
   dotenv
   faraday
   faraday_middleware
   foreman
   guard-rspec
-  hiredis
   hirefire-resource
   honeybadger
   msgpack
   newrelic_rpm
   pry
-  pry-nav
+  pry-byebug
   pry-remote
   puma
   rack-ssl
@@ -166,6 +171,7 @@ DEPENDENCIES
   redis-namespace
   routemaster-client!
   rspec
+  rspec-its
   rufus-scheduler
   sentry-raven
   sinatra
@@ -174,9 +180,10 @@ DEPENDENCIES
   tunnels
   typhoeus
   webmock
+  wisper
 
 RUBY VERSION
-   ruby 2.3.1p112
+   ruby 2.3.3p222
 
 BUNDLED WITH
    1.13.6

@@ -1,191 +1,241 @@
 require 'spec_helper'
 require 'spec/support/persistence'
 require 'routemaster/models/queue'
-require 'routemaster/models/subscriber'
-require 'core_ext/math'
+require 'routemaster/models/job'
 
 describe Routemaster::Models::Queue do
-  let(:kill_message) {
-    Routemaster::Models::Message::Kill.new
-  }
-  let(:subscriber) {
-    Routemaster::Models::Subscriber.new(name: 'alice')
-  }
+  subject { described_class.new(name: 'main') }
 
-  let(:options) {[ subscriber ]}
-
-  subject { described_class.new(*options) }
-
-
-  describe '#initialize' do
-    it 'passes with valid args' do
-      expect { subject }.not_to raise_error
-    end
-
-    it 'requires subscriber:' do
-      options.clear
-      expect { subject }.to raise_error(ArgumentError)
-    end
+  def make_job(x:0, at:nil)
+    Routemaster::Models::Job.new(name: 'null', args:x, run_at:at)
   end
 
+  describe '#push' do
+    shared_examples 'pusher' do
+      let(:perform) { subject.push(job) }
 
-  describe '#pop' do
-    it 'returns a queued message' do
-      described_class.push [subscriber], kill_message
-      message = subject.pop
-      expect(message).to be_a_kind_of(Routemaster::Models::Message::Kill)
-    end
-
-    it 'delivers multiple messages in order' do
-      10.times do |n|
-        described_class.push [subscriber], Routemaster::Models::Message::Ping.new(data: "msg#{n}")
+      it 'passes' do
+        expect { perform }.not_to raise_error
       end
-      10.times do |n|
-        expect(subject.pop.data).to eq("msg#{n}")
+
+      it 'returns true' do
+        expect(perform).to be_truthy
       end
-    end
 
-    it 'returns nil after the last message' do
-      described_class.push [subscriber], kill_message
-      subject.pop
-      expect(subject.pop).to be_nil
-    end
+      it 'persists the job' do
+        perform
+        expect(subject.jobs).to eq([job])
+      end
 
-    it 'returns nil when there are no queued messages' do
-      subject.pop
-      expect(subject.pop).to be_nil
-    end
-  end
+      shared_examples 'deduplicates' do
+        it 'does not queue an identical job' do
+          subject.push(job)
+          expect(subject.jobs.length).to eq(1)
+        end
 
-  describe '#peek' do
-    context 'when empty' do
-      it { expect(subject.peek).to be_nil }
-    end
-
-    context 'with queued messages' do
-      let(:messages) {[
-        Routemaster::Models::Message::Ping.new(data: "msg1"),
-        Routemaster::Models::Message::Ping.new(data: "msg2"),
-      ]}
-
-      before do
-        messages.each do |msg|
-          described_class.push [subscriber], msg
+        it 'returns false' do
+          subject.push(job)
+          expect(subject.push(job)).to be_falsy
         end
       end
 
-      it 'returns the oldest message' do
-        expect(subject.peek).to eq(messages.first)
-      end
-    end
-  end
-
-  describe '#drop' do
-    context 'when empty' do
-      it { expect(subject.drop(10)).to eq(0) }
-    end
-
-    context 'with queued messages' do
-      let(:messages) {[
-        Routemaster::Models::Message::Ping.new(data: "msg1"),
-        Routemaster::Models::Message::Ping.new(data: "msg2"),
-        Routemaster::Models::Message::Ping.new(data: "msg3"),
-      ]}
-
-      before do
-        messages.each do |msg|
-          described_class.push [subscriber], msg
-        end
+      context 'when an instant job is present' do
+        before { subject.push make_job }
+        it_behaves_like 'deduplicates'
       end
 
-      it 'removes messages' do
-        expect { subject.drop(2) }.to change { subject.length }.from(3).to(1)
-      end
-
-      it 'returns the right count' do
-        expect(subject.drop(4)).to eql(3)
+      context 'when an scheduled job is present' do
+        before { subject.push make_job(at: 1234) }
+        it_behaves_like 'deduplicates'
       end
     end
-  end
 
-  describe '#ack' do
-    let(:message) { subject.pop }
-
-    before do
-      described_class.push [subscriber], kill_message
+    context 'instant job' do
+      let(:job) { make_job }
+      it_behaves_like 'pusher'
     end
 
-    it 'does not requeue' do
-      subject.ack(message)
-      expect(subject.pop).to be_nil
-    end
-
-    it 'is idempotent' do
-      subject.ack(message)
-      subject.ack(message)
-      expect(subject.pop).to be_nil
-    end
-  end
-
-  describe '#nack' do
-    let(:message) { subject.pop }
-
-    before do
-      described_class.push [subscriber], kill_message
-    end
-
-    it 'requeues the message' do
-      subject.nack(message)
-      expect(subject.pop).to eq(message)
-    end
-
-    it 'requeues just once' do
-      subject.nack(message)
-      subject.nack(message)
-      expect(subject.pop).to eq(message)
-      expect(subject.pop).to be_nil
+    context 'scheduled job' do
+      let(:job) { make_job(at: 4567) }
+      it_behaves_like 'pusher'
     end
   end
 
   describe '#length' do
-    it 'is zero at rest' do
-      expect(subject.length).to eq(0)
+    before do
+      subject.push make_job(x:1)
+      subject.push make_job(x:2)
+      subject.push make_job(x:3, at: 100)
+      subject.push make_job(x:4, at: 200)
     end
 
-    it 'counts new and un-acked messages' do
-      5.times { |n| described_class.push [subscriber], Routemaster::Models::Message::Ping.new(data: "msg#{n}") }
-      2.times { subject.pop }
-      expect(subject.length).to eq(5)
+    it 'counts all jobs without args' do
+      expect(subject.length).to eq(4)
+    end
+
+    it 'counts jobs before the specified deadline' do
+      expect(subject.length(deadline: 100)).to eq(3)
     end
   end
 
-  describe '#staleness' do
+  describe '#pop' do
+    let(:callback) { ->(job) { @job = job} }
+    let(:perform) { subject.pop('foo', &callback) }
 
-    let(:subscriber) {
-      Routemaster::Models::Subscriber.new(name: 'alice')
-    }
-    let(:options) {[ subscriber ]}
-    let(:queue) { Routemaster::Models::Queue.new(*options) }
-    let(:event) {
-      Routemaster::Models::Event.new(
-        topic: 'widgets',
-        type:  'create',
-        url:   'https://example.com/widgets/123'
-      )
-    }
+    context 'when there is no job' do
+      it 'is falsy' do
+        expect(perform).to be_falsy
+      end
+    end
+
+    context 'with a pending job' do
+      before { subject.push(make_job) }
+
+      it 'yields the job' do
+        perform
+        expect(@job).not_to be_nil
+      end
+
+      it 'removes the job' do
+        perform
+        expect(subject.jobs).to eq([])
+      end
+
+      context 'when Retry is raised' do
+        let(:callback) { ->(job) { raise described_class::Retry,1 } }
+        
+        it 'reschedules the job' do
+          perform
+          expect(subject.jobs).to eq([make_job])
+          expect(subject.jobs.first.run_at).not_to be_nil
+        end
+      end
+
+      context 'on errors' do
+        let(:callback) { ->(job) { raise 'oh noes' } }
+
+        it 'removes the job' do
+          perform rescue nil
+          expect(subject.jobs).to be_empty
+        end
+
+        it 'raises the error' do
+          expect { perform }.to raise_error(RuntimeError)
+        end
+      end
+    end
+  end
+
+
+  describe '#promote' do
+    let(:perform) { subject.promote(job) }
+
+    context 'when the job does not exist' do
+      let(:job) { make_job(at: 1234) }
+
+      it 'is falsy' do
+        expect(perform).to be_falsy
+      end
+
+      it 'does not add the job' do
+        expect { perform }.not_to change { subject.jobs }
+      end
+    end
+
+    context 'when the job exists and is scheduled' do
+      let(:job) { make_job(at: 1234) }
+      before { subject.push(job) } 
+
+      it 'is truthy' do
+        expect(perform).to be_truthy
+      end
+
+      it 'removes the deadline' do
+        expect { perform }.to change { subject.jobs.first.run_at }.to(nil)
+      end
+    end
+
+    context 'when the job exists and is instant' do
+      let(:job) { make_job(at: nil) }
+      before { subject.push(job) } 
+
+      it 'is truthy' do
+        expect(perform).to be_falsy
+      end
+
+      it 'removes the deadline' do
+        expect { perform }.not_to change { subject.jobs.first.run_at }
+      end
+    end
+  end
+
+
+  describe '#schedule' do
+    let(:job_count) { 10 }
+    let(:deadline) { 5 }
+    let(:perform) { subject.schedule(deadline: deadline) }
 
     before do
-      Routemaster::Models::Queue.push [subscriber], event
+      1.upto(job_count) do |idx|
+        subject.push make_job(x: idx, at: idx)
+      end
     end
 
-    it 'should return the age of the oldest message' do
-      sleep(150e-3)
-      expect(queue.staleness).to be_within(50).of(150)
+    context 'when there are no jobs' do
+      let(:job_count) { 0 }
+
+      it { expect { perform }.not_to raise_error } 
     end
 
-    it 'does not dequeue the oldest message' do
-      queue.staleness
-      expect(queue.pop).to be_a_kind_of(Routemaster::Models::Event)
+    context 'with 10 jobs' do
+      it 'does not add or remove jobs' do
+        expect { perform }.not_to change { subject.jobs.length }
+      end
+
+      it 'schedules the jobs below the deadline' do
+        perform
+        subject.jobs.each do |job|
+          if job.args.first <= 5
+            expect(job.run_at).to be_nil
+          else
+            expect(job.run_at).to eq(job.args.first)
+          end
+        end
+      end
+    end
+  end
+
+
+  describe '#scrub' do
+    include Routemaster::Mixins::Redis
+
+    let(:job1) { make_job x: 1 }
+    let(:job2) { make_job x: 2 }
+    let(:perform) { subject.scrub(&callback) }
+    let(:callback) { ->(id) { id == 'foo' } }
+
+    before do
+      subject.push(job1)
+      subject.push(job2)
+
+      subject.pop('foo') { raise 'abort' } rescue nil
+      subject.pop('qux') { raise 'abort' } rescue nil
+    end
+
+    it 're-adds the job' do
+      expect { perform }.to change { subject.jobs }.to([job1])
+    end
+
+    it 'unmarks the job as pending' do
+      expect { perform }.to change { 
+        subject.running_jobs('foo')
+      }.from([job1]).to([])
+    end
+
+    it 'does not affect non-running workers' do
+      expect { perform }.not_to change {
+        subject.running_jobs('qux')
+      }
     end
   end
 end

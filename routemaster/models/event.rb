@@ -25,6 +25,13 @@ module Routemaster
       def to_hash
         super.merge(topic: @topic, type: @type, url: @url)
       end
+
+      def inspect
+        '<%s %s:%s url="%s">' % [
+          self.class.name.demodulize,
+          @topic, @type, @url,
+        ]
+      end
     end
   end
 end

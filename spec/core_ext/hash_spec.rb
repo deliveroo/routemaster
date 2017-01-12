@@ -19,4 +19,12 @@ describe Hash do
         to eq(a:1, b:2, c:3)
     end
   end
+
+  describe '#map_values' do
+    let(:subject) {{ foo: '1', bar: '12' }}
+    
+    it 'changes values with block' do
+      expect(subject.map_values &:to_i).to eq(foo: 1, bar: 12)
+    end
+  end
 end

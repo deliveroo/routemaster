@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-ruby '2.3.1'
+ruby '2.3.3'
 
 # process runner
 gem 'foreman'
@@ -16,9 +16,9 @@ gem 'sinatra-initializers'
 gem 'rack-ssl'
 
 # database
-gem 'hiredis'
-gem 'redis', require: %w(redis redis/connection/hiredis)
+gem 'redis'
 gem 'redis-namespace'
+gem 'connection_pool'
 
 # fast, redis-compatible serialisation
 gem 'msgpack'
@@ -44,6 +44,9 @@ gem 'rufus-scheduler', require: false
 # metric collection
 gem 'dogapi', require: false
 
+# internal event bus
+gem 'wisper'
+
 # Autoscaling
 gem 'hirefire-resource', require: false
 
@@ -55,6 +58,7 @@ group :development do
   gem 'tunnels',        require: false
   # unit/functional tests
   gem 'rspec',          require: false
+  gem 'rspec-its',      require: false
   # integration tests
   gem 'rack-test',      require: false
   # running tests automatically
@@ -64,7 +68,7 @@ group :development do
   # support time-dependent tests
   gem 'timecop',        require: false
   # better REPL
-  gem 'pry-nav'
+  gem 'pry-byebug'
   gem 'pry-remote'
 
   # testing against the client
