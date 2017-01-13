@@ -14,22 +14,9 @@ module Routemaster
       attr_reader :name, :publisher
 
 
-      def initialize(name:, publisher:)
+      def initialize(name:, publisher: nil)
         @name      = Name.new(name)
         @publisher = Publisher.new(publisher) if publisher
-
-        _redis.sadd(_index_key, name)
-
-        return if publisher.nil?
-
-        if _redis.hsetnx(_key(@name), 'publisher', publisher)
-          _log.info { "topic '#{@name}' claimed by '#{@publisher}'" }
-        end
-
-        current_publisher = _redis.hget(_key(@name), 'publisher')
-        unless _redis.hget(_key(@name), 'publisher') == @publisher
-          raise TopicClaimedError.new("topic claimed by #{current_publisher}")
-        end
       end
 
 
@@ -67,6 +54,8 @@ module Routemaster
 
 
       module ClassMethods
+        include Mixins::Log
+
         def all
           _redis.smembers(_index_key).map do |n|
             p = _redis.hget("topic:#{n}", 'publisher')
@@ -76,8 +65,24 @@ module Routemaster
 
         def find(name)
           return unless _redis.sismember(_index_key, name)
-          publisher = _redis.hget("topic:#{name}", 'publisher')
+          publisher = _redis.hget(_key(name), 'publisher')
           new(name: name, publisher: publisher)
+        end
+
+        def find_or_create!(name:, publisher: nil)
+          added, claimed, actual_publisher = _redis_lua_run(
+            'topic_find_or_create',
+            keys: [_index_key, _key(name)],
+            argv: [name, publisher])
+
+          if publisher && actual_publisher != publisher
+            raise TopicClaimedError.new("topic claimed by #{actual_publisher}")
+          end
+          if claimed > 0
+            _log.info { "topic '#{name}' claimed by '#{publisher}'" }
+          end
+          
+          new(name: name, publisher: actual_publisher)
         end
       end
       extend ClassMethods
@@ -87,7 +92,7 @@ module Routemaster
         private
 
         def _key(name)
-          "topic:#{@name}"
+          "topic:#{name}"
         end
 
         def _index_key

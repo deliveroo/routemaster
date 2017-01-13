@@ -23,8 +23,7 @@ module Routemaster
         end
 
         topics = data['topics'].map do |name|
-          Models::Topic.find(name) ||
-          Models::Topic.new(name: name, publisher: nil)
+          Models::Topic.find_or_create!(name: name)
         end
         halt 404 unless topics.all?
 

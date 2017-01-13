@@ -15,7 +15,7 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
   end
 
   let(:topic) do
-    Routemaster::Models::Topic.new(
+    Routemaster::Models::Topic.find_or_create!(
       name: 'widgets',
       publisher: 'bob'
     )

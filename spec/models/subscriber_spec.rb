@@ -5,7 +5,7 @@ require 'routemaster/models/message'
 require 'routemaster/models/topic'
 
 describe Routemaster::Models::Subscriber do
-  let(:topic) { Routemaster::Models::Topic.new(name: 'widgets', publisher: 'alice') }
+  let(:topic) { Routemaster::Models::Topic.find_or_create!(name: 'widgets', publisher: 'alice') }
   let(:redis) { Object.new.extend(Routemaster::Mixins::Redis)._redis }
   subject { described_class.new(name: 'bob') }
 
@@ -82,11 +82,11 @@ describe Routemaster::Models::Subscriber do
   describe '#topics' do
 
     let(:properties_topic) do
-      Routemaster::Models::Topic.new(name: 'properties', publisher: 'demo')
+      Routemaster::Models::Topic.find_or_create!(name: 'properties', publisher: 'demo')
     end
 
     let(:property_photos_topic) do
-      Routemaster::Models::Topic.new(name: 'photos', publisher: 'demo')
+      Routemaster::Models::Topic.find_or_create!(name: 'photos', publisher: 'demo')
     end
 
     before do

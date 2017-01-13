@@ -8,7 +8,7 @@ require 'routemaster/models/topic'
 
 module Routemaster
   describe Services::Ingest do
-    let(:topic) { Models::Topic.new(name: 'widgets', publisher: nil) }
+    let(:topic) { Models::Topic.find_or_create!(name: 'widgets', publisher: nil) }
 
     let(:subscribers) {[
       Models::Subscriber.new(name: 'foo').save,
