@@ -12,9 +12,9 @@ module Routemaster
     subject { described_class.new(delivery: delivery) }
 
     let(:subscriber) {
-      Routemaster::Models::Subscriber.new(name: 'alice').tap do |s|
+      Routemaster::Models::Subscriber.new(name: 'alice').tap { |s|
         s.timeout = 0
-      end
+      }.save
     }
     let(:messages) { [make_event, make_event] }
     let(:delivery) { double 'delivery', call: nil }

@@ -11,7 +11,7 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
   let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
 
   let(:subscriber) do
-    Routemaster::Models::Subscriber.new(name: 'charlie')
+    Routemaster::Models::Subscriber.new(name: 'charlie').save
   end
 
   let(:topic) do
@@ -108,24 +108,24 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
 
     it 'sets the subscriber callback' do
       perform
-      expect(subscriber.callback).to eq('https://app.example.com/events')
+      expect(subscriber.reload.callback).to eq('https://app.example.com/events')
     end
 
     it 'sets the subscriber uuid' do
       perform
-      expect(subscriber.uuid).to eq('alice')
+      expect(subscriber.reload.uuid).to eq('alice')
     end
 
     it 'sets the subscriber timeout' do
       payload[:timeout] = 675
       perform
-      expect(subscriber.timeout).to eq(675)
+      expect(subscriber.reload.timeout).to eq(675)
     end
 
     it 'sets the subscriber max' do
       payload[:max] = 512
       perform
-      expect(subscriber.max_events).to eq(512)
+      expect(subscriber.reload.max_events).to eq(512)
     end
   end
 

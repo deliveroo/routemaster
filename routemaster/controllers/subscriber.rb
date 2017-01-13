@@ -34,6 +34,7 @@ module Routemaster
           sub.uuid       = data['uuid']
           sub.timeout    = data['timeout'] if data['timeout']
           sub.max_events = data['max']     if data['max']
+          sub.save
         rescue ArgumentError => e
           halt 400, e.message
         end

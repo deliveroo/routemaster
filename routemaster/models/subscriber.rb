@@ -13,33 +13,47 @@ module Routemaster::Models
 
     def initialize(name:)
       @name = User.new(name)
-      if _redis.sadd('subscribers', @name)
-        _log.info { "new subscriber by '#{@name}'" }
+      @_attributes = nil
+    end
+
+    def save
+      save_attrs = _attributes.any?
+      _redis.multi do |m|
+        m.sadd('subscribers', @name)
+        m.hmset(_key, *_attributes.to_a.flatten) if save_attrs
       end
+      self
+    end
+
+    def reload
+      @_attributes = nil
+      self
     end
 
     def destroy
       Subscription.where(subscriber: self).each(&:destroy)
-      _redis.del(_key)
-      _redis.srem('subscribers', @name)
+      _redis.multi do |m|
+        m.del(_key)
+        m.srem('subscribers', @name)
+      end
     end
 
     def callback=(value)
-      _redis.hset(_key, 'callback', CallbackURL.new(value))
+      _attributes['callback'] = CallbackURL.new(value)
     end
 
     def callback
-      _redis.hget(_key, 'callback')
+      _attributes['callback']
     end
 
     def timeout=(value)
       _assert value.kind_of?(Fixnum)
       _assert TIMEOUT_RANGE.include?(value)
-      _redis.hset(_key, 'timeout', value)
+      _attributes['timeout'] = value
     end
 
     def timeout
-      raw = _redis.hget(_key, 'timeout')
+      raw = _attributes['timeout']
       return DEFAULT_TIMEOUT if raw.nil?
       raw.to_i
     end
@@ -47,22 +61,22 @@ module Routemaster::Models
     def max_events=(value)
       _assert value.kind_of?(Fixnum)
       _assert value > 0
-      _redis.hset(_key, 'max_events', value)
+      _attributes['max_events'] = value
     end
 
     def max_events
-      raw = _redis.hget(_key, 'max_events')
+      raw = _attributes['max_events']
       return DEFAULT_MAX_EVENTS if raw.nil?
       raw.to_i
     end
 
     def uuid=(value)
       _assert value.kind_of?(String) unless value.nil?
-      _redis.hset(_key, 'uuid', value)
+      _attributes['uuid'] = value
     end
 
     def uuid
-      _redis.hget(_key, 'uuid')
+      _attributes['uuid']
     end
 
     def to_s
@@ -93,6 +107,10 @@ module Routemaster::Models
     end
 
     private
+
+    def _attributes
+      @_attributes ||= _redis.hgetall(_key)
+    end
 
     def _key
       @_key ||= "subscriber:#{@name}"

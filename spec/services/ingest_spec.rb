@@ -11,9 +11,9 @@ module Routemaster
     let(:topic) { Models::Topic.new(name: 'widgets', publisher: nil) }
 
     let(:subscribers) {[
-      Models::Subscriber.new(name: 'foo'),
-      Models::Subscriber.new(name: 'bar'),
-      Models::Subscriber.new(name: 'qux').tap { |s| s.max_events = 2 },
+      Models::Subscriber.new(name: 'foo').save,
+      Models::Subscriber.new(name: 'bar').save,
+      Models::Subscriber.new(name: 'qux').tap { |s| s.max_events = 2 }.save,
     ]}
 
     let(:events) {[ make_event, make_event ]}

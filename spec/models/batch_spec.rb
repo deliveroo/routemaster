@@ -12,6 +12,7 @@ describe Routemaster::Models::Batch do
     Routemaster::Models::Subscriber.new(name: 'alice').tap do |s|
       s.max_events = batch_size
       s.timeout = timeout
+      s.save
     end
   }
 

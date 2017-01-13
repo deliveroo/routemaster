@@ -72,8 +72,8 @@ describe Routemaster::Models::Subscriber do
     end
 
     it 'yields subscribers' do
-      a = described_class.new(name: 'alice')
-      b = described_class.new(name: 'bob')
+      a = described_class.new(name: 'alice').save
+      b = described_class.new(name: 'bob').save
 
       expect { |b| described_class.each(&b) }.to yield_control.twice
     end
