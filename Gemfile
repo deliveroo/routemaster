@@ -10,7 +10,6 @@ gem 'puma'
 
 # application microframework
 gem 'sinatra'
-gem 'sinatra-initializers'
 
 # redirect to SSL, always
 gem 'rack-ssl'
@@ -46,9 +45,6 @@ gem 'dogapi', require: false
 
 # internal event bus
 gem 'wisper'
-
-# Autoscaling
-gem 'hirefire-resource', require: false
 
 # Debugging in staging/production
 gem 'pry', require: false
