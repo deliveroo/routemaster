@@ -91,16 +91,25 @@ module Routemaster::Models
       Subscription.where(subscriber: self).map(&:topic)
     end
 
-    extend Enumerable
+    module ClassMethods
+      include Enumerable
 
-    def self.each
-      _redis.smembers('subscribers').each { |s| yield new(name: s) }
-    end
+      def each
+        _redis.smembers(_index_key).each { |s| yield new(name: s) }
+      end
 
-    def self.find(name)
-      return unless _redis.sismember('subscribers', name) 
-      new(name: name)
+      def find(name)
+        return unless _redis.sismember(_index_key, name) 
+        new(name: name)
+      end
+
+      private 
+
+      def _index_key
+        'subscribers'
+      end
     end
+    extend ClassMethods
 
     def inspect
       "<#{self.class.name} subscriber=#{@name}>"
