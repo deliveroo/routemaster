@@ -99,4 +99,46 @@ describe Routemaster::Models::Subscriber do
         .to eql(['photos','properties'])
     end
   end
+
+  describe '.find' do
+    let(:perform) { described_class.find('bob') }
+
+    context 'when the subscriber does not exist' do
+      it { expect(perform).to be_nil }
+    end
+
+    context 'when the subscriber exists' do
+      before { subject.save }
+      it { expect(perform).to eq(subject) }
+    end
+  end
+
+  describe '.where' do
+    let(:names) { %w[alice bob] }
+
+    let!(:subs) {
+      names.map do |n|
+        sub = described_class.new(name: n)
+        sub.uuid = "#{n}-secret"
+        sub.save
+      end
+    }
+
+    it 'returns a single subscriber' do
+      expect(described_class.where(name: 'alice')).to eq([subs.first])
+    end
+
+    it 'loads metadata' do
+      sub = described_class.where(name: 'alice').first
+      expect(sub.uuid).to eq('alice-secret')
+    end
+
+    it 'returns multiple subscribers' do
+      expect(described_class.where(name: %w[alice bob]).length).to eq(2)
+    end
+
+    it 'ignores missing names' do
+      expect(described_class.where(name: %w[alice charlie]).length).to eq(1)
+    end
+  end
 end

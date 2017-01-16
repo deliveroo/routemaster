@@ -11,9 +11,9 @@ module Routemaster::Models
 
     attr_reader :name
 
-    def initialize(name:)
+    def initialize(name:, _attributes: nil)
       @name = User.new(name)
-      @_attributes = nil
+      @_attributes = _attributes
     end
 
     def save
@@ -103,10 +103,25 @@ module Routemaster::Models
         new(name: name)
       end
 
+      # Load all subscribers with name in `name` (Array or single string)
+      def where(name:)
+        _redis_lua_run(
+          'subscriber_all',
+          keys: [_index_key, *Array(name).map { |n| _key(n) }],
+          argv: Array(name)
+        ).map do |name, data|
+          new(name: name, _attributes: Hash[*data])
+        end
+      end
+
       private 
 
       def _index_key
         'subscribers'
+      end
+
+      def _key(name)
+        "subscriber:#{name}"
       end
     end
     extend ClassMethods
@@ -122,7 +137,7 @@ module Routemaster::Models
     end
 
     def _key
-      @_key ||= "subscriber:#{@name}"
+      @_key ||= self.class.send(:_key, @name)
     end
   end
 end
