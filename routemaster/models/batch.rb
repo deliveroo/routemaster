@@ -26,10 +26,11 @@ module Routemaster
       attr_reader :uid, :deadline
 
 
-      def initialize(uid:, deadline: nil, subscriber: nil)
+      def initialize(uid:, deadline: nil, subscriber: nil, length: nil)
         @uid        = uid
         @deadline   = deadline
         @subscriber = subscriber
+        @_length    = length
       end
 
 
@@ -153,13 +154,13 @@ module Routemaster
 
           yield if block_given? # this is used in tests only, to inject behaviour to simulate concurrency
 
-          actual_uid =  _redis_lua_run(
+          actual_uid, length =_redis_lua_run(
               'batch_ingest',
               keys: [batch_ref_key, _batch_key(uid), _batch_key(alt_uid), _index_key, _batch_counter_key, _event_counter_key],
               argv: [uid, alt_uid, data, subscriber.name, PREFIX_COUNT, subscriber.max_events, now])
           
           broadcast(:events_added, name: subscriber.name, count: 1)
-          new(subscriber: subscriber, uid: actual_uid, deadline: deadline)
+          new(subscriber: subscriber, uid: actual_uid, deadline: deadline, length: length)
         end
 
 
