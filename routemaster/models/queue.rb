@@ -158,6 +158,7 @@ module Routemaster
 
       module ClassMethods
         include Mixins::Redis
+        include Enumerable
 
         def each
           _redis.scan_each(match: 'jobs:index:*') do |k|
