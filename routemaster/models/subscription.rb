@@ -56,8 +56,8 @@ module Routemaster
             }
           else
             names = _redis.smembers(_key_topic(topic))
-            Set.new Subscriber.where(name: names).map { |subscriber|
-              new(subscriber: subscriber, topic: topic)
+            Set.new Subscriber.where(name: names).map { |sub|
+              new(subscriber: sub, topic: topic)
             }
           end
         end

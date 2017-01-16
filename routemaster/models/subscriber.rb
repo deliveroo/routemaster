@@ -11,9 +11,9 @@ module Routemaster::Models
 
     attr_reader :name
 
-    def initialize(name:, _attributes: nil)
+    def initialize(name:, attributes: nil)
       @name = User.new(name)
-      @_attributes = _attributes
+      @_attributes = attributes
     end
 
     def save
@@ -109,8 +109,8 @@ module Routemaster::Models
           'subscriber_all',
           keys: [_index_key, *Array(name).map { |n| _key(n) }],
           argv: Array(name)
-        ).map do |name, data|
-          new(name: name, _attributes: Hash[*data])
+        ).map do |n, data|
+          new(name: n, attributes: Hash[*data])
         end
       end
 

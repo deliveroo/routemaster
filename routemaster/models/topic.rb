@@ -76,11 +76,10 @@ module Routemaster
             argv: [name, publisher])
 
           if publisher && actual_publisher != publisher
-            raise TopicClaimedError.new("topic claimed by #{actual_publisher}")
+            raise TopicClaimedError.new("topic already claimed by #{actual_publisher}")
           end
-          if claimed > 0
-            _log.info { "topic '#{name}' claimed by '#{publisher}'" }
-          end
+          _log.info { "topic '#{name}' created" } if added > 0
+          _log.info { "topic '#{name}' claimed by '#{publisher}'" } if claimed > 0
           
           new(name: name, publisher: actual_publisher)
         end
@@ -101,9 +100,6 @@ module Routemaster
       end
       include SharedMethods
       extend  SharedMethods
-
-
-      private
 
 
       class Name < String
