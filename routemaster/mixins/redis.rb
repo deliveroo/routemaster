@@ -29,6 +29,10 @@ module Routemaster
       def _redis_lua_run(script_name, keys:nil, argv:nil)
         sha = _redis_lua_sha(script_name)
         _redis.evalsha(sha, keys: keys, argv: argv)
+      rescue ::Redis::CommandError => e
+        raise unless /NOSCRIPT/ =~ e.message
+        @@_redis_lua_sha.delete script_name
+        retry
       end
     end
   end
