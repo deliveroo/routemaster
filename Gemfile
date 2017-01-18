@@ -38,9 +38,6 @@ gem 'honeybadger', require: false
 # monitoring
 gem 'newrelic_rpm', require: false
 
-# scheduled jobs
-gem 'rufus-scheduler', require: false
-
 # metric collection
 gem 'dogapi', require: false
 
