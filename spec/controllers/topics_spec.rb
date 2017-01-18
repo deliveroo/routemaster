@@ -40,7 +40,7 @@ describe Routemaster::Controllers::Topics, type: :controller do
       let(:data) {{
         type: 'create',
         url:  'https://example.com/widgets/123',
-        timestamp: Time.now.to_f
+        timestamp: Time.now.to_i * 1e3
       }}
 
       it 'responds ok' do
