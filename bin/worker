@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require_relative '../config/bootstrap.rb'
+require 'routemaster/models/counters'
 require 'routemaster/services/thread_group'
 require 'routemaster/services/worker'
 require 'routemaster/services/ticker'
@@ -9,10 +10,10 @@ require 'routemaster/mixins/log'
 include Routemaster::Mixins::Log
 
 Routemaster.configure(
-  # One connection for each worker thread, one for the aux worker, and one for
-  # the tickers to enqueue their jobs
-  redis_pool_size: Integer(ENV.fetch('ROUTEMASTER_WORKER_THREADS')) + 2
+  redis_pool_size: Integer(ENV.fetch('ROUTEMASTER_WORKER_THREADS')) + 2,
+  process_type:    'worker',
 )
+
 
 _log.info { 'creating thread group' }
 Routemaster::Services::ThreadGroup.new.tap do |group|
@@ -24,7 +25,7 @@ Routemaster::Services::ThreadGroup.new.tap do |group|
     queue: Routemaster.aux_queue, name: 'autodrop', every: 10_000
   ), name: 'ticker.autodrop'
   group.add Routemaster::Services::Ticker.new(
-    queue: Routemaster.aux_queue, name: 'monitor', every: 10_000
+    queue: Routemaster.aux_queue, name: 'monitor', every: ENV.fetch('ROUTEMASTER_MONITOR_INTERVAL').to_i * 1_000
   ), name: 'ticker.monitor'
 
   # aux worker thread
@@ -48,5 +49,7 @@ Routemaster::Services::ThreadGroup.new.tap do |group|
   group.wait
 end
 
+
+Routemaster.teardown
 _log.info { 'job worker: completed' }
 Kernel.exit(0)

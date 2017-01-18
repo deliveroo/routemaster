@@ -5,7 +5,7 @@ require 'routemaster/models/subscriber'
 require 'routemaster/models/topic'
 require 'routemaster/models/batch'
 
-describe 'Client integration' do
+describe 'Client integration', slow:true do
   let(:processes) { Acceptance::ProcessLibrary.new }
   before { WebMock.disable! }
 
@@ -19,7 +19,14 @@ describe 'Client integration' do
   after  { client_processes.each { |c| c.wait_stop } }
   after  { client_processes.each { |c| c.stop } }
 
-  let(:client) { Routemaster::Client.new(url: 'https://127.0.0.1:17893', uuid: 'demo', verify_ssl: false) }
+  let(:client) { 
+    Routemaster::Client.configure do |c|
+      c.url = 'https://127.0.0.1:17893'
+      c.uuid = 'demo'
+      c.verify_ssl = false
+    end
+  }
+
   let(:subscriber) { Routemaster::Models::Subscriber.find('demo') }
   let(:topic) { Routemaster::Models::Topic.find('widgets') }
 

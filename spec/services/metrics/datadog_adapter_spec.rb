@@ -1,25 +1,27 @@
 require 'spec_helper'
+require 'spec/support/env'
 require 'dogapi'
 require 'routemaster/application'
-require 'routemaster/services/deliver_metric'
-require 'routemaster/services/metrics_collectors/datadog'
+require 'routemaster/services/metrics/emit'
+require 'routemaster/services/metrics/datadog_adapter'
 require 'core_ext/silence_stream'
 
-describe Routemaster::Services::MetricsCollectors::Datadog do
+describe Routemaster::Services::Metrics::DatadogAdapter do
 
   describe '#perform' do
     subject { described_class.instance }
-    let(:name) { "test.metric" }
+    let(:name) { 'test.metric' }
     let(:value) { 10.5 }
-    let(:tags) { ["app:routemaster","env:test"] }
-    let(:client) { double(Dogapi::Client) }
+    let(:tags) { %w[app:routemaster env:test] }
+    let(:client) { instance_double(Dogapi::Client) }
 
+    # forcibly reset the singleton
     before { Singleton.__init__(described_class) }
 
     context 'when the api key is missing' do
       it 'should raise exception' do
         STDERR.silence_stream do
-          expect { subject.process(error) }.to raise_error(SystemExit)
+          expect { subject }.to raise_error(SystemExit)
         end
       end
     end
@@ -29,16 +31,16 @@ describe Routemaster::Services::MetricsCollectors::Datadog do
       before { ENV['DATADOG_APP_KEY'] = 'api_key_super_secret_app' }
 
       it 'should send a metric to datadog' do
-        expect(Dogapi::Client).to receive(:new).and_return(client)
-        expect(client)
-          .to receive(:emit_point)
-          .with(
-            "test.metric",
+        expect_any_instance_of(Dogapi::Client).
+          to receive(:emit_point).
+          with(
+            'routemaster.test.metric',
             10.5,
-            {:tags=>["app:routemaster", "env:test"]}
+            tags: %w[app:routemaster env:test],
+            type: 'gauge'
           )
 
-        subject.perform(name, value, tags)
+        subject.gauge(name, value, tags)
       end
     end
   end
