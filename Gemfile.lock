@@ -160,6 +160,7 @@ DEPENDENCIES
   honeybadger
   msgpack
   newrelic_rpm
+  oj
   pry
   pry-byebug
   pry-remote
