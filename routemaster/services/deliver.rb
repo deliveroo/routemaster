@@ -33,8 +33,43 @@ module Routemaster
       def call
         _log.debug { "starting delivery to '#{@subscriber.name}'" }
 
-        # assemble data
-        data = @buffer.map do |event|
+        error = nil
+        start_at = Routemaster.now
+        begin
+        # send data
+          response = _conn.post do |post|
+            post.headers['Content-Type'] = 'application/json'
+            post.body = Oj.dump(_data, mode: :compat)
+          end
+          error = CantDeliver.new("HTTP #{response.status}") unless response.success?
+        rescue Faraday::Error::ClientError => e
+          error = CantDeliver.new("#{e.class.name}: #{e.message}")
+        end
+
+        t = Routemaster.now - start_at
+        status = error ? 'failure' : 'success'
+
+        _counters.incr('delivery.events',  queue: @subscriber.name, count: _data.length, status: status)
+        _counters.incr('delivery.batches', queue: @subscriber.name, count: 1,            status: status)
+        _counters.incr('delivery.time',    queue: @subscriber.name, count: t,            status: status)
+        _counters.incr('delivery.time2',   queue: @subscriber.name, count: t*t,          status: status)
+        
+        if error
+          _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
+          raise error
+        else
+        _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
+        end
+        true
+      end
+
+
+      private
+
+
+      # assemble data
+      def _data
+        @_data ||= @buffer.map do |event|
           {
             topic: event.topic,
             type:  event.type,
@@ -42,27 +77,7 @@ module Routemaster
             t:     event.timestamp
           }
         end
-
-        # send data
-        begin
-          response = _conn.post do |post|
-            post.headers['Content-Type'] = 'application/json'
-            post.body = Oj.dump(data, mode: :compat)
-          end
-          raise "HTTP #{response.status}" unless response.success?
-        rescue RuntimeError, Faraday::Error::ClientError => e
-          _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
-          _counters.incr('delivery', queue: @subscriber.name, count: data.length, status: 'failure')
-          raise CantDeliver.new("#{e.class.name}: #{e.message}")
-        end
-
-        _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
-        _counters.incr('delivery', queue: @subscriber.name, count: data.length, status: 'success')
-        true
       end
-
-
-      private
 
 
       def _conn
@@ -73,6 +88,7 @@ module Routemaster
           c.options.timeout      = TIMEOUT
         end
       end
+
 
       def _verify_ssl?
         !!( ENV.fetch('ROUTEMASTER_SSL_VERIFY') =~ /^(true|on|yes|1)$/i )
