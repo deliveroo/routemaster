@@ -49,7 +49,13 @@ describe Routemaster::Services::Deliver do
 
       it 'increments delivery.time counter' do
         expect { perform rescue nil }.to change { 
-          get_counter('delivery.batches', tag.merge(queue: 'alice'))
+          get_counter('delivery.time', tag.merge(queue: 'alice'))
+        }
+      end
+
+      it 'increments delivery.time counter' do
+        expect { perform rescue nil }.to change { 
+          get_counter('delivery.time2', tag.merge(queue: 'alice'))
         }
       end
     end
