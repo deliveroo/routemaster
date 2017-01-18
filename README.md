@@ -261,7 +261,7 @@ The auto-dropper runs every 30 seconds.
 We recommend using [HireFire](https://hirefire.io/) to auto-scale the _web_ and
 _worker_ processes.
 
-- To scale the `web` processes, monitor the `/pulse/status` endpoint and scale up
+- To scale the `web` processes, monitor the `/pulse` endpoint and scale up
   if it slows down beyond 50ms.
 - To scale the `worker`, we provide a special `/pulse/scaling` endpoint that
   will take 1s to respond when there are many queued jobs; we recommend to scale
