@@ -41,16 +41,6 @@ Jobs include:
 - `Schedule` promotes scheduled (deferred) jobs to the main job queue.
 
 
-## Internal events
-
-We use the `wisper` gem as a process-local event bus. Conventionally, our event
-have a single hash as a payload. This is a catalog of such events.
-
-`events_added(name:, count:)`
-
-`events_removed(name:, count:)`
-
-
 ## Event batch lifecycle
 
 All events get batched for delivery for a particular subscriber; the data model
@@ -173,11 +163,11 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
   An index for the set of all batches.
   The score is the batch's creation timestamp; values are batch UIDs.
 
-`batches:counters:event` (hash)
+`batches:gauges:event` (hash)
 
   Number of currently extant events, per subscriber name.
 
-`batches:counters:batch` (hash)
+`batches:gauges:batch` (hash)
 
   Number of currently extant batches, per subscriber name.
 
@@ -210,4 +200,9 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
   workers).
 
   Job identifiers are formatted as batch UIDs.
+
+`counters` (hash)
+
+  Telemetry counters.
+
 

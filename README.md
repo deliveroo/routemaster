@@ -175,11 +175,25 @@ Routemaster can report various metrics to a third party services by setting the
 - [`datadog`](https://www.datadoghq.com) (requires the `DATADOG_API_KEY` and
   `DATADOG_APP_KEY` to be set)
 
-The following metrics will be reported every 10 seconds:
+The following gauge metrics will be reported every 10 seconds:
 
-- `subscriber.queue.batches` (tagged by subscriber)
+- `subscriber.queue.batches` (tagged by subscriber queue)
 - `subscriber.queue.events` (tagged by subscriber)
 - `jobs.count` (tagged by queue and status)
+- `redis.bytes_used`, `.max_mem`, `.low_mark`, and `.high_mark` (the latter 3
+  begin the autdropper thresholds)
+- `redis.used_cpu_user` and `.used_cpu_sys` (cumulative CPU milliseconds used by
+  the storage backend since boot)
+
+as well as the following counter metrics:
+
+- `events.published` (tagged by topic)
+- `events.autodropped` (tagged by subscriber)
+- `events.removed` (idem)
+- `events.added` (idem)
+- `delivery` (one count per event, tagged by status and by subscriber)
+- `process` (tagged with `status:start` or `:stop`, and `type:web` or
+  `:worker`), incremented when processes boot or shut down (cleanly)
 
 
 ### Exception reporting

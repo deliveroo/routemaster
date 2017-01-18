@@ -1,9 +1,10 @@
 require 'spec_helper'
+require 'spec/support/persistence'
+require 'spec/support/counters'
 require 'routemaster/jobs/autodrop'
 require 'routemaster/models/database'
 require 'routemaster/models/subscriber'
 require 'routemaster/models/batch'
-require 'spec/support/persistence'
 
 describe Routemaster::Jobs::Autodrop do
   subject { described_class.new(batch_size: 2, database: database) }
@@ -46,7 +47,11 @@ describe Routemaster::Jobs::Autodrop do
       
       it 'actually deletes batches' do
         expect { subject.call }.to change { Routemaster::Models::Batch.all.count }.by(-2)
-      end 
+      end
+
+      it 'increments events.autodropped' do
+        expect { subject.call }.to change { get_counter('events.autodropped', queue: 'alice') }.from(0).to(10)
+      end
     end
   end
 end

@@ -1,6 +1,7 @@
 require 'spec_helper'
 require 'spec/support/events'
 require 'spec/support/persistence'
+require 'spec/support/counters'
 require 'routemaster/services/ingest'
 require 'routemaster/models/subscriber'
 require 'routemaster/models/subscription'
@@ -63,6 +64,10 @@ module Routemaster
       perform
       batch = Models::Batch.all.find { |b| b.subscriber.name == 'qux' }
       expect(batch).not_to be_current
+    end
+
+    it 'increments events.published' do
+      expect { perform }.to change { get_counter('events.published', topic: 'widgets') }.from(0).to(2)
     end
   end
 end
