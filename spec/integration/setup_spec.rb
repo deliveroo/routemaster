@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'spec/support/integration'
 
-describe 'Support processes for acceptance testing' do
+describe 'Support processes for acceptance testing', slow: true do
   let(:processes) { Acceptance::ProcessLibrary.new }
   before { WebMock.disable! }
 

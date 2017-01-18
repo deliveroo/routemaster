@@ -5,7 +5,7 @@ rvm:
 services:
 - redis-server
 script:
-- bundle exec rspec
+- bundle exec rspec --format d
 - bundle exec codeclimate-test-reporter
 addons:
     code_climate:

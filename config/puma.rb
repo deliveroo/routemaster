@@ -200,3 +200,13 @@ worker_boot_timeout Integer(ENV.fetch('PUMA_BOOT_TIMEOUT'))
 # activate_control_app 'unix:///var/run/pumactl.sock', { auth_token: '12345' }
 # activate_control_app 'unix:///var/run/pumactl.sock', { no_token: true }threads 4,16
 
+on_worker_boot do
+  Routemaster.configure(
+    redis_pool_size: Integer(ENV.fetch('PUMA_THREADS')),
+    process_type:    'web'
+  )
+end
+
+on_worker_shutdown do
+  Routemaster.teardown
+end

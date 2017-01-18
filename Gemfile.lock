@@ -132,7 +132,6 @@ GEM
     thor (0.19.4)
     thread_safe (0.3.5)
     tilt (2.0.5)
-    timecop (0.8.1)
     tunnels (1.2.2)
       eventmachine
     typhoeus (1.1.2)
@@ -177,11 +176,9 @@ DEPENDENCIES
   sentry-raven
   sinatra
   sinatra-initializers
-  timecop
   tunnels
   typhoeus
   webmock
-  wisper
 
 RUBY VERSION
    ruby 2.3.3p222
