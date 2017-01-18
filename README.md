@@ -191,7 +191,11 @@ as well as the following counter metrics:
 - `events.autodropped` (tagged by subscriber)
 - `events.removed` (idem)
 - `events.added` (idem)
-- `delivery` (one count per event, tagged by status and by subscriber)
+- delivery metrics, tagged by status ("success" or "failure") and by subscriber:
+    - `delivery.events` (one count per event)
+    - `delivery.batches` (one count per batch)
+    - `delivery.time` (sum of delivery times in milliseconds)
+    - `delivery.time2` (sum of delivery times squared)
 - `process` (tagged with `status:start` or `:stop`, and `type:web` or
   `:worker`), incremented when processes boot or shut down (cleanly)
 
