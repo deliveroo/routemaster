@@ -245,22 +245,30 @@ The auto-dropper runs every 30 seconds.
 ### Scaling Routemaster out
 
 1. Allowing Routemaster to _receive_ more events:<br>
-   This requires to scale the HTTP frontend. We recommend using
-   [HireFire](https://hirefire.io/) to auto-scale the _web_ process in the
+   This requires to scale the HTTP frontend.
    Procfile.
 2. Allowing Routemaster to _deliver_ more events:<br>
-   This require running multiple instances of the _watch_ process.
+   This require running multiple instances of the _worker_ process.
    No auto-scaling mechanism is currently provided, so we recommend running the
    number of processes you'll require at peak.<br>
-   Note that:
-    - event delivery is bounded by the ability of subscribers to process them.
-      Poorly-written subscribers can cause timeouts in delivery, potentially
-      causing buffering overflows.
-    - if multiple _watch_ processes are run in parallel, there is no more
-      guarantee of in-order event delivery (currently).
+   Note that event delivery is bounded by the ability of subscribers to process
+   them.  Poorly-written subscribers can cause timeouts in delivery, potentially
+   causing buffering overflows.
 3. Allowing Routemaster to _buffer_ more events:<br>
    This requires scaling the underlying Redis server.
 
+
+We recommend using [HireFire](https://hirefire.io/) to auto-scale the _web_ and
+_worker_ processes.
+
+- To scale the `web` processes, monitor the `/pulse` endpoint and scale up
+  if it slows down beyond 50ms.
+- To scale the `worker`, we provide a special `/pulse/scaling` endpoint that
+  will take 1s to respond when there are many queued jobs; we recommend to scale
+  up when this endpoint it slow.
+  See `.env` for configuration of thresholds.
+
+Note that both endpoints require authentication.
 
 --------------------------------------------------------------------------------
 
