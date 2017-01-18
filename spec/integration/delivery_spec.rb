@@ -94,7 +94,7 @@ describe 'Event delivery', type: :acceptance, slow: true do
     subscribe
     client.created('cats', 'https://example.com/cats/2')
     client.created('cats', 'https://example.com/cats/3')
-    processes.watch.wait_log %r(counter:delivery:2.*queue:demo)
+    processes.watch.wait_log %r(counter:delivery.events:2.*queue:demo)
   end
 end
 
