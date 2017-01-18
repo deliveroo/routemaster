@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'spec/support/persistence'
+require 'spec/support/jobs'
 require 'routemaster/jobs/scrub_queues'
 require 'routemaster/models/queue'
 require 'routemaster/models/job'
@@ -25,12 +26,12 @@ describe Routemaster::Jobs::ScrubQueues do
     end
 
     it 'empties the queue' do
-      expect { worker.call rescue nil }.to change { queue.length }.by(-1)
+      expect { worker.call rescue RuntimeError }.to change { queue.length }.by(-1)
     end
   end
 
   context 'when job has failed' do
-    before { worker.call rescue nil }
+    before { worker.call rescue RuntimeError }
 
     context 'just now' do
       it 'does not re-queue the job' do

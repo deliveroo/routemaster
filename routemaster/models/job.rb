@@ -3,6 +3,10 @@ require 'routemaster/mixins/redis'
 require 'msgpack'
 require 'core_ext/string'
 
+%w[autodrop batch monitor schedule scrub_queues scrub_workers].each do |name|
+  require "routemaster/jobs/#{name}"
+end
+
 module Routemaster
   module Models
     # Something to be run asynchronously.
@@ -17,7 +21,6 @@ module Routemaster
       end
 
       def perform
-        require "routemaster/jobs/#{@name}"
         Routemaster::Jobs.const_get(@name.camelize).new.call(*@args)
       end
 
