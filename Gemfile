@@ -27,6 +27,7 @@ gem 'msgpack'
 gem 'faraday'
 gem 'faraday_middleware'
 gem 'typhoeus'
+gem 'oj'
 
 # configuration through environement
 gem 'dotenv'
