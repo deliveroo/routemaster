@@ -16,9 +16,8 @@ describe 'Process counters', slow:true do
 
     it 'starts cleanly' do
       subject.wait_start
-      sleep 2 # enough time for the flusher thread to trigger
+      subject.stop.wait_stop
       expect(get_counter('process', type_tag.merge(status: 'start'))).to eq(count)
-      # FIXME: use wait_log to avoid the sleeping (proper integration)
     end
 
     it 'stops cleanly' do

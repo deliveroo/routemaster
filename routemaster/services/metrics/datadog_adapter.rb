@@ -32,6 +32,9 @@ module Routemaster
           end
         end
 
+        # `counter` and `gauge` have identical implementations —
+        # they're distinguished by sending the called method name (__callee__)
+        # as the datapoint `type`
         alias_method :counter, :gauge
       end
     end

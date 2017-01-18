@@ -6,6 +6,7 @@ require 'faraday'
 require 'typhoeus'
 require 'typhoeus/adapters/faraday'
 require 'json'
+require 'oj'
 
 module Routemaster
   module Services
@@ -46,7 +47,7 @@ module Routemaster
         begin
           response = _conn.post do |post|
             post.headers['Content-Type'] = 'application/json'
-            post.body = data.to_json
+            post.body = Oj.dump(data, mode: :compat)
           end
           raise "HTTP #{response.status}" unless response.success?
         rescue RuntimeError, Faraday::Error::ClientError => e
