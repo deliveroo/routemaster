@@ -1,8 +1,8 @@
 require 'routemaster/models/counters'
 
 module SpecSupportCounter
-  def get_counter(*args)
-    Routemaster::Models::Counters.instance.flush.dump[args]
+  def get_counter(name, **options)
+    Routemaster::Models::Counters.instance.flush.dump[[name, options]]
   end
 end
 

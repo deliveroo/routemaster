@@ -9,6 +9,15 @@ module Routemaster
         _log.debug { args.inspect }
       end
     end
+
+    class Fail
+      include Mixins::Log
+
+      def call(*)
+        raise 'failing job'
+      end
+    end
   end
 end
+
 
