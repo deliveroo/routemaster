@@ -6,6 +6,7 @@ require 'faraday'
 require 'typhoeus'
 require 'typhoeus/adapters/faraday'
 require 'json'
+require 'oj'
 
 module Routemaster
   module Services
@@ -35,10 +36,10 @@ module Routemaster
         error = nil
         start_at = Routemaster.now
         begin
-          # send data
+        # send data
           response = _conn.post do |post|
             post.headers['Content-Type'] = 'application/json'
-            post.body = _data.to_json
+            post.body = Oj.dump(_data, mode: :compat)
           end
           error = CantDeliver.new("HTTP #{response.status}") unless response.success?
         rescue Faraday::Error::ClientError => e
@@ -57,7 +58,7 @@ module Routemaster
           _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
           raise error
         else
-          _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
+        _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
         end
         true
       end

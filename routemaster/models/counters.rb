@@ -120,11 +120,6 @@ module Routemaster
       end
 
 
-      def _field(name, options)
-        MessagePack.dump([name, options.to_a.sort])
-      end
-
-
       def _key
         'counters'
       end

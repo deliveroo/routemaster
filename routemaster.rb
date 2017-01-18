@@ -11,10 +11,12 @@ module Routemaster
   def self.configure(**options)
     @_config = DEFAULTS.merge(options)
     counters.incr('process', type: config[:process_type], status: 'start')
+    self
   end
 
   def self.teardown
     counters.incr('process', type: config[:process_type], status: 'stop').finalize
+    self
   end
 
   def self.config

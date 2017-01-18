@@ -43,6 +43,9 @@ module Routemaster
         (raw.to_f * 1e3).to_i
       end
 
+      # used_cpu_user has identical implementation to used_cpu_sys,
+      # it simply looks up a different entry in INFO CPU
+      # (distinguished by __callee__)
       alias_method :used_cpu_user, :used_cpu_sys
     end
   end
