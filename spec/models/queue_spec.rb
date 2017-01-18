@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'spec/support/persistence'
+require 'spec/support/counters'
 require 'routemaster/models/queue'
 require 'routemaster/models/job'
 
@@ -232,10 +233,16 @@ describe Routemaster::Models::Queue do
       }.from([job1]).to([])
     end
 
-    it 'does not affect non-running workers' do
+    it 'does not affect still-running workers' do
       expect { perform }.not_to change {
         subject.running_jobs('qux')
       }
+    end
+
+    it 'increments jobs.scrubbed' do
+      expect { perform }.to change {
+        get_counter('jobs.scrubbed', queue: 'main')
+      }.by(1)
     end
   end
 end

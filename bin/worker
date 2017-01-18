@@ -27,6 +27,12 @@ Routemaster::Services::ThreadGroup.new.tap do |group|
   group.add Routemaster::Services::Ticker.new(
     queue: Routemaster.aux_queue, name: 'monitor', every: ENV.fetch('ROUTEMASTER_MONITOR_INTERVAL').to_i * 1_000
   ), name: 'ticker.monitor'
+  group.add Routemaster::Services::Ticker.new(
+    queue: Routemaster.aux_queue, name: 'scrub_queues', every: 60_000
+  ), name: 'ticker.scrub_queues'
+  group.add Routemaster::Services::Ticker.new(
+    queue: Routemaster.aux_queue, name: 'scrub_workers', every: 120_000
+  ), name: 'ticker.scrub_workers'
 
   # aux worker thread
   group.add Routemaster::Services::Worker.new(

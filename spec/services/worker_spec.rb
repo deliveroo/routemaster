@@ -50,5 +50,13 @@ module Routemaster
         expect { subject.cleanup }.to change { subject.last_at }.to(nil)
       end
     end
+
+    describe '.each' do
+      let(:result) { [].tap { |r| described_class.each { |x| r << x } } }
+      it 'yields workers' do
+        subject.call
+        expect(result).to eq([subject])
+      end
+    end
   end
 end

@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'routemaster/models/job'
-require 'routemaster/jobs/null'
+require 'spec/support/jobs'
 
 describe Routemaster::Models::Job do
   subject { described_class.new(name: 'null', args: args) }
