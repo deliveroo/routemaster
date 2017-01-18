@@ -83,7 +83,7 @@ module Routemaster
 
       get %r{^/(subscriptions|subscribers)$} do
         content_type :json
-        counters = Models::Batch.counters
+        gauges = Models::Batch.gauges
         payload = Models::Subscriber.map do |subscriber|
           {
             subscriber: subscriber.name,
@@ -91,7 +91,7 @@ module Routemaster
             topics: subscriber.topics.map(&:name),
             events: {
               sent:   nil,
-              queued: counters[:events][subscriber.name],
+              queued: gauges[:events][subscriber.name],
               oldest: nil,
             }
           }

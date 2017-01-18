@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/deliveroo/routemaster-client.git
-  revision: 42f8841a3a5bb87755e91785ddae1ee050c16a3c
-  ref: 42f8841
+  revision: 0521e2fd35cfa854396ae4b85808e3a34f0ef09c
+  ref: 0521e2f
   specs:
-    routemaster-client (1.3.1)
+    routemaster-client (3.0.0)
       faraday (>= 0.9.0)
       oj (~> 2.17)
       typhoeus (~> 1.1)
@@ -23,7 +23,7 @@ GEM
       safe_yaml (~> 1.0.0)
     diff-lcs (1.2.5)
     docile (1.1.5)
-    dogapi (1.23.0)
+    dogapi (1.24.0)
       multi_json
     dotenv (2.1.1)
     ethon (0.10.1)
@@ -52,14 +52,14 @@ GEM
       guard-compat (~> 1.1)
       rspec (>= 2.99.0, < 4.0)
     hashdiff (0.3.2)
-    hirefire-resource (0.3.13)
+    hirefire-resource (0.4.0)
     honeybadger (2.7.2)
-    json (2.0.2)
+    json (2.0.3)
     listen (3.1.5)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
       ruby_dep (~> 1.2)
-    lumberjack (1.0.10)
+    lumberjack (1.0.11)
     method_source (0.8.2)
     msgpack (1.0.2)
     multi_json (1.12.1)
@@ -69,7 +69,7 @@ GEM
     notiffany (0.1.1)
       nenv (~> 0.1)
       shellany (~> 0.0)
-    oj (2.18.0)
+    oj (2.18.1)
     pry (0.10.4)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -132,7 +132,6 @@ GEM
     thor (0.19.4)
     thread_safe (0.3.5)
     tilt (2.0.5)
-    timecop (0.8.1)
     tunnels (1.2.2)
       eventmachine
     typhoeus (1.1.2)
@@ -177,11 +176,9 @@ DEPENDENCIES
   sentry-raven
   sinatra
   sinatra-initializers
-  timecop
   tunnels
   typhoeus
   webmock
-  wisper
 
 RUBY VERSION
    ruby 2.3.3p222

@@ -5,8 +5,8 @@ require 'routemaster/models/subscriber'
 require 'routemaster/mixins/redis'
 require 'routemaster/mixins/assert'
 require 'routemaster/mixins/log'
+require 'routemaster/mixins/counters'
 require 'routemaster/services/codec'
-require 'wisper'
 
 module Routemaster
   module Models
@@ -15,7 +15,7 @@ module Routemaster
       include Mixins::Redis
       include Mixins::Assert
       include Mixins::Log
-      include Wisper::Publisher
+      include Mixins::Counters
 
       Inconsistency    = Class.new(RuntimeError)
 
@@ -36,9 +36,13 @@ module Routemaster
 
       def subscriber
         @subscriber ||= begin
-          return if _subscriber_name.nil?
-          Subscriber.find(_subscriber_name)
+          return if subscriber_name.nil?
+          Subscriber.find(subscriber_name)
         end
+      end
+
+      def subscriber_name
+        @subscriber_name ||= _redis.lindex(_batch_key, 0)
       end
 
 
@@ -128,15 +132,15 @@ module Routemaster
       def delete
         count = _redis_lua_run(
           'batch_delete',
-          keys: [_batch_key, _index_key, _batch_ref_key, _batch_counter_key, _event_counter_key],
-          argv: [@uid, PREFIX_COUNT, _subscriber_name])
-        broadcast(:events_removed, name: _subscriber_name, count: count)
+          keys: [_batch_key, _index_key, _batch_ref_key, _batch_gauge_key, _event_gauge_key],
+          argv: [@uid, PREFIX_COUNT, subscriber_name])
+        _counters.incr('events.removed', queue: subscriber_name, count: count)
         self
       end
 
 
       module ClassMethods
-        include Wisper::Publisher
+        include Mixins::Counters
 
         # Add the data to the subscriber's current batch. A new batch will be
         # created as needed. The batch will be promoted if it's full.
@@ -156,18 +160,18 @@ module Routemaster
 
           actual_uid, length =_redis_lua_run(
               'batch_ingest',
-              keys: [batch_ref_key, _batch_key(uid), _batch_key(alt_uid), _index_key, _batch_counter_key, _event_counter_key],
+              keys: [batch_ref_key, _batch_key(uid), _batch_key(alt_uid), _index_key, _batch_gauge_key, _event_gauge_key],
               argv: [uid, alt_uid, data, subscriber.name, PREFIX_COUNT, subscriber.max_events, now])
           
-          broadcast(:events_added, name: subscriber.name, count: 1)
+          _counters.incr('events.added', queue: subscriber.name)
           new(subscriber: subscriber, uid: actual_uid, deadline: deadline, length: length)
         end
 
 
-        def counters
+        def gauges
           {
-            batches: _redis.hgetall(_batch_counter_key).map_values(&:to_i).tap { |h| h.default = 0 },
-            events:  _redis.hgetall(_event_counter_key).map_values(&:to_i).tap { |h| h.default = 0 },
+            batches: _redis.hgetall(_batch_gauge_key).map_values(&:to_i).tap { |h| h.default = 0 },
+            events:  _redis.hgetall(_event_gauge_key).map_values(&:to_i).tap { |h| h.default = 0 },
           }
         end
 
@@ -188,12 +192,12 @@ module Routemaster
           name ? "batches:current:#{name}" : nil
         end
 
-        def _event_counter_key
-          'batches:counters:event'
+        def _event_gauge_key
+          'batches:gauges:event'
         end
 
-        def _batch_counter_key
-          'batches:counters:batch'
+        def _batch_gauge_key
+          'batches:gauges:batch'
         end
 
         def _index_key
@@ -201,7 +205,7 @@ module Routemaster
         end
 
         def _batch_key(uid)
-          uid ? "batch:#{uid}" : nil
+          uid ? "batches:#{uid}" : nil
         end
       end
       extend ClassMethods
@@ -210,13 +214,8 @@ module Routemaster
       private
 
 
-      def _subscriber_name
-        @_subscriber_name ||= _redis.lindex(_batch_key, 0)
-      end
-
-
       def _batch_ref_key
-        self.class.send(:_batch_ref_key, _subscriber_name)
+        self.class.send(:_batch_ref_key, subscriber_name)
       end
 
 
@@ -226,7 +225,7 @@ module Routemaster
 
       extend Forwardable
 
-      delegate %i[_index_key _event_counter_key _batch_counter_key] => :'self.class'
+      delegate %i[_index_key _event_gauge_key _batch_gauge_key] => :'self.class'
 
 
       class Iterator

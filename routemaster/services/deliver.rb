@@ -1,6 +1,7 @@
 require 'routemaster/services'
 require 'routemaster/mixins/log'
 require 'routemaster/mixins/log_exception'
+require 'routemaster/mixins/counters'
 require 'faraday'
 require 'typhoeus'
 require 'typhoeus/adapters/faraday'
@@ -13,6 +14,7 @@ module Routemaster
     class Deliver
       include Mixins::Log
       include Mixins::LogException
+      include Mixins::Counters
 
       CONNECT_TIMEOUT = ENV.fetch('ROUTEMASTER_CONNECT_TIMEOUT').to_i
       TIMEOUT         = ENV.fetch('ROUTEMASTER_TIMEOUT').to_i
@@ -47,17 +49,16 @@ module Routemaster
             post.headers['Content-Type'] = 'application/json'
             post.body = Oj.dump(data, mode: :compat)
           end
-        rescue Faraday::Error::ClientError => e
+          raise "HTTP #{response.status}" unless response.success?
+        rescue RuntimeError, Faraday::Error::ClientError => e
+          _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
+          _counters.incr('delivery', queue: @subscriber.name, count: data.length, status: 'failure')
           raise CantDeliver.new("#{e.class.name}: #{e.message}")
         end
 
-        if response.success?
-          _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
-          return true
-        end
-
-        _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
-        raise CantDeliver.new("HTTP #{response.status}")
+        _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
+        _counters.incr('delivery', queue: @subscriber.name, count: data.length, status: 'success')
+        true
       end
 
 
@@ -68,8 +69,8 @@ module Routemaster
         @_conn ||= Faraday.new(@subscriber.callback, ssl: { verify: _verify_ssl? }) do |c|
           c.adapter :typhoeus
           c.basic_auth(@subscriber.uuid, 'x')
-          c.options[:open_timeout] = CONNECT_TIMEOUT
-          c.options[:timeout] = TIMEOUT
+          c.options.open_timeout = CONNECT_TIMEOUT
+          c.options.timeout      = TIMEOUT
         end
       end
 

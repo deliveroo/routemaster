@@ -1,9 +1,10 @@
 require 'spec_helper'
-require 'routemaster/services/deliver'
-require 'routemaster/models/subscriber'
 require 'spec/support/persistence'
 require 'spec/support/events'
 require 'spec/support/webmock'
+require 'spec/support/counters'
+require 'routemaster/services/deliver'
+require 'routemaster/models/subscriber'
 
 describe Routemaster::Services::Deliver do
   let(:buffer) { Array.new }
@@ -33,6 +34,13 @@ describe Routemaster::Services::Deliver do
         to_return(status: callback_status, body: '')
     end
 
+    shared_examples 'an event counter' do |count, tag|
+      it 'increments delivery counter' do
+        expect { perform rescue nil }.to change { 
+          get_counter('delivery', tag.merge(queue: 'alice'))
+        }.by(count)
+      end
+    end
 
     context 'when there are no events' do
       it 'passes' do
@@ -43,6 +51,8 @@ describe Routemaster::Services::Deliver do
         perform
         expect(@stub).to have_been_requested
       end
+
+      it_behaves_like 'an event counter', 0, status: 'success'
     end
 
     context 'when there are events' do
@@ -77,10 +87,14 @@ describe Routemaster::Services::Deliver do
         expect(events.last['url']).to match(/\/3$/)
       end
 
+      it_behaves_like 'an event counter', 3, status: 'success'
+
       shared_examples 'failure' do
         it "raises a CantDeliver exception" do
           expect { perform }.to raise_error(described_class::CantDeliver)
         end
+
+        it_behaves_like 'an event counter', 3, status: 'failure'
       end
 
       context 'when the callback 500s' do
@@ -110,6 +124,8 @@ describe Routemaster::Services::Deliver do
               s = TCPServer.new port
               q.push :started
               s.accept
+              q.pop
+              s.close
             end
           end
 

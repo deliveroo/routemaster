@@ -1,10 +1,10 @@
 require 'spec_helper'
 require 'routemaster/application'
 require 'routemaster/mixins/log'
-require 'routemaster/services/deliver_metric'
-require 'routemaster/services/metrics_collectors/print'
+require 'routemaster/services/metrics/emit'
+require 'routemaster/services/metrics/print_adapter'
 
-describe Routemaster::Services::MetricsCollectors::Print do
+describe Routemaster::Services::Metrics::PrintAdapter do
 
   describe '#process' do
 
@@ -18,7 +18,7 @@ describe Routemaster::Services::MetricsCollectors::Print do
         'env:test',
         'app:routemaster-test'
       ]
-      expect(subject.perform(name, value, tags)).to be_truthy
+      expect(subject.gauge(name, value, tags)).to be_truthy
     end
 
   end

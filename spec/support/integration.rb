@@ -134,7 +134,7 @@ module Acceptance
     def client
       @client ||= SubProcess.new(
         name:    'client',
-        command: 'puma -I. -w 2 -p 17892 spec/support/client.ru',
+        command: 'puma -I. -w 2 -p 17892 -C /dev/null spec/support/client.ru',
         start:   /Worker 1.*booted/,
         stop:    /Goodbye!/
       )
