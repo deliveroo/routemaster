@@ -7,6 +7,9 @@ module Routemaster
     class Scheduler
       include Mixins::Log
 
+      TICK = 10e-3
+      INTERVAL = 100 # schedule jobs every this many milliseconds
+
       def call
         next_at = Routemaster.now + INTERVAL
 
@@ -17,11 +20,6 @@ module Routemaster
 
         sleep TICK while (block_given? ? yield : true) && Routemaster.now < next_at
       end
-
-      private
-
-      TICK = 10e-3
-      INTERVAL = 100 # schedule jobs every X ms
     end
   end
 end
