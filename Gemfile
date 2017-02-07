@@ -10,7 +10,6 @@ gem 'puma'
 
 # application microframework
 gem 'sinatra'
-gem 'sinatra-initializers'
 
 # redirect to SSL, always
 gem 'rack-ssl'
@@ -41,9 +40,6 @@ gem 'newrelic_rpm', require: false
 
 # metric collection
 gem 'dogapi', require: false
-
-# Autoscaling
-gem 'hirefire-resource', require: false
 
 # Debugging in staging/production
 gem 'pry', require: false

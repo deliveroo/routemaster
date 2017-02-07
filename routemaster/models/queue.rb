@@ -2,6 +2,7 @@ require 'routemaster/models'
 require 'routemaster/mixins/redis'
 require 'routemaster/mixins/log'
 require 'routemaster/mixins/log_exception'
+require 'routemaster/mixins/counters'
 require 'routemaster/mixins/assert'
 require 'routemaster/models/job'
 
@@ -13,6 +14,7 @@ module Routemaster
       include Mixins::Redis
       include Mixins::Log
       include Mixins::LogException
+      include Mixins::Counters
       include Mixins::Assert
 
       attr_reader :name
@@ -47,7 +49,7 @@ module Routemaster
       # Returns the job currently being run by `worker_id`.
       # Empty if no jobs are running, or the worker isn't known.
       def running_jobs(worker_id)
-        raw = _redis.lrange(_pending_key(worker_id), 0, 0)
+        raw = _redis.lrange(_pending_key(worker_id), 0, -1)
         return [] unless raw
         raw.map { |x| Job.load(x) }
       end
@@ -148,9 +150,10 @@ module Routemaster
           worker_id = key.split(':').last
           next unless yield worker_id
 
-          _redis_lua_run(
+          count = _redis_lua_run(
             'queue_scrub',
             keys: [key, _queue_key, _index_key])
+          _counters.incr('jobs.scrubbed', queue: name, count: count)
           _log.warn { "scrubbed worker.#{worker_id}" }
         end
       end
@@ -158,6 +161,7 @@ module Routemaster
 
       module ClassMethods
         include Mixins::Redis
+        include Enumerable
 
         def each
           _redis.scan_each(match: 'jobs:index:*') do |k|

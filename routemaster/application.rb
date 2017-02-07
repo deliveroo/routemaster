@@ -1,6 +1,5 @@
 require 'routemaster'
 require 'sinatra'
-require 'sinatra-initializers'
 require 'rack/ssl'
 require 'routemaster/middleware/authentication'
 require 'routemaster/controllers/pulse'
@@ -8,11 +7,9 @@ require 'routemaster/controllers/topics'
 require 'routemaster/controllers/health'
 require 'routemaster/controllers/subscriber'
 require 'routemaster/mixins/log_exception'
-require 'hirefire-resource' if ENV['AUTOSCALE_WITH'] == 'hirefire'
 
 module Routemaster
   class Application < Sinatra::Base
-    register Sinatra::Initializers
     include Mixins::LogException
 
     configure do
@@ -21,7 +18,6 @@ module Routemaster
     end
 
     use Rack::SSL
-    use HireFire::Middleware if ENV['AUTOSCALE_WITH'] == 'hirefire'
     use Controllers::Health
 
     use Middleware::Authentication
