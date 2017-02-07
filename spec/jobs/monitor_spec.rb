@@ -30,7 +30,7 @@ describe Routemaster::Jobs::Monitor do
       Routemaster::Models::Job.new(name: 'null', args: 2, run_at: Routemaster.now + 1000),
       Routemaster::Models::Job.new(name: 'null', args: 3, run_at: Routemaster.now),
     ].each do |j|
-      Routemaster::Models::Queue.new(name: 'foo').push(j)
+      Routemaster::Models::Queue.new(name: 'main').push(j)
     end
   end
 
@@ -42,8 +42,8 @@ describe Routemaster::Jobs::Monitor do
     it { expect(@gauges).to include(['subscriber.queue.events',  12, array_including('subscriber:alice')]) }
     it { expect(@gauges).to include(['subscriber.queue.events',  42, array_including('subscriber:bob')]) }
 
-    it { expect(@gauges).to include(['jobs.count', 2, array_including(%w[queue:foo status:instant])]) }
-    it { expect(@gauges).to include(['jobs.count', 1, array_including(%w[queue:foo status:scheduled])]) }
+    it { expect(@gauges).to include(['jobs.count', 2, array_including(%w[queue:main status:instant])]) }
+    it { expect(@gauges).to include(['jobs.count', 1, array_including(%w[queue:main status:scheduled])]) }
 
     it { expect(@gauges).to include(['redis.bytes_used',    a_kind_of(Fixnum), a_kind_of(Array)]) }
     it { expect(@gauges).to include(['redis.low_mark',      a_kind_of(Fixnum), a_kind_of(Array)]) }

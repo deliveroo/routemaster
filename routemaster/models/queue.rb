@@ -163,9 +163,12 @@ module Routemaster
         include Mixins::Redis
         include Enumerable
 
+        # Names of all used queues
+        NAMES = %w[ aux main ]
+
         def each
-          _redis.scan_each(match: 'jobs:index:*') do |k|
-            yield new(name: k.sub(/^jobs:index:/, ''))
+          NAMES.each do |n|
+            yield new(name: n)
           end
         end
       end

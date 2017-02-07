@@ -47,7 +47,7 @@ describe Routemaster::Controllers::Pulse, type: :controller do
       ENV['ROUTEMASTER_SCALING_THRESHOLD'] = '10'
       ENV['ROUTEMASTER_SCALING_THRESHOLD'] = '10'
 
-      Routemaster::Models::Queue.new(name: 'test').tap do |q|
+      Routemaster::Models::Queue.new(name: 'main').tap do |q|
         job_count.times do |idx|
           q.push Routemaster::Models::Job.new(name: 'null', args: idx, run_at: job_deadline)
         end
