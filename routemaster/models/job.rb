@@ -3,7 +3,7 @@ require 'routemaster/mixins/redis'
 require 'msgpack'
 require 'core_ext/string'
 
-%w[autodrop batch monitor schedule scrub_queues scrub_workers].each do |name|
+%w[autodrop batch monitor scrub_queues scrub_workers].each do |name|
   require "routemaster/jobs/#{name}"
 end
 

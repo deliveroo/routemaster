@@ -5,6 +5,7 @@ require 'routemaster/models/counters'
 require 'routemaster/services/thread_group'
 require 'routemaster/services/worker'
 require 'routemaster/services/ticker'
+require 'routemaster/services/scheduler'
 require 'routemaster/mixins/log'
 
 include Routemaster::Mixins::Log
@@ -17,10 +18,10 @@ Routemaster.configure(
 
 _log.info { 'creating thread group' }
 Routemaster::Services::ThreadGroup.new.tap do |group|
+  # job promoter
+  group.add Routemaster::Services::Scheduler.new, name: 'scheduler'
+
   # ticker threads
-  group.add Routemaster::Services::Ticker.new(
-    queue: Routemaster.aux_queue, name: 'schedule', every: 100, delay: false
-  ), name: 'ticker.schedule'
   group.add Routemaster::Services::Ticker.new(
     queue: Routemaster.aux_queue, name: 'autodrop', every: 10_000
   ), name: 'ticker.autodrop'
