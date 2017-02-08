@@ -1,7 +1,7 @@
 require 'spec_helper'
-require 'routemaster/jobs/schedule'
+require 'routemaster/services/scheduler'
 
-describe Routemaster::Jobs::Schedule do
+describe Routemaster::Services::Scheduler do
   it 'performs scheduling on each queue' do
     q1 = double name: 'q1'
     q2 = double name: 'q2'
