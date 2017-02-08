@@ -4,7 +4,7 @@ require 'routemaster/services/ticker'
 require 'routemaster/models/queue'
 
 describe Routemaster::Services::Ticker do
-  let(:q) { Routemaster::Models::Queue.new(name: 'foo') }
+  let(:q) { Routemaster::Models::Queue['main'] }
   subject { described_class.new queue: q, name: 'tick', every: 42 }
 
   it 'enqueues a job' do

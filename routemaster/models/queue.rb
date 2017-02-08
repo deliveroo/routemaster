@@ -166,10 +166,21 @@ module Routemaster
         # Names of all used queues
         NAMES = %w[ aux main ]
 
+        # Accessor for allowed named queues
+        def [](name)
+          raise ArgumentError, "queue name '#{name}' is not valid" unless NAMES.include?(name)
+          new(name: name)
+        end
+
         def each
           NAMES.each do |n|
             yield new(name: n)
           end
+        end
+
+        # Prevent instanciation of queues not in NAMES
+        def self.extended(by)
+          by.private_class_method :new
         end
       end
       extend ClassMethods

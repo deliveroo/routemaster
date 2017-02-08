@@ -5,7 +5,7 @@ require 'routemaster/models/queue'
 require 'routemaster/models/job'
 
 describe Routemaster::Models::Queue do
-  subject { described_class.new(name: 'main') }
+  subject { described_class['main'] }
 
   def make_job(x:0, at:nil)
     Routemaster::Models::Job.new(name: 'null', args:x, run_at:at)

@@ -19,7 +19,7 @@ module Routemaster
 
     let(:events) {[ make_event, make_event ]}
 
-    let(:queue) { Models::Queue.new(name: 'main') }
+    let(:queue) { Models::Queue['main'] }
 
     def perform
       events.each do |event|

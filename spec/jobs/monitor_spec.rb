@@ -30,7 +30,7 @@ describe Routemaster::Jobs::Monitor do
       Routemaster::Models::Job.new(name: 'null', args: 2, run_at: Routemaster.now + 1000),
       Routemaster::Models::Job.new(name: 'null', args: 3, run_at: Routemaster.now),
     ].each do |j|
-      Routemaster::Models::Queue.new(name: 'main').push(j)
+      Routemaster::Models::Queue['main'].push(j)
     end
   end
 
