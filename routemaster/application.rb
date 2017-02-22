@@ -3,6 +3,7 @@ require 'sinatra'
 require 'rack/ssl'
 require 'routemaster/middleware/authentication'
 require 'routemaster/controllers/pulse'
+require 'routemaster/controllers/auth'
 require 'routemaster/controllers/topics'
 require 'routemaster/controllers/health'
 require 'routemaster/controllers/subscriber'
@@ -21,6 +22,7 @@ module Routemaster
     use Controllers::Health
 
     use Middleware::Authentication
+    use Controllers::Auth
     use Controllers::Pulse
     use Controllers::Topics
     use Controllers::Subscriber

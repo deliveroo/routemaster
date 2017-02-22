@@ -18,6 +18,8 @@ module Routemaster
         @_users ||= Set.new(
           ENV.fetch('ROUTEMASTER_CLIENTS', '').split(','))
         !! @_users.include?(username)
+        # Find user by token here
+        # Return boolean based on whether or not a user matches up with the token
       end
     end
   end
