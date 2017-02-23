@@ -222,9 +222,13 @@ module Routemaster
         self.class.send(:_batch_key, @uid)
       end
 
-      extend Forwardable
+      def _class_method_delegate(*args)
+        self.class.send(__callee__, *args)
+      end
 
-      delegate %i[_index_key _event_gauge_key _batch_gauge_key] => :'self.class'
+      alias_method :_index_key,       :_class_method_delegate
+      alias_method :_event_gauge_key, :_class_method_delegate
+      alias_method :_batch_gauge_key, :_class_method_delegate
 
 
       class Iterator

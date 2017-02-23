@@ -33,7 +33,7 @@ module Routemaster::Models
     end
 
     def timeout=(value)
-      _assert value.kind_of?(Fixnum)
+      _assert value.kind_of?(Integer)
       _assert TIMEOUT_RANGE.include?(value)
       _redis.hset(_key, 'timeout', value)
     end
@@ -45,7 +45,7 @@ module Routemaster::Models
     end
 
     def max_events=(value)
-      _assert value.kind_of?(Fixnum)
+      _assert value.kind_of?(Integer)
       _assert value > 0
       _redis.hset(_key, 'max_events', value)
     end
