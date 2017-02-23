@@ -1,3 +1,4 @@
+require 'securerandom'
 require 'routemaster/services'
 require 'routemaster/mixins/log_exception'
 require 'routemaster/services/deliver'
