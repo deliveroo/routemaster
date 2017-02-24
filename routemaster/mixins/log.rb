@@ -32,7 +32,7 @@ module Routemaster
 
       TIMESTAMP_FORMAT = '%F %T.%L'
 
-      def _formatter(severity, datetime, progname, message)
+      def _formatter(severity, datetime, _progname, message)
         _format % {
           timestamp: datetime.utc.strftime(TIMESTAMP_FORMAT),
           level:     severity,
