@@ -163,19 +163,9 @@ module Routemaster
         include Mixins::Redis
         include Enumerable
 
-        # Names of all used queues
-        NAMES = %w[ aux main ]
-
-        # Accessor for allowed named queues
-        def [](name)
-          raise ArgumentError, "queue name '#{name}' is not valid" unless NAMES.include?(name)
-          new(name: name)
-        end
-
-        def each
-          NAMES.each do |n|
-            yield new(name: n)
-          end
+        # Iterate over all known queues
+        def each(&block)
+          [AUX, MAIN].each(&block)
         end
 
         # Prevent instanciation of queues not in NAMES
@@ -185,6 +175,8 @@ module Routemaster
       end
       extend ClassMethods
 
+      AUX  = new(name: 'aux')
+      MAIN = new(name: 'main')
 
       private
 

@@ -8,7 +8,7 @@ require 'routemaster/services/worker'
 
 describe Routemaster::Jobs::ScrubQueues do
 
-  let(:queue) { Routemaster::Models::Queue['main'] }
+  let(:queue) { Routemaster::Models::Queue::MAIN }
   let(:job) { Routemaster::Models::Job.new(name: 'fail') }
   let(:worker) { Routemaster::Services::Worker.new(id: 'flakey', queue: queue) }
 
