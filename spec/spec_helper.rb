@@ -3,8 +3,7 @@ require 'simplecov'
 SimpleCov.start
 
 require 'dotenv'
-Dotenv.load!('.env')
-Dotenv.overload('.env.test')
+Dotenv.load!('.env.test', '.env')
 
 require 'pry'
 require 'pry-remote'

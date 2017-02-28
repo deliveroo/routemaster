@@ -163,14 +163,20 @@ module Routemaster
         include Mixins::Redis
         include Enumerable
 
-        def each
-          _redis.scan_each(match: 'jobs:index:*') do |k|
-            yield new(name: k.sub(/^jobs:index:/, ''))
-          end
+        # Iterate over all known queues
+        def each(&block)
+          [AUX, MAIN].each(&block)
+        end
+
+        # Prevent instanciation of queues not in NAMES
+        def self.extended(by)
+          by.private_class_method :new
         end
       end
       extend ClassMethods
 
+      AUX  = new(name: 'aux')
+      MAIN = new(name: 'main')
 
       private
 
