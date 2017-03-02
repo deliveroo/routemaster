@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-ruby '2.3.3'
+ruby '2.4.0'
 
 # process runner
 gem 'foreman'
@@ -61,7 +61,7 @@ group :development do
   gem 'pry-remote'
 
   # testing against the client
-  gem 'routemaster-client', git: 'https://github.com/deliveroo/routemaster-client.git', ref: '0521e2f'
+  gem 'routemaster-client'
 end
 
 group :test do

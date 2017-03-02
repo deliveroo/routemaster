@@ -45,9 +45,9 @@ describe Routemaster::Jobs::Monitor do
     it { expect(@gauges).to include(['jobs.count', 2, array_including(%w[queue:main status:instant])]) }
     it { expect(@gauges).to include(['jobs.count', 1, array_including(%w[queue:main status:scheduled])]) }
 
-    it { expect(@gauges).to include(['redis.bytes_used',    a_kind_of(Fixnum), a_kind_of(Array)]) }
-    it { expect(@gauges).to include(['redis.low_mark',      a_kind_of(Fixnum), a_kind_of(Array)]) }
-    it { expect(@gauges).to include(['redis.high_mark',     a_kind_of(Fixnum), a_kind_of(Array)]) }
+    it { expect(@gauges).to include(['redis.bytes_used',    a_kind_of(Integer), a_kind_of(Array)]) }
+    it { expect(@gauges).to include(['redis.low_mark',      a_kind_of(Integer), a_kind_of(Array)]) }
+    it { expect(@gauges).to include(['redis.high_mark',     a_kind_of(Integer), a_kind_of(Array)]) }
   end
 
   describe 'dispatches counters' do

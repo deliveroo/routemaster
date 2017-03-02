@@ -12,7 +12,7 @@ describe Routemaster do
 
   describe '.now' do
     it 'is an integer' do
-      expect(Routemaster.now).to be_a_kind_of(Fixnum)
+      expect(Routemaster.now).to be_a_kind_of(Integer)
     end
   end
 
