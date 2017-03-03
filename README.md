@@ -234,7 +234,7 @@ Set `ROUTEMASTER_REDIS_MAX_MEM` to the total amount of memory allocated to
 Redis, in bytes
 (100MB by default). This cannot typically be determined from a Redis client.
 
-Set `ROUTEMASTER_REDIS_MIN_MEM` to the threshold, in bytes (10MB by default). If
+Set `ROUTEMASTER_REDIS_MIN_FREE` to the threshold, in bytes (10MB by default). If
 less than this value is free, the auto-dropper will remove messages until twice
 the treshold in free memory is available.
 
