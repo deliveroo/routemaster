@@ -11,12 +11,11 @@ module Routemaster
 
         def initialize
           require 'honeybadger'
-          honeybadger_config = ::Honeybadger::Config.new(
-            env: ENV['RACK_ENV'],
-            api_key: ENV.fetch('HONEYBADGER_API_KEY'),
-            logger: _log,
-          )
-          ::Honeybadger.start(honeybadger_config)
+          ::Honeybadger.configure do |c|
+            c.env = ENV.fetch('RACK_ENV')
+            c.api_key = ENV.fetch('HONEYBADGER_API_KEY')
+            c.logger = _log
+          end
         rescue KeyError
           abort 'Please install and configure honeybadger (or equivalent service) first!'
         end
