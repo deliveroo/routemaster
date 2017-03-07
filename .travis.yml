@@ -2,8 +2,6 @@ language: ruby
 cache: bundler
 rvm:
 - 2.3.3
-- 2.4.0
-- ruby-head
 services:
 - redis-server
 script:
@@ -12,7 +10,3 @@ script:
 addons:
     code_climate:
         repo_token: bd632b47fe1e702f5e3f39b6a67e60f23e7aaa7194c45dbdf735539800d78d5a
-matrix:
-  allow_failures:
-    - rvm: ruby-head
-    - rvm: 2.4.0
