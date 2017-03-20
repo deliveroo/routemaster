@@ -1,6 +1,7 @@
 require 'spec_helper'
 require 'spec/support/persistence'
 require 'spec/support/counters'
+require 'spec/support/jobs'
 require 'routemaster/jobs/scrub_workers'
 require 'routemaster/models/queue'
 require 'routemaster/models/job'
