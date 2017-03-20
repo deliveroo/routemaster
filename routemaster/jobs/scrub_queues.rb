@@ -25,6 +25,9 @@ module Routemaster
             last_at.nil? || last_at <= Routemaster.now - @max_age
           end
         end
+      rescue => e
+        _log_exception(e)
+        raise Models::Queue::Retry, 10_000
       end
     end
   end

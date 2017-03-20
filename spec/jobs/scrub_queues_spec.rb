@@ -65,4 +65,30 @@ describe Routemaster::Jobs::ScrubQueues do
       it_behaves_like 'successfully scrubs'
     end
   end
+
+
+  context 'when scrubbing fails' do
+    before do
+      # Create some failed job data
+      worker.call rescue RuntimeError
+      # Raise on Worker#last_at, but we actually care for _any_ error
+      # raised in the call method.
+      allow_any_instance_of(Routemaster::Services::Worker).to receive(:last_at).and_raise(StandardError)
+    end
+
+    it 'raise a Retry error' do
+      expect {
+        subject.call
+      }.to raise_error(Routemaster::Models::Queue::Retry)
+    end
+    
+    it 'sets a retry delay' do
+      begin
+        subject.call
+      rescue => error
+        @error = error
+      end
+      expect(@error.delay).to eql 10_000
+    end
+  end
 end
