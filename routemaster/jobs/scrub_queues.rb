@@ -21,7 +21,8 @@ module Routemaster
         Models::Queue.each do |q|
           q.scrub do |worker_id|
             worker = Services::Worker.new(id: worker_id)
-            worker.last_at.nil? || worker.last_at <= Routemaster.now - @max_age
+            last_at = worker.last_at
+            last_at.nil? || last_at <= Routemaster.now - @max_age
           end
         end
       end

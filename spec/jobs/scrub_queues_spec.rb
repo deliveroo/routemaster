@@ -33,20 +33,36 @@ describe Routemaster::Jobs::ScrubQueues do
   context 'when job has failed' do
     before { worker.call rescue RuntimeError }
 
-    context 'just now' do
-      it 'does not re-queue the job' do
-        expect { subject.call }.not_to change { queue.length }
+    shared_examples_for 'successfully scrubs' do
+      context 'just now' do
+        it 'does not re-queue the job' do
+          expect { subject.call }.not_to change { queue.length }
+        end
+      end
+
+      context 'a while ago' do
+        before do
+          allow(Routemaster).to receive(:now) { Time.now.to_i * 1000 + 2*max_age }
+        end
+
+        it 're-queues the job' do
+          expect { subject.call }.to change { queue.length }.by(1)
+        end
       end
     end
 
-    context 'a while ago' do
+    it_behaves_like 'successfully scrubs'
+
+    describe 'when the worker shuts down while we are scrubbing and its metadata is cleared' do
       before do
-        allow(Routemaster).to receive(:now) { Time.now.to_i * 1000 + 2*max_age }
+        allow_any_instance_of(Routemaster::Services::Worker).to receive(:last_at).and_wrap_original do |m, *args|
+          data = m.call(*args)
+          m.receiver.cleanup
+          data
+        end
       end
 
-      it 're-queues the job' do
-        expect { subject.call }.to change { queue.length }.by(1)
-      end
+      it_behaves_like 'successfully scrubs'
     end
   end
 end
