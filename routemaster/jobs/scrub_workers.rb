@@ -18,7 +18,9 @@ module Routemaster
       
       def call
         Services::Worker.each do |w|
-          next unless w.last_at <= Routemaster.now - @max_age
+          last_at = w.last_at
+          next if last_at.nil?
+          next unless last_at <= Routemaster.now - @max_age
           _counters.incr('workers.scrubbed')
           w.cleanup
         end
