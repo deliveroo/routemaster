@@ -30,9 +30,9 @@ module Routemaster
       end
 
       def inspect
-        '<%s %s:%s url="%s">' % [
+        '<%s %s:%s url="%s" data=%s>' % [
           self.class.name.demodulize,
-          @topic, @type, @url, @data,
+          @topic, @type, @url, @data.inspect,
         ]
       end
     end
