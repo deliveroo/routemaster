@@ -62,6 +62,25 @@ describe Routemaster::Controllers::Topics, type: :controller do
       end
     end
 
+    context 'when supplying a data payload' do
+      let(:event_payload) {{
+        'lat' => 45.1882728, 'lon' => 5.723756
+      }}
+      let(:data) {{
+        type: 'create',
+        url:  'https://example.com/widgets/123',
+        data:  event_payload,
+      }}
+
+      it { expect(perform).to be_ok }
+
+      context 'with too much data' do
+        let(:event_payload) { SecureRandom.hex(32) }
+
+        it { expect(perform).to be_bad_request }
+      end
+    end
+
     describe '(error cases)' do
       it 'returns 400 on bad JSON' do
         payload.replace('whatever')

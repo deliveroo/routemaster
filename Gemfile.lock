@@ -1,3 +1,12 @@
+PATH
+  remote: ../routemaster-client
+  specs:
+    routemaster-client (3.0.0)
+      faraday (>= 0.9.0)
+      oj (~> 2.17)
+      typhoeus (~> 1.1)
+      wisper (~> 1.6.1)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -83,11 +92,6 @@ GEM
     redis (3.3.3)
     redis-namespace (1.5.3)
       redis (~> 3.0, >= 3.0.4)
-    routemaster-client (3.0.0)
-      faraday (>= 0.9.0)
-      oj (~> 2.17)
-      typhoeus (~> 1.1)
-      wisper (~> 1.6.1)
     rspec (3.5.0)
       rspec-core (~> 3.5.0)
       rspec-expectations (~> 3.5.0)
@@ -155,7 +159,7 @@ DEPENDENCIES
   rack-test
   redis
   redis-namespace
-  routemaster-client
+  routemaster-client!
   rspec
   rspec-its
   sentry-raven
@@ -168,4 +172,4 @@ RUBY VERSION
    ruby 2.3.3p222
 
 BUNDLED WITH
-   1.14.5
+   1.14.6

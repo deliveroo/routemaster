@@ -298,8 +298,10 @@ push to a given topic will see their requests met with errors.
 
     >> POST /topics/:name
     >> {
-    >>   type:  <type>,
-    >>   url:   <url>
+    >>   type:      <string>,
+    >>   url:       <string>,
+    >>   timestamp: <integer>,
+    >>   data:      <anything>
     >> }
 
 `:name` is limited to 32 characters (lowercase letters and the underscore
@@ -313,9 +315,19 @@ application for the first time, a typical use case is to perform an "initial syn
 Given create, update, delete are only sent on changes in the lifecycle of the
 entity, this extra event can be sent for all currently existing entities.
 
-
 `<url>` is the authoritative URL for the entity corresponding to the event
 (maximum 1024 characters, must use HTTPS scheme).
+
+`<timestamp>` (optional) is an integer number of milliseconds since the UNIX
+epoch and represents when the event occured. If unspecified it'll be set by the
+bus on reception.
+
+`<data>` (optional) is discouraged although not deprecated. It is intended when
+the RESN paradigm becomes impractical to implement — e.g. small, very
+frequently-changing representations that can't reasonably be fetched from the
+source and inconvenient to reify as changes in the domain (typically for storage
+reasons).
+
 
 The response is always empty (no body). Possible statuses (besides
 authentication-related):
@@ -373,16 +385,21 @@ Otherwise, they will be resent at the next interval.
     >>
     >> [
     >>   {
-    >>     topic: <name>,
-    >>     type:  <type>,
-    >>     url:   <url>,
-    >>     t:     <t>
+    >>     topic: <string>,
+    >>     type:  <string>,
+    >>     url:   <string>,
+    >>     t:     <integer>,
+    >>     data:  <anything>
     >>   },
     >>   ...
     >> ]
 
-`<t>` is the timestamp at which the event was originally received, in
-milliseconds since the UTC Epoch.
+All fields values are as described when publishing events, with the following
+caveats:
+
+- On delivery, the timestamp field is always present; and named `t` instead of
+  `timestamp`.
+- The `data` field will be omitted if unspecified or null on publication.
 
 Possible response statuses:
 

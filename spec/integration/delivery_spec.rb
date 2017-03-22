@@ -64,6 +64,13 @@ describe 'Event delivery', type: :acceptance, slow: true do
     processes.watch.wait_log %r{delivered 5 events}
   end
 
+  it 'delivers data payloads' do
+    subscribe
+    client.created('cats', 'https://example.com/cats/42', data: { 'name' => 'garfield' })
+
+    processes.client.wait_log /^payload: {"name":"garfield"}/
+  end
+
   it 'delivers partial batches after a timeout' do
     max_events.replace '10'
     timeout.replace '1000'

@@ -1,9 +1,11 @@
 require 'routemaster/receiver'
+require 'json'
 
 class Handler
   def on_events(batch)
     batch.each do |event|
       $stderr.puts "received #{event['url']}, #{event['type']}, #{event['topic']}"
+      $stderr.puts "payload: #{event['data'].to_json}" if event['data']
       $stderr.flush
     end
   end

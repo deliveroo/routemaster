@@ -61,7 +61,7 @@ group :development do
   gem 'pry-remote'
 
   # testing against the client
-  gem 'routemaster-client'
+  gem 'routemaster-client', path: '../routemaster-client'
 end
 
 group :test do

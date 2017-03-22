@@ -8,6 +8,7 @@ module Routemaster
       include Mixins::Assert
 
       def initialize(url)
+        _assert url, 'URL is missing'
         parsed_url = URI.parse(url)
         _assert (parsed_url.scheme == 'https'), 'URL is not HTTPS'
         _assert parsed_url.query.nil?, 'URL has query string'
