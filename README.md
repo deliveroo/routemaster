@@ -94,7 +94,7 @@ until they become reachable again.
 *Topics* are where the inbound events are sent. There should be one topic
 per domain concept, e.g. `properties`, `bookings`, `users`.
 
-Only one client may publish/push to a topic (and it should be the
+**Only one client may publish/push to a topic** (and it should be the
 authoritative application for the concept).
 
 Each topic fans out to multiple *subscriptions* which are where the outbound
@@ -290,7 +290,7 @@ comma-separated list to the `ROUTEMASTER_CLIENTS` environment variable.
 There is no need to explicitely create topics; they will be when pushing the
 first event to the bus.
 
-**Only one client** can push events to a topic: all but the first client to
+**ONLY ONE CLIENT CAN PUSH EVENTS TO A TOPIC**: all but the first client to
 push to a given topic will see their requests met with errors.
 
 
