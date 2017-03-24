@@ -35,8 +35,13 @@ describe Routemaster::Models::Event do
       expect { subject }.to raise_error(ArgumentError)
     end
 
-    it 'fails if the data blob if too large' do
-      options[:data] = SecureRandom.hex(33)
+    it 'fails if the data blob is not a hash' do
+      options[:data] = 'foobar'
+      expect { subject }.to raise_error(ArgumentError)
+    end
+
+    it 'fails if the data blob is too large' do
+      options[:data] = { 'foo' => SecureRandom.hex(33) }
       expect { subject }.to raise_error(ArgumentError)
     end
   end
