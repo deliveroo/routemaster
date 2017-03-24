@@ -61,7 +61,7 @@ describe 'Event delivery', type: :acceptance, slow: true do
     5.times do |index|
       client.created('cats', "https://example.com/cats/#{index}")
     end
-    processes.watch.wait_log %r{delivered 5 events}
+    processes.client.wait_log %r{received batch of 5 events}
   end
 
   it 'delivers data payloads' do
@@ -80,7 +80,7 @@ describe 'Event delivery', type: :acceptance, slow: true do
       client.created('cats', "https://example.com/cats/#{index}")
     end
 
-    processes.watch.wait_log %r{delivered 5 events}
+    processes.client.wait_log %r{received batch of 5 events}
   end
 
   it 'emits ingestion metrics' do

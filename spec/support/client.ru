@@ -3,6 +3,7 @@ require 'json'
 
 class Handler
   def on_events(batch)
+    $stderr.puts "received batch of #{batch.length} events"
     batch.each do |event|
       $stderr.puts "received #{event['url']}, #{event['type']}, #{event['topic']}"
       $stderr.puts "payload: #{event['data'].to_json}" if event['data']
