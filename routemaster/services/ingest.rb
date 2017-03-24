@@ -31,6 +31,7 @@ module Routemaster
         end
 
         _counters.incr('events.published', topic: @topic.name)
+        _counters.incr('events.bytes', topic: @topic.name, count: data.length)
         @topic.increment_count
         self
       end

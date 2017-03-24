@@ -69,5 +69,9 @@ module Routemaster
     it 'increments events.published' do
       expect { perform }.to change { get_counter('events.published', topic: 'widgets') }.from(0).to(2)
     end
+
+    it 'increments events.bytes' do
+      expect { perform }.to change { get_counter('events.bytes', topic: 'widgets') }.from(0)
+    end
   end
 end
