@@ -18,9 +18,9 @@ module Routemaster
       def initialize(**options)
         super
         @type      = options.fetch(:type, nil)
-        @url       = CallbackURL.new options.fetch(:url, nil)
+        @url       = CallbackURL.new options[:url]
         @topic     = options.fetch(:topic)
-        @data      = EventData.build options.fetch(:data, nil)
+        @data      = EventData.build options[:data]
 
         _assert VALID_TYPES.include?(@type), 'bad event type'
       end
