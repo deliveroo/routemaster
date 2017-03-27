@@ -6,10 +6,10 @@ require 'routemaster/models/subscription'
 require 'routemaster/models/topic'
 
 describe Routemaster::Services::UpdateSubscriberTopics do
-  let(:subscriber) { Routemaster::Models::Subscriber.new(name: 'alice') }
-  let(:topic_a) { Routemaster::Models::Topic.new(name: 'topic_a', publisher: 'bob') }
-  let(:topic_b) { Routemaster::Models::Topic.new(name: 'topic_b', publisher: 'bob') }
-  let(:topic_c) { Routemaster::Models::Topic.new(name: 'topic_c', publisher: 'bob') }
+  let(:subscriber) { Routemaster::Models::Subscriber.new(name: 'alice').save }
+  let(:topic_a) { Routemaster::Models::Topic.find_or_create!(name: 'topic_a', publisher: 'bob') }
+  let(:topic_b) { Routemaster::Models::Topic.find_or_create!(name: 'topic_b', publisher: 'bob') }
+  let(:topic_c) { Routemaster::Models::Topic.find_or_create!(name: 'topic_c', publisher: 'bob') }
   let(:topics) { [] }
 
   subject { described_class.new subscriber: subscriber, topics: topics }

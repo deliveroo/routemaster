@@ -25,7 +25,7 @@ module Routemaster
 
       post '/topics/:name', parse: :json do
         begin
-          topic = Routemaster::Models::Topic.new(
+          topic = Routemaster::Models::Topic.find_or_create!(
             name:       params['name'],
             publisher:  request.env['REMOTE_USER']
           )

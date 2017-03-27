@@ -13,6 +13,7 @@ describe Routemaster::Models::Batch do
     Routemaster::Models::Subscriber.new(name: 'alice').tap do |s|
       s.max_events = batch_size
       s.timeout = timeout
+      s.save
     end
   }
 
@@ -36,6 +37,7 @@ describe Routemaster::Models::Batch do
 
     shared_examples 'event adder' do
       it { expect { perform }.not_to raise_error }
+      it { expect(perform.length).to eq(expected_batch_length) }
 
       describe 'the batch' do
         subject { perform.reload }

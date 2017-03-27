@@ -13,7 +13,7 @@ describe Routemaster::Jobs::Autodrop do
   let(:empty_enough) {[ true ]}
 
   def do_ingest(count, name)
-    subscriber = Routemaster::Models::Subscriber.new(name: name)
+    subscriber = Routemaster::Models::Subscriber.new(name: name).save
     1.upto(count) do |idx|
       Routemaster::Models::Batch.ingest(data: "payload#{idx}", timestamp: Routemaster.now, subscriber: subscriber)
     end

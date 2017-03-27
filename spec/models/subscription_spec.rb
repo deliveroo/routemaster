@@ -5,9 +5,9 @@ require 'routemaster/models/subscriber'
 require 'routemaster/models/subscription'
 
 describe Routemaster::Models::Subscription do
-  let(:topic) { Routemaster::Models::Topic.new(name: 'widget', publisher: 'charlie') }
-  let(:subscriber_a) { Routemaster::Models::Subscriber.new(name: 'alice') }
-  let(:subscriber_b) { Routemaster::Models::Subscriber.new(name: 'bob') }
+  let(:topic) { Routemaster::Models::Topic.find_or_create!(name: 'widget', publisher: 'charlie') }
+  let(:subscriber_a) { Routemaster::Models::Subscriber.new(name: 'alice').save }
+  let(:subscriber_b) { Routemaster::Models::Subscriber.new(name: 'bob').save }
 
   let(:record_a) { described_class.new(topic: topic, subscriber: subscriber_a) }
   let(:record_b) { described_class.new(topic: topic, subscriber: subscriber_b) }

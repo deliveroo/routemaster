@@ -11,35 +11,49 @@ module Routemaster::Models
 
     attr_reader :name
 
-    def initialize(name:)
+    def initialize(name:, attributes: nil)
       @name = User.new(name)
-      if _redis.sadd('subscribers', @name)
-        _log.info { "new subscriber by '#{@name}'" }
+      @_attributes = attributes
+    end
+
+    def save
+      save_attrs = _attributes.any?
+      _redis.multi do |m|
+        m.sadd('subscribers', @name)
+        m.hmset(_key, *_attributes.to_a.flatten) if save_attrs
       end
+      self
+    end
+
+    def reload
+      @_attributes = nil
+      self
     end
 
     def destroy
       Subscription.where(subscriber: self).each(&:destroy)
-      _redis.del(_key)
-      _redis.srem('subscribers', @name)
+      _redis.multi do |m|
+        m.del(_key)
+        m.srem('subscribers', @name)
+      end
     end
 
     def callback=(value)
-      _redis.hset(_key, 'callback', CallbackURL.new(value))
+      _attributes['callback'] = CallbackURL.new(value)
     end
 
     def callback
-      _redis.hget(_key, 'callback')
+      _attributes['callback']
     end
 
     def timeout=(value)
       _assert value.kind_of?(Integer)
       _assert TIMEOUT_RANGE.include?(value)
-      _redis.hset(_key, 'timeout', value)
+      _attributes['timeout'] = value
     end
 
     def timeout
-      raw = _redis.hget(_key, 'timeout')
+      raw = _attributes['timeout']
       return DEFAULT_TIMEOUT if raw.nil?
       raw.to_i
     end
@@ -47,22 +61,22 @@ module Routemaster::Models
     def max_events=(value)
       _assert value.kind_of?(Integer)
       _assert value > 0
-      _redis.hset(_key, 'max_events', value)
+      _attributes['max_events'] = value
     end
 
     def max_events
-      raw = _redis.hget(_key, 'max_events')
+      raw = _attributes['max_events']
       return DEFAULT_MAX_EVENTS if raw.nil?
       raw.to_i
     end
 
     def uuid=(value)
       _assert value.kind_of?(String) unless value.nil?
-      _redis.hset(_key, 'uuid', value)
+      _attributes['uuid'] = value
     end
 
     def uuid
-      _redis.hget(_key, 'uuid')
+      _attributes['uuid']
     end
 
     def to_s
@@ -77,16 +91,40 @@ module Routemaster::Models
       Subscription.where(subscriber: self).map(&:topic)
     end
 
-    extend Enumerable
+    module ClassMethods
+      include Enumerable
 
-    def self.each
-      _redis.smembers('subscribers').each { |s| yield new(name: s) }
-    end
+      def each
+        _redis.smembers(_index_key).each { |s| yield new(name: s) }
+      end
 
-    def self.find(name)
-      return unless _redis.sismember('subscribers', name) 
-      new(name: name)
+      def find(name)
+        return unless _redis.sismember(_index_key, name) 
+        new(name: name)
+      end
+
+      # Load all subscribers with name in `name` (Array or single string)
+      def where(name:)
+        _redis_lua_run(
+          'subscriber_all',
+          keys: [_index_key, *Array(name).map { |n| _key(n) }],
+          argv: Array(name)
+        ).map do |n, data|
+          new(name: n, attributes: Hash[*data])
+        end
+      end
+
+      private 
+
+      def _index_key
+        'subscribers'
+      end
+
+      def _key(name)
+        "subscriber:#{name}"
+      end
     end
+    extend ClassMethods
 
     def inspect
       "<#{self.class.name} subscriber=#{@name}>"
@@ -94,8 +132,12 @@ module Routemaster::Models
 
     private
 
+    def _attributes
+      @_attributes ||= _redis.hgetall(_key)
+    end
+
     def _key
-      @_key ||= "subscriber:#{@name}"
+      @_key ||= self.class.send(:_key, @name)
     end
   end
 end

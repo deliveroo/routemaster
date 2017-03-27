@@ -5,7 +5,7 @@ require 'routemaster/models/message'
 require 'routemaster/models/topic'
 
 describe Routemaster::Models::Subscriber do
-  let(:topic) { Routemaster::Models::Topic.new(name: 'widgets', publisher: 'alice') }
+  let(:topic) { Routemaster::Models::Topic.find_or_create!(name: 'widgets', publisher: 'alice') }
   let(:redis) { Object.new.extend(Routemaster::Mixins::Redis)._redis }
   subject { described_class.new(name: 'bob') }
 
@@ -72,8 +72,8 @@ describe Routemaster::Models::Subscriber do
     end
 
     it 'yields subscribers' do
-      a = described_class.new(name: 'alice')
-      b = described_class.new(name: 'bob')
+      a = described_class.new(name: 'alice').save
+      b = described_class.new(name: 'bob').save
 
       expect { |b| described_class.each(&b) }.to yield_control.twice
     end
@@ -82,11 +82,11 @@ describe Routemaster::Models::Subscriber do
   describe '#topics' do
 
     let(:properties_topic) do
-      Routemaster::Models::Topic.new(name: 'properties', publisher: 'demo')
+      Routemaster::Models::Topic.find_or_create!(name: 'properties', publisher: 'demo')
     end
 
     let(:property_photos_topic) do
-      Routemaster::Models::Topic.new(name: 'photos', publisher: 'demo')
+      Routemaster::Models::Topic.find_or_create!(name: 'photos', publisher: 'demo')
     end
 
     before do
@@ -97,6 +97,48 @@ describe Routemaster::Models::Subscriber do
     it 'returns an array of associated topics' do
       expect(subject.topics.map{|x|x.name}.sort)
         .to eql(['photos','properties'])
+    end
+  end
+
+  describe '.find' do
+    let(:perform) { described_class.find('bob') }
+
+    context 'when the subscriber does not exist' do
+      it { expect(perform).to be_nil }
+    end
+
+    context 'when the subscriber exists' do
+      before { subject.save }
+      it { expect(perform).to eq(subject) }
+    end
+  end
+
+  describe '.where' do
+    let(:names) { %w[alice bob] }
+
+    let!(:subs) {
+      names.map do |n|
+        sub = described_class.new(name: n)
+        sub.uuid = "#{n}-secret"
+        sub.save
+      end
+    }
+
+    it 'returns a single subscriber' do
+      expect(described_class.where(name: 'alice')).to eq([subs.first])
+    end
+
+    it 'loads metadata' do
+      sub = described_class.where(name: 'alice').first
+      expect(sub.uuid).to eq('alice-secret')
+    end
+
+    it 'returns multiple subscribers' do
+      expect(described_class.where(name: %w[alice bob]).length).to eq(2)
+    end
+
+    it 'ignores missing names' do
+      expect(described_class.where(name: %w[alice charlie]).length).to eq(1)
     end
   end
 end
