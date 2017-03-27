@@ -59,4 +59,31 @@ describe Routemaster::Jobs::Monitor do
     it { expect(@counters).to include(['redis.used_cpu_user', a_kind_of(Integer), a_kind_of(Array)]) }
     it { expect(@counters).to include(['foo', 1, array_including('bar:baz')]) }
   end
+
+
+  context 'when monitoring fails' do
+    before do
+      # Raise on the injected Metrics::Emit double because it's a convenient public
+      # entry point, but we actually care about errors raised when the Datdog
+      # adapter flushes the batched metrics over the network. The Datadog adapter
+      # is a private implementation detail though, not used in the test env, and
+      # we should really test against the higher level public class.
+      allow(dispatcher).to receive(:gauge).and_raise(Net::OpenTimeout)
+    end
+
+    it 'raises a Retry error' do
+      expect {
+        subject.call
+      }.to raise_error(Routemaster::Models::Queue::Retry)
+    end
+    
+    it 'sets a retry delay' do
+      begin
+        subject.call
+      rescue => error
+        @error = error
+      end
+      expect(@error.delay).to eql 1_000
+    end
+  end
 end

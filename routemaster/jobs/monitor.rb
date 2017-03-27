@@ -10,6 +10,8 @@ module Routemaster
   module Jobs
     # Monitor system health, and send the info to external services
     class Monitor
+      include Mixins::Log
+
       def initialize(dispatcher: Routemaster::Services::Metrics::Emit.new)
         @dispatcher = dispatcher
         @tags = [
@@ -50,6 +52,10 @@ module Routemaster
             @dispatcher.counter(name, value, @tags + tags.map { |t| t.join(':') })
           end
         end
+
+      rescue Net::OpenTimeout => e
+        _log_exception(e)
+        raise Models::Queue::Retry, 1_000
       end
     end
   end
