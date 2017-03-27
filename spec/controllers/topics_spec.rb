@@ -7,7 +7,7 @@ describe Routemaster::Controllers::Topics, type: :controller do
   let(:uid) { 'joe-user' }
   let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
   let(:topic_name) { 'widgets' }
-  let(:topic) { Routemaster::Models::Topic.new(name: topic_name, publisher: uid) }
+  let(:topic) { Routemaster::Models::Topic.find_or_create!(name: topic_name, publisher: uid) }
 
   describe 'POST /topics/:name' do
     let(:perform) { post "/topics/#{topic_name}", payload, 'CONTENT_TYPE' => 'application/json' }
@@ -103,7 +103,7 @@ describe Routemaster::Controllers::Topics, type: :controller do
 
     context 'when the topic is claimed' do
       before do
-        Routemaster::Models::Topic.new(name: 'widgets', publisher: 'bob-user')
+        Routemaster::Models::Topic.find_or_create!(name: 'widgets', publisher: 'bob-user')
       end
 
       it 'returns unauthorized' do
@@ -120,8 +120,8 @@ describe Routemaster::Controllers::Topics, type: :controller do
     let(:perform) { get "/topics" }
 
     before do
-      Routemaster::Models::Topic.new(name: 'widgets', publisher: uid)
-      Routemaster::Models::Topic.new(name: 'dongles', publisher: uid)
+      Routemaster::Models::Topic.find_or_create!(name: 'widgets', publisher: uid)
+      Routemaster::Models::Topic.find_or_create!(name: 'dongles', publisher: uid)
     end
 
     it 'responds' do

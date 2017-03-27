@@ -13,69 +13,94 @@ module Routemaster
 
       attr_reader :name, :publisher
 
-      def initialize(name:, publisher:)
+
+      def initialize(name:, publisher: nil)
         @name      = Name.new(name)
         @publisher = Publisher.new(publisher) if publisher
-
-        _redis.sadd('topics', name)
-
-        return if publisher.nil?
-
-        if _redis.hsetnx(_key, 'publisher', publisher)
-          _log.info { "topic '#{@name}' claimed by '#{@publisher}'" }
-        end
-
-        current_publisher = _redis.hget(_key, 'publisher')
-        unless _redis.hget(_key, 'publisher') == @publisher
-          raise TopicClaimedError.new("topic claimed by #{current_publisher}")
-        end
       end
+
 
       def destroy
         _redis.multi do |m|
-          m.srem('topics', name)
-          m.del(_key)
+          m.srem(_index_key, name)
+          m.del(_key(@name))
         end
       end
+
 
       def subscribers
         Subscription.where(topic: self).map(&:subscriber)
       end
 
+
       def ==(other)
         name == other.name
       end
 
-      def self.all
-        _redis.smembers('topics').map do |n|
-          p = _redis.hget("topic:#{n}", 'publisher')
-          new(name: n, publisher: p)
-        end
-      end
-
-      def self.find(name)
-        return unless _redis.sismember('topics', name)
-        publisher = _redis.hget("topic:#{name}", 'publisher')
-        new(name: name, publisher: publisher)
-      end
 
       def get_count
-        _redis.hget(_key, 'counter').to_i
+        _redis.hget(_key(@name), 'counter').to_i
       end
 
+
       def increment_count
-        _redis.hincrby(_key, 'counter', 1)
+        _redis.hincrby(_key(@name), 'counter', 1)
       end
+
 
       def inspect
         "<#{self.class.name} name=#{@name}>"
       end
 
-      private
 
-      def _key
-        @_key ||= "topic:#{@name}"
+      module ClassMethods
+        include Mixins::Log
+
+        def all
+          _redis.smembers(_index_key).map do |n|
+            p = _redis.hget("topic:#{n}", 'publisher')
+            new(name: n, publisher: p)
+          end
+        end
+
+        def find(name)
+          return unless _redis.sismember(_index_key, name)
+          publisher = _redis.hget(_key(name), 'publisher')
+          new(name: name, publisher: publisher)
+        end
+
+        def find_or_create!(name:, publisher: nil)
+          added, claimed, actual_publisher = _redis_lua_run(
+            'topic_find_or_create',
+            keys: [_index_key, _key(name)],
+            argv: [name, publisher])
+
+          if publisher && actual_publisher != publisher
+            raise TopicClaimedError.new("topic already claimed by #{actual_publisher}")
+          end
+          _log.info { "topic '#{name}' created" } if added > 0
+          _log.info { "topic '#{name}' claimed by '#{publisher}'" } if claimed > 0
+          
+          new(name: name, publisher: actual_publisher)
+        end
       end
+      extend ClassMethods
+
+
+      module SharedMethods
+        private
+
+        def _key(name)
+          "topic:#{name}"
+        end
+
+        def _index_key
+          'topics'
+        end
+      end
+      include SharedMethods
+      extend  SharedMethods
+
 
       class Name < String
         def initialize(str)

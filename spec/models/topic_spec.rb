@@ -4,26 +4,42 @@ require 'routemaster/models/topic'
 
 describe Routemaster::Models::Topic do
   let(:options) {{ name: 'widgets', publisher: 'bob' }}
-  subject { described_class.new(options) }
+  subject { described_class.find_or_create!(options) }
 
-  describe '.new' do
+  describe '.find_or_create!' do
     it 'fails wihtout arguments' do
       expect {
-        described_class.new
+        described_class.find_or_create!
       }.to raise_error(ArgumentError)
     end
 
     it 'succeeds in a blank slate' do
       expect(
-        described_class.new(name: 'widgets', publisher: 'bob')
+        described_class.find_or_create!(name: 'widgets', publisher: 'bob')
       ).to be_a_kind_of(described_class)
     end
 
-    it 'fails if the topic is claimed by another publisher' do
-      described_class.new(name: 'widgets', publisher: 'bob')
-      expect {
-        described_class.new(name: 'widgets', publisher: 'alice')
-      }.to raise_error(described_class::TopicClaimedError)
+    context 'when the topic is claimed' do
+      before { described_class.find_or_create!(name: 'widgets', publisher: 'bob') }
+
+      it 'fails if tryingto claim' do
+        expect {
+          described_class.find_or_create!(name: 'widgets', publisher: 'alice')
+        }.to raise_error(described_class::TopicClaimedError)
+      end
+
+      it 'passes if no publisher is specified' do
+        expect {
+          described_class.find_or_create!(name: 'widgets', publisher: nil)
+        }.not_to raise_error
+      end
+    end
+
+    it 'creates a findable topic' do
+      described_class.find_or_create!(name: 'widgets', publisher: 'bob')
+      expect(
+        described_class.find('widgets')&.publisher
+      ).to eq('bob')
     end
   end
 
@@ -70,8 +86,8 @@ describe Routemaster::Models::Topic do
     end
 
     it 'lists all topics' do
-      topic1 = described_class.new(name: 'widgets', publisher: 'john')
-      topic2 = described_class.new(name: 'koalas',  publisher: 'john')
+      topic1 = described_class.find_or_create!(name: 'widgets', publisher: 'john')
+      topic2 = described_class.find_or_create!(name: 'koalas',  publisher: 'john')
 
       expect(described_class.all).to include(topic1)
       expect(described_class.all).to include(topic2)

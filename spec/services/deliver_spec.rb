@@ -8,7 +8,7 @@ require 'routemaster/models/subscriber'
 
 describe Routemaster::Services::Deliver do
   let(:buffer) { Array.new }
-  let(:subscriber) { Routemaster::Models::Subscriber.new(name: 'alice') }
+  let(:subscriber) { Routemaster::Models::Subscriber.new(name: 'alice').save }
   let(:callback) { 'https://alice.com/widgets' }
 
   subject { described_class.new(subscriber, buffer) }

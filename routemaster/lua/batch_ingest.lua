@@ -54,8 +54,9 @@ redis.call('RPUSH',   batch_key, data)
 redis.call('HINCRBY', event_counter_key, subscriber_name, 1)
 
 -- promote batch if full
-if redis.call('LLEN', batch_key) >= prefix_count + max_batch_size then
+local batch_length = redis.call('LLEN', batch_key) - prefix_count
+if batch_length >= max_batch_size then
   redis.call('SREM', batch_ref_key, batch_uid)
 end  
 
-return batch_uid
+return { batch_uid, batch_length }

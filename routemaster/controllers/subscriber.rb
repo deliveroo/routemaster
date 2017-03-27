@@ -23,8 +23,7 @@ module Routemaster
         end
 
         topics = data['topics'].map do |name|
-          Models::Topic.find(name) ||
-          Models::Topic.new(name: name, publisher: nil)
+          Models::Topic.find_or_create!(name: name)
         end
         halt 404 unless topics.all?
 
@@ -34,6 +33,7 @@ module Routemaster
           sub.uuid       = data['uuid']
           sub.timeout    = data['timeout'] if data['timeout']
           sub.max_events = data['max']     if data['max']
+          sub.save
         rescue ArgumentError => e
           halt 400, e.message
         end
