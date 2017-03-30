@@ -105,6 +105,25 @@ describe Routemaster::Services::Deliver do
         expect(events.last['url']).to match(/\/3$/)
       end
 
+      describe 'data payload' do
+        it 'adds :data if a payload is present' do
+          buffer.push Routemaster::Models::Event.new(
+            topic: 'things',
+            type:  'noop',
+            url:   "https://example.com/things/1",
+            data:  { foo: 'bar' })
+          perform
+          events = JSON.parse(@request.body)
+          expect(events.last['data']).to eq('foo' => 'bar')
+        end
+
+        it 'does not add :data when the payload is absent' do
+          perform
+          events = JSON.parse(@request.body)
+          expect(events.last).not_to have_key('data')
+        end
+      end
+
       it_behaves_like 'an event counter', 3, status: 'success'
 
       shared_examples 'failure' do

@@ -1,8 +1,9 @@
 require 'routemaster/models'
 require 'routemaster/models/callback_url'
+require 'routemaster/models/event_data'
 require 'routemaster/models/message'
 require 'routemaster/mixins/assert'
-require 'base64'
+require 'core_ext/string'
 
 module Routemaster
   module Models
@@ -12,24 +13,26 @@ module Routemaster
 
       VALID_TYPES = %w(create update delete noop)
 
-      attr_reader :topic, :type, :url
+      attr_reader :topic, :type, :url, :data
 
       def initialize(**options)
         super
-        _assert VALID_TYPES.include?(options[:type]), 'bad event type'
+        @type      = options.fetch(:type, nil)
+        @url       = CallbackURL.new options[:url]
         @topic     = options.fetch(:topic)
-        @type      = options.fetch(:type)
-        @url       = CallbackURL.new options.fetch(:url)
+        @data      = EventData.build options[:data]
+
+        _assert VALID_TYPES.include?(@type), 'bad event type'
       end
 
       def to_hash
-        super.merge(topic: @topic, type: @type, url: @url)
+        super.merge(topic: @topic, type: @type, url: @url, data: @data)
       end
 
       def inspect
-        '<%s %s:%s url="%s">' % [
+        '<%s %s:%s url="%s" data=%s>' % [
           self.class.name.demodulize,
-          @topic, @type, @url,
+          @topic, @type, @url, @data.inspect,
         ]
       end
     end

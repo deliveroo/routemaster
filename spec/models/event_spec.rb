@@ -2,7 +2,12 @@ require 'spec_helper'
 require 'routemaster/models/event'
 
 describe Routemaster::Models::Event do
-  let(:options) {{ topic: 'widgets', type: 'create', url: 'https://example.com/widgets/123' }}
+  let(:options) {{
+    topic: 'widgets',
+    type: 'create', 
+    url: 'https://example.com/widgets/123',
+    data: { foo: 1 },
+  }}
   subject { described_class.new(**options) }
 
   describe '#initialize' do
@@ -27,6 +32,16 @@ describe Routemaster::Models::Event do
 
     it 'fails if the URL has a query string' do
       options[:url] = 'https://example.com/widgets/123?wut'
+      expect { subject }.to raise_error(ArgumentError)
+    end
+
+    it 'fails if the data blob is not a hash' do
+      options[:data] = 'foobar'
+      expect { subject }.to raise_error(ArgumentError)
+    end
+
+    it 'fails if the data blob is too large' do
+      options[:data] = { 'foo' => SecureRandom.hex(33) }
       expect { subject }.to raise_error(ArgumentError)
     end
   end

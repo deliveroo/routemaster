@@ -75,6 +75,8 @@ module Routemaster
             type:  event.type,
             url:   event.url,
             t:     event.timestamp
+          }.tap { |d|
+            d[:data] = event.data.to_hash if event.data
           }
         end
       end

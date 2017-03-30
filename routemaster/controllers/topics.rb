@@ -44,6 +44,7 @@ module Routemaster
             topic: params['name'],
             type:  data.fetch('type'),
             url:   data.fetch('url'),
+            data:  data.fetch('data', nil),
             timestamp: data['timestamp'] || Routemaster.now
           )
         rescue ArgumentError => e
