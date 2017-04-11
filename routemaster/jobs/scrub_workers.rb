@@ -15,7 +15,7 @@ module Routemaster
       def initialize(max_age: MAX_AGE)
         @max_age = max_age
       end
-      
+
       def call
         Services::Worker.each do |w|
           last_at = w.last_at
@@ -28,4 +28,3 @@ module Routemaster
     end
   end
 end
-
