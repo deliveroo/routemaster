@@ -12,10 +12,16 @@ module Routemaster
           file_path = ENV['ROUTEMASTER_LOG_FILE']
           file = (file_path && File.exist?(file_path)) ? File.open(file_path, 'a') : $stderr
 
-          Logger.new(file).tap do |logger|
+          instance = Logger.new(file).tap do |logger|
             logger.level     = _log_level_constant
             logger.formatter = method(:_formatter)
           end
+
+          unless _log_level_valid?
+            instance.warn("log level #{_log_level} is invalid, defaulting to INFO")
+          end
+
+          instance
         end
       end
 
@@ -26,10 +32,6 @@ module Routemaster
 
       def _log_context(string)
         Thread.current[:_log_context] = string
-      end
-
-      def _log_level_invalid?
-        !_log_levels.include?(_fetch_log_level)
       end
 
       private
@@ -72,19 +74,23 @@ module Routemaster
       end
 
       def _log_level_constant
-        if _log_level_invalid?
-          Logger::INFO
+        if _log_level_valid?
+          Logger.const_get(_log_level)
         else
-          Logger.const_get(_fetch_log_level)
+          Logger::INFO
         end
       end
 
-      def _fetch_log_level
-        ENV.fetch('ROUTEMASTER_LOG_LEVEL', 'INFO')
+      def _log_level_valid?
+        _log_levels.include?(_log_level)
+      end
+
+      def _log_level
+        @@_log_level ||= ENV.fetch('ROUTEMASTER_LOG_LEVEL', 'INFO')
       end
 
       def _log_levels
-        %w(UNKNOWN FATAL ERROR WARN INFO DEBUG)
+        Logger::Severity.constants.map(&:to_s)
       end
     end
   end
