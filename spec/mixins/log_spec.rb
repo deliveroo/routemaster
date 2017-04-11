@@ -15,17 +15,23 @@ describe Routemaster::Mixins::Log do
   describe "#_log" do
     let(:logger) { instance_double(Logger).as_null_object }
 
-    before(:each) do
+    def reset_logger
       testing_klass.class.class_variable_set(:@@_logger, nil)
       testing_klass.class.class_variable_set(:@@_log_level, nil)
-      allow(Logger).to receive(:new).and_return(logger)
     end
-
+    
     context "when log level is valid" do
       subject { testing_klass.log }
 
       before do
+        reset_logger
+
         ENV['ROUTEMASTER_LOG_LEVEL'] = 'INFO'
+        allow(Logger).to receive(:new).and_return(logger)
+      end
+
+      after do
+        reset_logger
       end
 
       it 'does not call warn' do
@@ -38,7 +44,14 @@ describe Routemaster::Mixins::Log do
       subject { testing_klass.log }
 
       before do
+        reset_logger
+
         ENV['ROUTEMASTER_LOG_LEVEL'] = 'FOO'
+        allow(Logger).to receive(:new).and_return(logger)
+      end
+
+      after do
+        reset_logger
       end
 
       it 'calls warn with log message' do
