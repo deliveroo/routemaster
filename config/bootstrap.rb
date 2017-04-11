@@ -32,3 +32,10 @@ if ENV['NEW_RELIC_LICENSE_KEY']
     add_transaction_tracer :perform, :category => :task
   end
 end
+
+require 'routemaster/mixins/log'
+include Routemaster::Mixins::Log
+
+if _log_level_invalid?
+  _log.info 'Log level is wrong. "INFO" will be used instead of "' + ENV['ROUTEMASTER_LOG_LEVEL'] + '"'
+end
