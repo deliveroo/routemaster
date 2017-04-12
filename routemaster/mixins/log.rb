@@ -16,6 +16,10 @@ module Routemaster
         _log.debug { _smart_backtrace(e).join("\n\t") }
       end
 
+      def _log_context(string)
+        _log.context = string
+      end
+
       private
 
       # show the top of the batcktrace until out own code, then only our own

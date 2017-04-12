@@ -15,7 +15,7 @@ module Routemaster
       include Mixins::LogException
 
       attr_reader :name
-      
+
       def initialize(callable, name:, errq:)
         @callable = callable
         @name     = name

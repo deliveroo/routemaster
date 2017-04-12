@@ -19,13 +19,13 @@ module Routemaster
         super(instance)
       end
 
+      def context=(string)
+        ::Thread.current[:_log_context] = string
+      end
+
       private
 
       TIMESTAMP_FORMAT = '%F %T.%L'
-
-      def _log_context(string)
-        ::Thread.current[:_log_context] = string
-      end
 
       def _formatter(severity, datetime, _progname, message)
         _format % {
