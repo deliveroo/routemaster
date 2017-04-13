@@ -1,4 +1,5 @@
 require 'logger'
+require 'delegate'
 
 module Routemaster
   module Services
