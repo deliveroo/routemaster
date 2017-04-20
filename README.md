@@ -277,9 +277,8 @@ Note that both endpoints require authentication.
 ### Authentication, security.
 
 All requests over non-SSL connections will be met with a 308 Permanent Redirect.
-
-HTTP Basic is required for all requests. The username is stored as a
-human-readable name (but not checked); the password should be a per-client UUID.
+HTTP Basic is required for all requests. The password will be ignored, and the
+username should be a unique per client uuid.
 
 The list of allowed clients is part of the configuration, and is passed as a
 comma-separated list to the `ROUTEMASTER_CLIENTS` environment variable.
