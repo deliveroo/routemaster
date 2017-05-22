@@ -34,7 +34,10 @@ describe Routemaster::Services::Deliver do
         to_return(status: callback_status, body: '')
     end
 
-    shared_examples 'an event counter' do |count, tag|
+    shared_examples 'an event counter' do |options|
+      count = options.fetch(:count)
+      tag = { status: options.fetch(:status) }
+
       it 'increments delivery.events counter' do
         expect { perform rescue nil }.to change { 
           get_counter('delivery.events', tag.merge(queue: 'alice'))
@@ -47,16 +50,18 @@ describe Routemaster::Services::Deliver do
         }.by(1)
       end
 
-      it 'increments delivery.time counter' do
-        expect { perform rescue nil }.to change { 
-          get_counter('delivery.time', tag.merge(queue: 'alice'))
-        }
-      end
+      unless options[:no_timer]
+        it 'increments delivery.time counter' do
+          expect { perform rescue nil }.to change { 
+            get_counter('delivery.time', tag.merge(queue: 'alice'))
+          }
+        end
 
-      it 'increments delivery.time counter' do
-        expect { perform rescue nil }.to change { 
-          get_counter('delivery.time2', tag.merge(queue: 'alice'))
-        }
+        it 'increments delivery.time counter' do
+          expect { perform rescue nil }.to change { 
+            get_counter('delivery.time2', tag.merge(queue: 'alice'))
+          }
+        end
       end
     end
 
@@ -70,7 +75,7 @@ describe Routemaster::Services::Deliver do
         expect(@stub).to have_been_requested
       end
 
-      it_behaves_like 'an event counter', 0, status: 'success'
+      it_behaves_like 'an event counter', count: 0, status: 'success'
     end
 
     context 'when there are events' do
@@ -124,14 +129,16 @@ describe Routemaster::Services::Deliver do
         end
       end
 
-      it_behaves_like 'an event counter', 3, status: 'success'
+      it_behaves_like 'an event counter', count: 3, status: 'success'
 
-      shared_examples 'failure' do
+      shared_examples 'failure' do |options|
+        options ||= {}
+        
         it "raises a CantDeliver exception" do
           expect { perform }.to raise_error(described_class::CantDeliver)
         end
 
-        it_behaves_like 'an event counter', 3, status: 'failure'
+        it_behaves_like 'an event counter', options.merge(count: 3, status: 'failure')
       end
 
       context 'when the callback 500s' do
@@ -181,7 +188,7 @@ describe Routemaster::Services::Deliver do
 
         context 'when connection fails' do
           # no server thread started here
-          it_behaves_like 'failure'
+          it_behaves_like 'failure', no_timer: true
         end
       end
     end
