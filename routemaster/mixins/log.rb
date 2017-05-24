@@ -8,7 +8,7 @@ module Routemaster
       protected
 
       def _log
-        @@_logger ||= Services::Logger.new
+        @@_logger ||= Services::Logger.instance
       end
 
       def _log_exception(e)
