@@ -213,6 +213,15 @@ Routemaster can send exception traces to a 3rd party by setting the
 For the latter two, you will need to provide the reporting endpoint in
 `EXCEPTION_SERVICE_URL`
 
+Note that event delivery failures will *not* normally be reported to the
+exception service, as they're not errors with Routemaster itself.
+
+To check delivery failures, one can:
+
+- monitor the `routemaster.delivery.batches` metrics with `status:failure`.
+- inspect the logs for `failed to deliver`.
+
+
 ### Autodrop
 
 Routemaster will, by default, permenently drop the oldest messages from queues

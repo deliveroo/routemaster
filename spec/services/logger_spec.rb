@@ -5,8 +5,9 @@ require 'spec/support/env'
 
 module Routemaster
   describe Services::Logger do
+    subject { Class.new(described_class).instance }
 
-    describe '#initialize' do
+    describe '.instance' do
       it 'creates correct instance' do
         expect(subject).to be_a_kind_of(described_class)
       end
