@@ -3,7 +3,7 @@ require 'rack/auth/basic'
 
 module Routemaster
   module Middleware
-    class Authentication
+    class RedisAuthentication
       def initialize(app, options)
         @keys = options[:keys]
         p "#{__FILE__} - init keys - #{@keys.call}"
