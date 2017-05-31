@@ -23,8 +23,11 @@ module Routemaster
     use Rack::SSL
     use Controllers::Health
 
+    # Authenticated privately, only for Root
     use Controllers::KeyRegistration
-    use Middleware::RedisAuthentication, keys: ->{ Models::ClientToken.get_all}
+
+    # Authenticated, accessible by clients
+    use Middleware::ClientAuthentication
     use Controllers::Pulse
     use Controllers::Topics
     use Controllers::Subscriber

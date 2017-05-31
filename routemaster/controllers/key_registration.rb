@@ -10,7 +10,7 @@ module Routemaster
     class KeyRegistration < Sinatra::Base
       register Parser
 
-      use Middleware::Authentication, {keys:-> { {ENV['ROUTEMASTER_ROOT_KEY'] => "root"}}}
+      use Middleware::RootAuthentication
 
       # TODO: Think about whether these are the keys we actually want
       CREATE_KEYS = %w(service_name owner)
