@@ -141,4 +141,62 @@ describe Routemaster::Models::Subscriber do
       expect(described_class.where(name: %w[alice charlie]).length).to eq(1)
     end
   end
+
+  describe 'attributes' do
+    describe '#health_points' do
+      it 'retuns an integer and defalts to 100' do
+        expect(subject.health_points).to eq(100)
+      end
+    end
+
+    describe '#change_health_by(offset)' do
+      before do
+        expect(subject.health_points).to eq(100)
+      end
+
+      def reloaded_subscriber
+        described_class.new(name: subject.name)
+      end
+
+      it 'changes the value by the positive or negative offset' do
+        expect {
+          subject.change_health_by -42
+        }.to change {
+          reloaded_subscriber.health_points
+        }.from(100).to(58)
+
+        expect {
+          subject.change_health_by 30
+        }.to change {
+          reloaded_subscriber.health_points
+        }.from(58).to(88)
+      end
+
+
+      it 'never exceeds 100' do
+        subject.change_health_by -10
+
+        expect {
+          subject.change_health_by 30
+        }.to change {
+          reloaded_subscriber.health_points
+        }.from(90).to(100)
+
+        expect {
+          subject.change_health_by 30
+        }.not_to change {
+          reloaded_subscriber.health_points
+        }
+      end
+
+
+      it 'never goes below 0' do
+        expect {
+          subject.change_health_by -200
+        }.to change {
+          reloaded_subscriber.health_points
+        }.from(100).to(0)
+      end
+    end
+  end
 end
