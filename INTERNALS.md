@@ -140,6 +140,7 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
   - `max_events`: maximum number of events to batch.
   - `uuid`: the credential to use when delivering events.
   - `health_points`: Increases by one on each successful delivery and decreases by two on each failure. Defatuls to 100, which is perfect subscriber health.
+  - `last_attempted_at`: timestamp of the latest attempted delivery (HTTP request to the subscriber), successful or not.
 
 `batch:{bid}` (list)
 

@@ -93,6 +93,14 @@ module Routemaster::Models
       new_value
     end
 
+    def last_attempted_at
+      _attributes['last_attempted_at']&.to_i
+    end
+
+    def attempting_delivery(time = Routemaster.now)
+      _write_attribute('last_attempted_at', time)
+    end
+
     def to_s
       "subscriber for '#{@name}'"
     end
@@ -152,6 +160,12 @@ module Routemaster::Models
 
     def _key
       @_key ||= self.class.send(:_key, @name)
+    end
+
+    def _write_attribute(field, value)
+      _redis.hset(_key, field, value)
+      @_attributes = nil
+      value
     end
   end
 end

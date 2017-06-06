@@ -9,6 +9,10 @@ describe Routemaster::Models::Subscriber do
   let(:redis) { Object.new.extend(Routemaster::Mixins::Redis)._redis }
   subject { described_class.new(name: 'bob') }
 
+  def reloaded_subscriber
+    described_class.new(name: subject.name)
+  end
+
   describe '#initialize' do
     it 'passes' do
       expect { subject }.not_to raise_error
@@ -142,7 +146,7 @@ describe Routemaster::Models::Subscriber do
     end
   end
 
-  describe 'attributes' do
+  describe 'subscriber health' do
     describe '#health_points' do
       it 'retuns an integer and defalts to 100' do
         expect(subject.health_points).to eq(100)
@@ -152,10 +156,6 @@ describe Routemaster::Models::Subscriber do
     describe '#change_health_by(offset)' do
       before do
         expect(subject.health_points).to eq(100)
-      end
-
-      def reloaded_subscriber
-        described_class.new(name: subject.name)
       end
 
       it 'changes the value by the positive or negative offset' do
@@ -196,6 +196,28 @@ describe Routemaster::Models::Subscriber do
         }.to change {
           reloaded_subscriber.health_points
         }.from(100).to(0)
+      end
+    end
+
+    describe 'last_attempted_at timestamp' do
+      subject { described_class.new(name: 'qwerty') }
+
+      before { subject.destroy }
+
+      specify 'the getter defaults to nil for new subscribers that haven\'t received any event yet' do
+        expect(subject.last_attempted_at).to be_nil
+      end
+
+      specify 'it can be set and it will return a timestamp' do
+        value = nil
+
+        expect {
+          subject.attempting_delivery
+        }.to change {
+          value = reloaded_subscriber.last_attempted_at
+        }.from(nil).to(a_kind_of(Integer))
+
+        expect(value).to be_within(2000).of(Routemaster.now)
       end
     end
   end
