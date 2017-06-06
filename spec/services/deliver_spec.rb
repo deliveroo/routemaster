@@ -8,7 +8,17 @@ require 'routemaster/models/subscriber'
 
 describe Routemaster::Services::Deliver do
   let(:buffer) { Array.new }
-  let(:subscriber) { Routemaster::Models::Subscriber.new(name: 'alice').save }
+  let(:ten_s_ago) { Routemaster.now - 10_000 }
+  let(:subscriber) do
+    Routemaster::Models::Subscriber.new(
+      name: 'alice',
+      attributes: { 'last_attempted_at' => ten_s_ago }
+    ).save
+  end
+  def reloaded_subscriber
+    Routemaster::Models::Subscriber.new(name: subscriber.name)
+  end
+
   let(:callback) { 'https://alice.com/widgets' }
 
   subject { described_class.new(subscriber, buffer) }
@@ -17,6 +27,7 @@ describe Routemaster::Services::Deliver do
     WebMock.enable!
     subscriber.uuid = 'hello'
     subscriber.callback = callback
+    subscriber.save
   end
 
   after do
@@ -65,6 +76,19 @@ describe Routemaster::Services::Deliver do
       end
     end
 
+    shared_examples 'subscriber delivery timestamps' do
+      it 'updates the last_attempted_at timestamp on the Subscriber object' do
+        old_value = subscriber.last_attempted_at
+        new_value = nil
+
+        expect { perform rescue nil }.to change {
+          new_value = reloaded_subscriber.last_attempted_at
+        }
+
+        expect(new_value).to be > old_value
+      end
+    end
+
     context 'when there are no events' do
       it 'passes' do
         expect { perform }.not_to raise_error
@@ -76,6 +100,7 @@ describe Routemaster::Services::Deliver do
       end
 
       it_behaves_like 'an event counter', count: 0, status: 'success'
+      include_examples 'subscriber delivery timestamps'
     end
 
     context 'when there are events' do
@@ -130,6 +155,7 @@ describe Routemaster::Services::Deliver do
       end
 
       it_behaves_like 'an event counter', count: 3, status: 'success'
+      include_examples 'subscriber delivery timestamps'
 
       shared_examples 'failure' do |options|
         options ||= {}
@@ -145,6 +171,7 @@ describe Routemaster::Services::Deliver do
         let(:callback_status) { 500 }
 
         it_behaves_like 'failure'
+        include_examples 'subscriber delivery timestamps'
       end
 
       context 'when the callback cannot be resolved' do
@@ -152,6 +179,7 @@ describe Routemaster::Services::Deliver do
         before { WebMock.disable! }
 
         it_behaves_like 'failure'
+        include_examples 'subscriber delivery timestamps'
       end
 
       context 'with fake local server', slow: true do
@@ -184,11 +212,13 @@ describe Routemaster::Services::Deliver do
           end
 
           it_behaves_like 'failure'
+          include_examples 'subscriber delivery timestamps'
         end
 
         context 'when connection fails' do
           # no server thread started here
           it_behaves_like 'failure', no_timer: true
+          include_examples 'subscriber delivery timestamps'
         end
       end
     end

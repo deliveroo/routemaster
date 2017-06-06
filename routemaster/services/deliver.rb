@@ -36,7 +36,8 @@ module Routemaster
         error = nil
         start_at = Routemaster.now
         begin
-        # send data
+          @subscriber.attempting_delivery(start_at)
+          # send data
           response = _conn.post do |post|
             post.headers['Content-Type'] = 'application/json'
             post.body = Oj.dump(_data, mode: :compat)
