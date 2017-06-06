@@ -56,10 +56,12 @@ module Routemaster
         _counters.incr('delivery.time2',   queue: @subscriber.name, count: t*t,          status: status)
         
         if error
+          @subscriber.change_health_by(-2)
           _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
           raise error
         else
-        _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
+          @subscriber.change_health_by(1)
+          _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
         end
         true
       end

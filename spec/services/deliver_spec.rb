@@ -9,10 +9,14 @@ require 'routemaster/models/subscriber'
 describe Routemaster::Services::Deliver do
   let(:buffer) { Array.new }
   let(:ten_s_ago) { Routemaster.now - 10_000 }
+  let(:base_hp) { 50 }
   let(:subscriber) do
     Routemaster::Models::Subscriber.new(
       name: 'alice',
-      attributes: { 'last_attempted_at' => ten_s_ago }
+      attributes: {
+        'last_attempted_at' => ten_s_ago,
+        'health_points' => base_hp.to_s
+      }
     ).save
   end
   def reloaded_subscriber
@@ -89,6 +93,18 @@ describe Routemaster::Services::Deliver do
       end
     end
 
+    shared_examples 'it updates the HP of the subscriber' do |options|
+      by = options.fetch(:by)
+      description = (by >= 0) ? 'increases' : 'decreases'
+
+      it "#{description} the health points of the subscriber by #{by}" do
+        expect { perform rescue nil }.to change {
+          reloaded_subscriber.health_points
+        }.from(base_hp).to(base_hp + by)
+      end
+    end
+
+
     context 'when there are no events' do
       it 'passes' do
         expect { perform }.not_to raise_error
@@ -101,6 +117,7 @@ describe Routemaster::Services::Deliver do
 
       it_behaves_like 'an event counter', count: 0, status: 'success'
       include_examples 'subscriber delivery timestamps'
+      it_behaves_like 'it updates the HP of the subscriber', by: 1
     end
 
     context 'when there are events' do
@@ -156,6 +173,7 @@ describe Routemaster::Services::Deliver do
 
       it_behaves_like 'an event counter', count: 3, status: 'success'
       include_examples 'subscriber delivery timestamps'
+      it_behaves_like 'it updates the HP of the subscriber', by: 1
 
       shared_examples 'failure' do |options|
         options ||= {}
@@ -165,13 +183,14 @@ describe Routemaster::Services::Deliver do
         end
 
         it_behaves_like 'an event counter', options.merge(count: 3, status: 'failure')
+        include_examples 'subscriber delivery timestamps'
+        it_behaves_like 'it updates the HP of the subscriber', by: -2
       end
 
       context 'when the callback 500s' do
         let(:callback_status) { 500 }
 
         it_behaves_like 'failure'
-        include_examples 'subscriber delivery timestamps'
       end
 
       context 'when the callback cannot be resolved' do
@@ -179,7 +198,6 @@ describe Routemaster::Services::Deliver do
         before { WebMock.disable! }
 
         it_behaves_like 'failure'
-        include_examples 'subscriber delivery timestamps'
       end
 
       context 'with fake local server', slow: true do
@@ -212,13 +230,11 @@ describe Routemaster::Services::Deliver do
           end
 
           it_behaves_like 'failure'
-          include_examples 'subscriber delivery timestamps'
         end
 
         context 'when connection fails' do
           # no server thread started here
           it_behaves_like 'failure', no_timer: true
-          include_examples 'subscriber delivery timestamps'
         end
       end
     end
