@@ -1,6 +1,7 @@
 require 'routemaster/jobs'
 require 'routemaster/models/batch'
 require 'routemaster/services/deliver'
+require 'routemaster/services/backoff'
 require 'routemaster/mixins/log'
 
 module Routemaster
@@ -35,21 +36,15 @@ module Routemaster
           batch.delete
         rescue Services::Deliver::CantDeliver => e
           _log_exception(e)
-          attempts = batch.fail
-          raise Models::Queue::Retry, _backoff(attempts)
+          raise Models::Queue::Retry, _backoff(batch)
         end
         self
       end
 
       private
       
-      def _backoff(attempts)
-        backoff = 1_000 * 2 ** [attempts-1, _backoff_limit].min
-        backoff + rand(backoff)
-      end
-
-      def _backoff_limit
-        @@_backoff_limit ||= Integer(ENV.fetch('ROUTEMASTER_BACKOFF_LIMIT'))
+      def _backoff(batch)
+        Services::Backoff.new(batch).calculate
       end
     end
   end
