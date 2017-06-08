@@ -1,4 +1,5 @@
 require 'routemaster/services'
+require 'routemaster/services/throttle'
 require 'routemaster/mixins/log'
 require 'routemaster/mixins/log_exception'
 require 'routemaster/mixins/counters'
@@ -21,6 +22,14 @@ module Routemaster
 
       CantDeliver = Class.new(StandardError)
 
+      class EarlyThrottle < StandardError
+        attr_reader :message
+        def initialize(subcriber_name)
+          @message = "Throttling batch deliveries to the '#{subcriber_name}' subscriber."
+        end
+      end
+
+
       def self.call(*args)
         new(*args).call
       end
@@ -36,6 +45,7 @@ module Routemaster
         error = nil
         start_at = Routemaster.now
         begin
+          _maybe_throttle!
           @subscriber.attempting_delivery(start_at)
           # send data
           response = _conn.post do |post|
@@ -43,7 +53,7 @@ module Routemaster
             post.body = Oj.dump(_data, mode: :compat)
           end
           error = CantDeliver.new("HTTP #{response.status}") unless response.success?
-        rescue Faraday::Error::ClientError => e
+        rescue Faraday::Error::ClientError, EarlyThrottle => e
           error = CantDeliver.new("#{e.class.name}: #{e.message}")
         end
 
@@ -97,6 +107,17 @@ module Routemaster
 
       def _verify_ssl?
         !!( ENV.fetch('ROUTEMASTER_SSL_VERIFY') =~ /^(true|on|yes|1)$/i )
+      end
+
+
+      def _maybe_throttle!
+        return if _proceed?
+        raise EarlyThrottle, @subscriber.name
+      end
+
+
+      def _proceed?
+        Services::Throttle.new(subscriber: @subscriber).should_deliver?
       end
     end
   end

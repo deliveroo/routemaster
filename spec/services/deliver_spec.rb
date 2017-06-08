@@ -80,6 +80,18 @@ describe Routemaster::Services::Deliver do
       end
     end
 
+    shared_examples 'a delivery failure' do |options|
+      options ||= {}
+      
+      it "raises a CantDeliver exception" do
+        expect { perform }.to raise_error(described_class::CantDeliver)
+      end
+
+      it_behaves_like 'an event counter', options.merge(count: 3, status: 'failure')
+      include_examples 'subscriber delivery timestamps'
+      it_behaves_like 'it updates the HP of the subscriber', by: -2
+    end
+
     shared_examples 'subscriber delivery timestamps' do
       it 'updates the last_attempted_at timestamp on the Subscriber object' do
         old_value = subscriber.last_attempted_at
@@ -104,6 +116,41 @@ describe Routemaster::Services::Deliver do
       end
     end
 
+    shared_examples_for 'a subscriber throttler' do
+      before do
+        allow(Routemaster::Services::Throttle).to receive(:new).with(subscriber: subscriber) do
+          instance_double(Routemaster::Services::Throttle, should_deliver?: should_deliver)
+        end
+      end
+
+      context 'when the throttler says that it is OK to deliver to the subscriber' do
+        let(:should_deliver) { true }
+
+        it "doesn't abort the delivery" do
+          expect { perform }.to_not raise_error
+        end
+
+        include_examples 'subscriber delivery timestamps'
+        it_behaves_like 'it updates the HP of the subscriber', by: 1
+      end
+
+      context 'when the throttler says that deliveries to the subscriber should be delayed' do
+        let(:should_deliver) { false }
+
+        it "raises a CantDeliver exception" do
+          expect { perform }.to raise_error(described_class::CantDeliver)
+        end
+
+        it 'does NOT update the last_attempted_at timestamp on the Subscriber object' do
+          expect { perform rescue nil }.to_not change {
+            reloaded_subscriber.last_attempted_at
+          }
+        end
+
+        it_behaves_like 'it updates the HP of the subscriber', by: -2
+      end
+    end
+
 
     context 'when there are no events' do
       it 'passes' do
@@ -118,6 +165,7 @@ describe Routemaster::Services::Deliver do
       it_behaves_like 'an event counter', count: 0, status: 'success'
       include_examples 'subscriber delivery timestamps'
       it_behaves_like 'it updates the HP of the subscriber', by: 1
+      it_behaves_like 'a subscriber throttler'
     end
 
     context 'when there are events' do
@@ -174,30 +222,19 @@ describe Routemaster::Services::Deliver do
       it_behaves_like 'an event counter', count: 3, status: 'success'
       include_examples 'subscriber delivery timestamps'
       it_behaves_like 'it updates the HP of the subscriber', by: 1
-
-      shared_examples 'failure' do |options|
-        options ||= {}
-        
-        it "raises a CantDeliver exception" do
-          expect { perform }.to raise_error(described_class::CantDeliver)
-        end
-
-        it_behaves_like 'an event counter', options.merge(count: 3, status: 'failure')
-        include_examples 'subscriber delivery timestamps'
-        it_behaves_like 'it updates the HP of the subscriber', by: -2
-      end
+      it_behaves_like 'a subscriber throttler'
 
       context 'when the callback 500s' do
         let(:callback_status) { 500 }
 
-        it_behaves_like 'failure'
+        it_behaves_like 'a delivery failure'
       end
 
       context 'when the callback cannot be resolved' do
         let(:callback) { "https://nonexistent.example.com/callback" }
         before { WebMock.disable! }
 
-        it_behaves_like 'failure'
+        it_behaves_like 'a delivery failure'
       end
 
       context 'with fake local server', slow: true do
@@ -229,12 +266,12 @@ describe Routemaster::Services::Deliver do
             listening_thread.join # wait for server to complete
           end
 
-          it_behaves_like 'failure'
+          it_behaves_like 'a delivery failure'
         end
 
         context 'when connection fails' do
           # no server thread started here
-          it_behaves_like 'failure', no_timer: true
+          it_behaves_like 'a delivery failure', no_timer: true
         end
       end
     end
