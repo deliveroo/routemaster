@@ -19,12 +19,12 @@ module Routemaster
       # Always continue if the backoff is per batch.
       # Always continue if the Subscriber is perfectly healthy.
       #
-      # If the Subscriber is not health, calculate what the
+      # If the Subscriber is not healthy, calculate what the
       # current backoff delay would be. If the Subscriber hasn't
       # been hit for an amount of time that exceeds the
-      # hypotethical backoff, then the Subscriber has already
-      # had enough time to recover, and we can continue with
-      # the delivery.
+      # calculated backoff, then the Subscriber has already
+      # had enough time to recover and the delivery can be
+      # attempted imemediately.
       #
       def should_deliver?
         return true if _strategy == :batch
