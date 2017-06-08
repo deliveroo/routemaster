@@ -9,7 +9,6 @@ require 'routemaster/mixins/log'
 module Routemaster
   module Services
     class Throttle
-      include Mixins::Log
       MAX_HP = 100
 
       def initialize(batch: nil, subscriber: nil)
