@@ -47,14 +47,22 @@ module Routemaster
         begin
           _maybe_throttle!
           @subscriber.attempting_delivery(start_at)
+
           # send data
           response = _conn.post do |post|
             post.headers['Content-Type'] = 'application/json'
             post.body = Oj.dump(_data, mode: :compat)
           end
-          error = CantDeliver.new("HTTP #{response.status}") unless response.success?
-        rescue Faraday::Error::ClientError, EarlyThrottle => e
-          error = CantDeliver.new("#{e.class.name}: #{e.message}")
+
+          unless response.success?
+            @subscriber.change_health_by(-2)
+            error = CantDeliver.new("HTTP #{response.status}")
+          end
+        rescue EarlyThrottle => e
+          error = _wrap_error(e)
+        rescue Faraday::Error::ClientError => e
+          @subscriber.change_health_by(-2)
+          error = _wrap_error(e)
         end
 
         t = Routemaster.now - start_at
@@ -66,7 +74,6 @@ module Routemaster
         _counters.incr('delivery.time2',   queue: @subscriber.name, count: t*t,          status: status)
         
         if error
-          @subscriber.change_health_by(-2)
           _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
           raise error
         else
@@ -78,6 +85,10 @@ module Routemaster
 
 
       private
+
+      def _wrap_error(e)
+        CantDeliver.new("#{e.class.name}: #{e.message}")
+      end
 
 
       # assemble data

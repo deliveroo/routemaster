@@ -147,7 +147,11 @@ describe Routemaster::Services::Deliver do
           }
         end
 
-        it_behaves_like 'it updates the HP of the subscriber', by: -2
+        it "does NOT change the health points of the subscriber" do
+          expect { perform rescue nil }.to_not change {
+            reloaded_subscriber.health_points
+          }
+        end
       end
     end
 
