@@ -44,7 +44,7 @@ module Routemaster
       private
       
       def _backoff(batch)
-        Services::Backoff.new(batch).calculate
+        Services::Throttle.new(batch).calculate
       end
     end
   end

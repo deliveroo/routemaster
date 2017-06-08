@@ -1,8 +1,14 @@
 require 'routemaster/services'
 require 'routemaster/mixins/log'
+
+# throttle |ˈθrɒt(ə)l|
+#   noun
+#   a device controlling the flow of fuel or power to
+#   an engine: the engines were at full throttle.
+#
 module Routemaster
   module Services
-    class Backoff
+    class Throttle
       include Mixins::Log
 
       def initialize(batch)

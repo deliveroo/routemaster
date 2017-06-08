@@ -3,7 +3,7 @@ require 'routemaster/services/backoff'
 require 'routemaster/models/subscriber'
 require 'routemaster/models/batch'
 
-RSpec.describe Routemaster::Services::Backoff do
+RSpec.describe Routemaster::Services::Throttle do
   let(:last_attempted_at) { Routemaster.now - 10_000 }
   let(:hp) { 50 }
 
