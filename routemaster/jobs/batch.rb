@@ -1,7 +1,7 @@
 require 'routemaster/jobs'
 require 'routemaster/models/batch'
 require 'routemaster/services/deliver'
-require 'routemaster/services/backoff'
+require 'routemaster/services/throttle'
 require 'routemaster/mixins/log'
 
 module Routemaster
@@ -44,7 +44,7 @@ module Routemaster
       private
       
       def _backoff(batch)
-        Services::Throttle.new(batch).calculate
+        Services::Throttle.new(batch: batch).retry_backoff
       end
     end
   end
