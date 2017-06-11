@@ -28,10 +28,11 @@ module Routemaster
       #
       def should_deliver?
         return true if _strategy == :batch
+        last_attempt = @subscriber.last_attempted_at
+        return true unless last_attempt
         return true if @subscriber.health_points >= MAX_HP
 
         delay = _subscriber_backoff
-        last_attempt = @subscriber.last_attempted_at
 
         _stale_enough?(last_attempt, delay)
       end

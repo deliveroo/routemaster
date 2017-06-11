@@ -93,6 +93,8 @@ module Routemaster::Models
       new_value
     end
 
+    # Returns nil for new subscribers that have never received an event.
+    #
     def last_attempted_at
       _attributes['last_attempted_at']&.to_i
     end

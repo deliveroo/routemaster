@@ -56,30 +56,42 @@ RSpec.describe Routemaster::Services::Throttle do
         described_class.class_variable_set(:@@_strategy, nil)
       end
 
-      describe "when the subscriber is perfectly healthy" do
-        let(:hp) { 100 }
+      describe "when the subscriber has never received an event before (its last_attempted_at timestamp is nil)" do
+        let(:last_attempted_at) { nil }
 
         it "returns true" do
           expect(perform).to be true
         end
       end
 
-      describe "when the subscriber is NOT healthy" do
-        let(:hp) { 90 }
+      describe "when the subscriber has received events before (its last_attempted_at timestamp contains a value)" do
+        let(:last_attempted_at) { 1 }
 
-        describe "when the last delivery attempt to the subscriber is more recent than what the backoff would enforce" do
-          let(:last_attempted_at) { Routemaster.now - 1_000 } # one second
-
-          it "returns false" do
-            expect(perform).to be false
-          end
-        end
-
-        describe "when the last delivery attempt to the subscriber is older than what the backoff would enforce" do
-          let(:last_attempted_at) { Routemaster.now - 180_000 } # three minutes
+        describe "when the subscriber is perfectly healthy" do
+          let(:hp) { 100 }
 
           it "returns true" do
             expect(perform).to be true
+          end
+        end
+
+        describe "when the subscriber is NOT healthy" do
+          let(:hp) { 90 }
+
+          describe "when the last delivery attempt to the subscriber is more recent than what the backoff would enforce" do
+            let(:last_attempted_at) { Routemaster.now - 1_000 } # one second
+
+            it "returns false" do
+              expect(perform).to be false
+            end
+          end
+
+          describe "when the last delivery attempt to the subscriber is older than what the backoff would enforce" do
+            let(:last_attempted_at) { Routemaster.now - 180_000 } # three minutes
+
+            it "returns true" do
+              expect(perform).to be true
+            end
           end
         end
       end
