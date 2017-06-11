@@ -17,6 +17,10 @@ RSpec.describe Routemaster::Services::Throttle do
     ).save
   end
 
+  def reloaded_subscriber
+    Routemaster::Models::Subscriber.new(name: subscriber.name)
+  end
+
   let(:failed_attempts) { 1 }
   let(:batch) do
     instance_double(Routemaster::Models::Batch, subscriber: subscriber, fail: failed_attempts)
@@ -34,10 +38,26 @@ RSpec.describe Routemaster::Services::Throttle do
   end
 
 
-  describe '#should_deliver?' do
+  describe '#check!' do
+    let(:time) { Routemaster.now }
+
     def perform
-      subject.should_deliver?
+      subject.check!(time)
     end
+
+    shared_examples 'it updates the last_attempted_at timestamp' do
+      it 'updates the last_attempted_at timestamp on the Subscriber object' do
+        old_value = subscriber.last_attempted_at
+        new_value = nil
+
+        expect { perform rescue nil }.to change {
+          new_value = reloaded_subscriber.last_attempted_at
+        }
+
+        expect(new_value).to be > old_value.to_i # to_i in case it's nil
+      end
+    end
+
 
     context 'when the backoff strategy is :batch' do
       before do
@@ -48,6 +68,8 @@ RSpec.describe Routemaster::Services::Throttle do
       it "returns true" do
         expect(perform).to be true
       end
+
+      it_behaves_like 'it updates the last_attempted_at timestamp'
     end
 
     context 'when the backoff strategy is :subscriber' do
@@ -62,6 +84,8 @@ RSpec.describe Routemaster::Services::Throttle do
         it "returns true" do
           expect(perform).to be true
         end
+
+        it_behaves_like 'it updates the last_attempted_at timestamp'
       end
 
       describe "when the subscriber has received events before (its last_attempted_at timestamp contains a value)" do
@@ -73,6 +97,8 @@ RSpec.describe Routemaster::Services::Throttle do
           it "returns true" do
             expect(perform).to be true
           end
+
+          it_behaves_like 'it updates the last_attempted_at timestamp'
         end
 
         describe "when the subscriber is NOT healthy" do
@@ -81,8 +107,27 @@ RSpec.describe Routemaster::Services::Throttle do
           describe "when the last delivery attempt to the subscriber is more recent than what the backoff would enforce" do
             let(:last_attempted_at) { Routemaster.now - 1_000 } # one second
 
-            it "returns false" do
-              expect(perform).to be false
+            it 'raises an EarlyThrottle exception' do
+              expect {
+                perform
+              }.to raise_error(Routemaster::Services::Throttle::EarlyThrottle)
+            end
+
+            specify 'the exception carries tha name of the subscriber' do
+              error = nil
+              begin
+                perform
+              rescue => e
+                error = e
+              end
+
+              expect(error.message).to match /#{subscriber.name}/
+            end
+
+            it 'does NOT update the last_attempted_at timestamp on the Subscriber object' do
+              expect { perform rescue nil }.to_not change {
+                reloaded_subscriber.last_attempted_at
+              }
             end
           end
 
@@ -92,6 +137,8 @@ RSpec.describe Routemaster::Services::Throttle do
             it "returns true" do
               expect(perform).to be true
             end
+
+            it_behaves_like 'it updates the last_attempted_at timestamp'
           end
         end
       end

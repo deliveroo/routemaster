@@ -22,14 +22,6 @@ module Routemaster
 
       CantDeliver = Class.new(StandardError)
 
-      class EarlyThrottle < StandardError
-        attr_reader :message
-        def initialize(subcriber_name)
-          @message = "Throttling batch deliveries to the '#{subcriber_name}' subscriber."
-        end
-      end
-
-
       def self.call(*args)
         new(*args).call
       end
@@ -45,8 +37,7 @@ module Routemaster
         error = nil
         start_at = Routemaster.now
         begin
-          _maybe_throttle!
-          @subscriber.attempting_delivery(start_at)
+          _throttle.check!(start_at)
 
           # send data
           response = _conn.post do |post|
@@ -58,7 +49,7 @@ module Routemaster
             @subscriber.change_health_by(-2)
             error = CantDeliver.new("HTTP #{response.status}")
           end
-        rescue EarlyThrottle => e
+        rescue Throttle::EarlyThrottle => e
           error = _wrap_error(e)
         rescue Faraday::Error::ClientError => e
           @subscriber.change_health_by(-2)
@@ -121,14 +112,8 @@ module Routemaster
       end
 
 
-      def _maybe_throttle!
-        return if _proceed?
-        raise EarlyThrottle, @subscriber.name
-      end
-
-
-      def _proceed?
-        Services::Throttle.new(subscriber: @subscriber).should_deliver?
+      def _throttle
+        @_throttle ||= Services::Throttle.new(subscriber: @subscriber)
       end
     end
   end

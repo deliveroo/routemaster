@@ -11,30 +11,27 @@ module Routemaster
     class Throttle
       MAX_HP = 100
 
+      class EarlyThrottle < StandardError
+        attr_reader :message
+        def initialize(subcriber_name)
+          @message = "Throttling batch deliveries to the '#{subcriber_name}' subscriber."
+        end
+      end
+
+
       def initialize(batch: nil, subscriber: nil)
         @batch = batch
         @subscriber = subscriber || @batch.subscriber
       end
 
-      # Always continue if the backoff is per batch.
-      # Always continue if the Subscriber is perfectly healthy.
-      #
-      # If the Subscriber is not healthy, calculate what the
-      # current backoff delay would be. If the Subscriber hasn't
-      # been hit for an amount of time that exceeds the
-      # calculated backoff, then the Subscriber has already
-      # had enough time to recover and the delivery can be
-      # attempted imemediately.
-      #
-      def should_deliver?
-        return true if _strategy == :batch
-        last_attempt = @subscriber.last_attempted_at
-        return true unless last_attempt
-        return true if @subscriber.health_points >= MAX_HP
 
-        delay = _subscriber_backoff
-
-        _stale_enough?(last_attempt, delay)
+      def check!(current_time)
+        if _should_deliver?
+          @subscriber.attempting_delivery(current_time)
+          true
+        else
+          raise EarlyThrottle, @subscriber.name
+        end
       end
 
 
@@ -48,6 +45,29 @@ module Routemaster
 
 
       private
+
+
+      # Always continue if the backoff is per batch.
+      # Always continue if the Subscriber is perfectly healthy.
+      #
+      # If the Subscriber is not healthy, calculate what the
+      # current backoff delay would be. If the Subscriber hasn't
+      # been hit for an amount of time that exceeds the
+      # calculated backoff, then the Subscriber has already
+      # had enough time to recover and the delivery can be
+      # attempted imemediately.
+      #
+      def _should_deliver?
+        return true if _strategy == :batch
+        last_attempt = @subscriber.last_attempted_at
+        return true unless last_attempt
+        return true if @subscriber.health_points >= MAX_HP
+
+        delay = _subscriber_backoff
+
+        _stale_enough?(last_attempt, delay)
+      end
+
 
       # Is a timestamp older than a certain time interval?
       #

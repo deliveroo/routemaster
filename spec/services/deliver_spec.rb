@@ -88,21 +88,7 @@ describe Routemaster::Services::Deliver do
       end
 
       it_behaves_like 'an event counter', options.merge(count: 3, status: 'failure')
-      include_examples 'subscriber delivery timestamps'
       it_behaves_like 'it updates the HP of the subscriber', by: -2
-    end
-
-    shared_examples 'subscriber delivery timestamps' do
-      it 'updates the last_attempted_at timestamp on the Subscriber object' do
-        old_value = subscriber.last_attempted_at
-        new_value = nil
-
-        expect { perform rescue nil }.to change {
-          new_value = reloaded_subscriber.last_attempted_at
-        }
-
-        expect(new_value).to be > old_value
-      end
     end
 
     shared_examples 'it updates the HP of the subscriber' do |options|
@@ -117,35 +103,34 @@ describe Routemaster::Services::Deliver do
     end
 
     shared_examples_for 'a subscriber throttler' do
+      let(:throttle) { instance_double(Routemaster::Services::Throttle) }
       before do
-        allow(Routemaster::Services::Throttle).to receive(:new).with(subscriber: subscriber) do
-          instance_double(Routemaster::Services::Throttle, should_deliver?: should_deliver)
-        end
+        allow(Routemaster::Services::Throttle).to receive(:new).with(subscriber: subscriber).and_return(throttle)
       end
 
       context 'when the throttler says that it is OK to deliver to the subscriber' do
-        let(:should_deliver) { true }
+        before do
+          expect(throttle).to receive(:check!).and_return(true)
+        end
 
         it "doesn't abort the delivery" do
           expect { perform }.to_not raise_error
         end
 
-        include_examples 'subscriber delivery timestamps'
         it_behaves_like 'it updates the HP of the subscriber', by: 1
       end
 
       context 'when the throttler says that deliveries to the subscriber should be delayed' do
-        let(:should_deliver) { false }
+        before do
+          expect(throttle).to receive(:check!) do
+            raise Routemaster::Services::Throttle::EarlyThrottle, subscriber.name
+          end
+        end
 
         it "raises a CantDeliver exception" do
           expect { perform }.to raise_error(described_class::CantDeliver)
         end
 
-        it 'does NOT update the last_attempted_at timestamp on the Subscriber object' do
-          expect { perform rescue nil }.to_not change {
-            reloaded_subscriber.last_attempted_at
-          }
-        end
 
         it "does NOT change the health points of the subscriber" do
           expect { perform rescue nil }.to_not change {
@@ -167,7 +152,6 @@ describe Routemaster::Services::Deliver do
       end
 
       it_behaves_like 'an event counter', count: 0, status: 'success'
-      include_examples 'subscriber delivery timestamps'
       it_behaves_like 'it updates the HP of the subscriber', by: 1
       it_behaves_like 'a subscriber throttler'
     end
@@ -224,7 +208,6 @@ describe Routemaster::Services::Deliver do
       end
 
       it_behaves_like 'an event counter', count: 3, status: 'success'
-      include_examples 'subscriber delivery timestamps'
       it_behaves_like 'it updates the HP of the subscriber', by: 1
       it_behaves_like 'a subscriber throttler'
 
