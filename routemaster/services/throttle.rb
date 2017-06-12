@@ -36,18 +36,14 @@ module Routemaster
 
 
       def retry_backoff
-        if _strategy == :subscriber
-          _subscriber_backoff
-        else
-          _batch_backoff
-        end
+        hp = @subscriber.health_points
+        _exponential_backoff(_health_to_severity(hp))
       end
 
 
       private
 
 
-      # Always continue if the backoff is per batch.
       # Always continue if the Subscriber is perfectly healthy.
       #
       # If the Subscriber is not healthy, calculate what the
@@ -58,12 +54,11 @@ module Routemaster
       # attempted imemediately.
       #
       def _should_deliver?
-        return true if _strategy == :batch
         last_attempt = @subscriber.last_attempted_at
         return true unless last_attempt
         return true if @subscriber.health_points >= MAX_HP
 
-        delay = _subscriber_backoff
+        delay = retry_backoff
 
         _stale_enough?(last_attempt, delay)
       end
@@ -75,11 +70,6 @@ module Routemaster
         timestamp < (Routemaster.now - time_span)
       end
 
-
-      def _subscriber_backoff
-        hp = @subscriber.health_points
-        _exponential_backoff(_health_to_severity(hp))
-      end
 
       # Use incremental ranges (Fibonacci) to map a subscriber's
       # health points to a number of hypotetical failed attempts.
@@ -100,12 +90,6 @@ module Routemaster
       end
 
 
-      def _batch_backoff
-        failed_attempts = @batch.fail
-        _exponential_backoff(failed_attempts)
-      end
-
-
       # Uses a severity level to calculate an exponential backoff delay,
       # expressed in milliseconds.
       #
@@ -117,10 +101,6 @@ module Routemaster
 
       def _backoff_limit
         @@_backoff_limit ||= Integer(ENV.fetch('ROUTEMASTER_BACKOFF_LIMIT'))
-      end
-
-      def _strategy
-        @@_strategy ||= ENV.fetch('ROUTEMASTER_BACKOFF_STRATEGY', :batch).to_sym
       end
     end
   end
