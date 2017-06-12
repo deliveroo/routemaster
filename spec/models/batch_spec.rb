@@ -251,15 +251,6 @@ describe Routemaster::Models::Batch do
   end
 
 
-  describe '#fail' do
-    subject { do_ingest(2) }
-    let(:perform) { subject.fail }
-
-    it { expect { perform }.to change { subject.attempts }.from(0).to(1) }
-    it { expect(perform).to eq(1) }
-  end
-
-
   describe '#subscriber' do
     subject { do_ingest(2) }
     let(:result) { subject.reload.subscriber }
