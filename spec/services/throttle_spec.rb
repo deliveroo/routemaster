@@ -76,7 +76,7 @@ RSpec.describe Routemaster::Services::Throttle do
         let(:hp) { 90 }
 
         describe "when the last delivery attempt to the subscriber is more recent than what the backoff would enforce" do
-          let(:last_attempted_at) { Routemaster.now - 1_000 } # one second
+          let(:last_attempted_at) { Routemaster.now - 800 } # one second
 
           it 'raises an EarlyThrottle exception' do
             expect {
@@ -133,32 +133,40 @@ RSpec.describe Routemaster::Services::Throttle do
       context "with 99 HP" do
         let(:hp) { 99 }
 
-        it "returns a number between 1 and 2 seconds" do
-          expect(perform).to be_between(1_000, 2_000)
+        it "returns the right value" do
+          expect(perform).to be_between(524, 1050)
         end
       end
 
       context "with 97 HP" do
         let(:hp) { 97 }
 
-        it "returns a number between 2 and 4 seconds" do
-          expect(perform).to be_between(2_000, 4_000)
+        it "returns the right value" do
+          expect(perform).to be_between(578, 1157)
         end
       end
 
-      context "with 94 HP" do
-        let(:hp) { 94 }
+      context "with 78 HP" do
+        let(:hp) { 78 }
 
-        it "returns a number between 4 and 8 seconds" do
-          expect(perform).to be_between(4_000, 8_000)
+        it "returns the right value" do
+          expect(perform).to be_between(1453, 2908)
         end
       end
 
       context "with 50 HP" do
         let(:hp) { 50 }
 
-        it "returns a number between 32 and 64 seconds" do
-          expect(perform).to be_between(32_000, 64_000)
+        it "returns the right value" do
+          expect(perform).to be_between(5656, 11314)
+        end
+      end
+
+      context "with 15 HP" do
+        let(:hp) { 15 }
+
+        it "returns the right value" do
+          expect(perform).to be_between(30909, 61820)
         end
       end
     end

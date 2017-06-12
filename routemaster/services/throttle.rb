@@ -71,22 +71,8 @@ module Routemaster
       end
 
 
-      # Use incremental ranges (Fibonacci) to map a subscriber's
-      # health points to a number of hypotetical failed attempts.
-      #
-      # Just an experiment, there are probably better ways to do this.
-      #
       def _health_to_severity(hp)
-        case hp
-        when 100    then 0
-        when 98..99 then 1
-        when 95..97 then 2
-        when 90..94 then 3
-        when 82..89 then 4
-        when 69..81 then 5
-        when 48..68 then 6
-        else             7
-        end
+        1.0 * (MAX_HP - hp) * (_backoff_limit+1) / MAX_HP
       end
 
 
