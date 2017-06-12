@@ -38,7 +38,6 @@ module Routemaster
         start_at = Routemaster.now
         begin
           @throttle.check!(start_at)
-
           # send data
           response = _conn.post do |post|
             post.headers['Content-Type'] = 'application/json'
@@ -56,13 +55,9 @@ module Routemaster
           error = Exceptions::CantDeliver.new("#{e.class.name}: #{e.message}", @throttle.retry_backoff)
         end
 
-        t = Routemaster.now - start_at
+        elapsed = Routemaster.now - start_at
         status = error ? 'failure' : 'success'
-
-        _counters.incr('delivery.events',  queue: @subscriber.name, count: _data.length, status: status)
-        _counters.incr('delivery.batches', queue: @subscriber.name, count: 1,            status: status)
-        _counters.incr('delivery.time',    queue: @subscriber.name, count: t,            status: status)
-        _counters.incr('delivery.time2',   queue: @subscriber.name, count: t*t,          status: status)
+        _update_counters(status, elapsed)
         
         if error
           _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
@@ -105,6 +100,14 @@ module Routemaster
 
       def _verify_ssl?
         !!( ENV.fetch('ROUTEMASTER_SSL_VERIFY') =~ /^(true|on|yes|1)$/i )
+      end
+
+
+      def _update_counters(status, t)
+        _counters.incr('delivery.events',  queue: @subscriber.name, count: _data.length, status: status)
+        _counters.incr('delivery.batches', queue: @subscriber.name, count: 1,            status: status)
+        _counters.incr('delivery.time',    queue: @subscriber.name, count: t,            status: status)
+        _counters.incr('delivery.time2',   queue: @subscriber.name, count: t*t,          status: status)
       end
     end
   end
