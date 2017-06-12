@@ -3,6 +3,7 @@ require 'routemaster/models/batch'
 require 'routemaster/services/deliver'
 require 'routemaster/services/throttle'
 require 'routemaster/mixins/log'
+require 'routemaster/exceptions'
 
 module Routemaster
   module Jobs
