@@ -12,9 +12,8 @@ module Routemaster
     class Throttle
       MAX_HP = 100
 
-      def initialize(batch: nil, subscriber: nil)
-        @batch = batch
-        @subscriber = subscriber || @batch.subscriber
+      def initialize(subscriber)
+        @subscriber = subscriber
       end
 
 

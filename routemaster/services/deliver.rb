@@ -108,7 +108,7 @@ module Routemaster
 
 
       def _throttle
-        @_throttle ||= Services::Throttle.new(subscriber: @subscriber)
+        @_throttle ||= Services::Throttle.new(@subscriber)
       end
     end
   end

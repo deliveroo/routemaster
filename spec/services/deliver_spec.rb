@@ -105,7 +105,7 @@ describe Routemaster::Services::Deliver do
     shared_examples_for 'a subscriber throttler' do
       let(:throttle) { instance_double(Routemaster::Services::Throttle) }
       before do
-        allow(Routemaster::Services::Throttle).to receive(:new).with(subscriber: subscriber).and_return(throttle)
+        allow(Routemaster::Services::Throttle).to receive(:new).with(subscriber).and_return(throttle)
       end
 
       context 'when the throttler says that it is OK to deliver to the subscriber' do
