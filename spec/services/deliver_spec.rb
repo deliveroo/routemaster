@@ -106,10 +106,13 @@ describe Routemaster::Services::Deliver do
       let(:throttle) do
         instance_double(Routemaster::Services::Throttle, notice_success: base_hp, notice_failure: base_hp)
       end
+      let(:throttle_klass) { double("ThrottleKlass") }
 
       before do
-        allow(Routemaster::Services::Throttle).to receive(:new).with(subscriber).and_return(throttle)
+        allow(throttle_klass).to receive(:new).with(subscriber).and_return(throttle)
       end
+
+      subject { described_class.new(subscriber, buffer, throttle_service: throttle_klass) }
 
       context 'when the throttler says that it is OK to deliver to the subscriber' do
         before do

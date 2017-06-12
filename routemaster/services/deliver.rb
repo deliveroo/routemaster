@@ -25,9 +25,10 @@ module Routemaster
         new(*args).call
       end
 
-      def initialize(subscriber, events)
+      def initialize(subscriber, events, throttle_service: Services::Throttle)
         @subscriber = subscriber
         @buffer     = events
+        @throttle   = throttle_service.new(@subscriber)
       end
 
       def call
@@ -36,7 +37,7 @@ module Routemaster
         error = nil
         start_at = Routemaster.now
         begin
-          _throttle.check!(start_at)
+          @throttle.check!(start_at)
 
           # send data
           response = _conn.post do |post|
@@ -45,14 +46,14 @@ module Routemaster
           end
 
           unless response.success?
-            _throttle.notice_failure
-            error = Exceptions::CantDeliver.new("HTTP #{response.status}", _throttle.retry_backoff)
+            @throttle.notice_failure
+            error = Exceptions::CantDeliver.new("HTTP #{response.status}", @throttle.retry_backoff)
           end
         rescue Exceptions::EarlyThrottle => e
           error = e
         rescue Faraday::Error::ClientError => e
-          _throttle.notice_failure
-          error = Exceptions::CantDeliver.new("#{e.class.name}: #{e.message}", _throttle.retry_backoff)
+          @throttle.notice_failure
+          error = Exceptions::CantDeliver.new("#{e.class.name}: #{e.message}", @throttle.retry_backoff)
         end
 
         t = Routemaster.now - start_at
@@ -67,7 +68,7 @@ module Routemaster
           _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
           raise error
         else
-          _throttle.notice_success
+          @throttle.notice_success
           _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
         end
         true
@@ -104,11 +105,6 @@ module Routemaster
 
       def _verify_ssl?
         !!( ENV.fetch('ROUTEMASTER_SSL_VERIFY') =~ /^(true|on|yes|1)$/i )
-      end
-
-
-      def _throttle
-        @_throttle ||= Services::Throttle.new(@subscriber)
       end
     end
   end
