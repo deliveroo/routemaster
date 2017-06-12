@@ -8,13 +8,13 @@ require 'routemaster/models/subscriber'
 
 describe Routemaster::Services::Deliver do
   let(:buffer) { Array.new }
-  let(:ten_s_ago) { Routemaster.now - 10_000 }
+  let(:last_attempt_at) { Routemaster.now - 200_000 }
   let(:base_hp) { 50 }
   let(:subscriber) do
     Routemaster::Models::Subscriber.new(
       name: 'alice',
       attributes: {
-        'last_attempted_at' => ten_s_ago,
+        'last_attempted_at' => last_attempt_at,
         'health_points' => base_hp.to_s
       }
     ).save
@@ -83,8 +83,8 @@ describe Routemaster::Services::Deliver do
     shared_examples 'a delivery failure' do |options|
       options ||= {}
       
-      it "raises a CantDeliver exception" do
-        expect { perform }.to raise_error(described_class::CantDeliver)
+      it "raises a Routemaster::Exceptions::DeliveryFailure exception" do
+        expect { perform }.to raise_error(Routemaster::Exceptions::DeliveryFailure)
       end
 
       it_behaves_like 'an event counter', options.merge(count: 3, status: 'failure')
@@ -123,12 +123,12 @@ describe Routemaster::Services::Deliver do
       context 'when the throttler says that deliveries to the subscriber should be delayed' do
         before do
           expect(throttle).to receive(:check!) do
-            raise Routemaster::Services::Throttle::EarlyThrottle, subscriber.name
+            raise Routemaster::Exceptions::EarlyThrottle.new(10.0, subscriber.name)
           end
         end
 
-        it "raises a CantDeliver exception" do
-          expect { perform }.to raise_error(described_class::CantDeliver)
+        it "raises a Routemaster::Exceptions::DeliveryFailure exception" do
+          expect { perform }.to raise_error(Routemaster::Exceptions::DeliveryFailure)
         end
 
 

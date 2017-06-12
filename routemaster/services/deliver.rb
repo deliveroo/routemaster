@@ -3,6 +3,7 @@ require 'routemaster/services/throttle'
 require 'routemaster/mixins/log'
 require 'routemaster/mixins/log_exception'
 require 'routemaster/mixins/counters'
+require 'routemaster/exceptions'
 require 'faraday'
 require 'typhoeus'
 require 'typhoeus/adapters/faraday'
@@ -19,8 +20,6 @@ module Routemaster
 
       CONNECT_TIMEOUT = ENV.fetch('ROUTEMASTER_CONNECT_TIMEOUT').to_i
       TIMEOUT         = ENV.fetch('ROUTEMASTER_TIMEOUT').to_i
-
-      CantDeliver = Class.new(StandardError)
 
       def self.call(*args)
         new(*args).call
@@ -47,13 +46,13 @@ module Routemaster
 
           unless response.success?
             @subscriber.change_health_by(-2)
-            error = CantDeliver.new("HTTP #{response.status}")
+            error = Exceptions::CantDeliver.new("HTTP #{response.status}", _throttle.retry_backoff)
           end
-        rescue Throttle::EarlyThrottle => e
-          error = _wrap_error(e)
+        rescue Exceptions::EarlyThrottle => e
+          error = e
         rescue Faraday::Error::ClientError => e
           @subscriber.change_health_by(-2)
-          error = _wrap_error(e)
+          error = Exceptions::CantDeliver.new("#{e.class.name}: #{e.message}", _throttle.retry_backoff)
         end
 
         t = Routemaster.now - start_at
@@ -76,10 +75,6 @@ module Routemaster
 
 
       private
-
-      def _wrap_error(e)
-        CantDeliver.new("#{e.class.name}: #{e.message}")
-      end
 
 
       # assemble data

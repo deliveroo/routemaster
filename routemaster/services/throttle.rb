@@ -1,5 +1,6 @@
 require 'routemaster/services'
 require 'routemaster/mixins/log'
+require 'routemaster/exceptions'
 
 # throttle |ˈθrɒt(ə)l|
 #   noun
@@ -10,14 +11,6 @@ module Routemaster
   module Services
     class Throttle
       MAX_HP = 100
-
-      class EarlyThrottle < StandardError
-        attr_reader :message
-        def initialize(subcriber_name)
-          @message = "Throttling batch deliveries to the '#{subcriber_name}' subscriber."
-        end
-      end
-
 
       def initialize(batch: nil, subscriber: nil)
         @batch = batch
@@ -30,14 +23,16 @@ module Routemaster
           @subscriber.attempting_delivery(current_time)
           true
         else
-          raise EarlyThrottle, @subscriber.name
+          raise Exceptions::EarlyThrottle.new(retry_backoff, @subscriber.name)
         end
       end
 
 
       def retry_backoff
-        hp = @subscriber.health_points
-        _exponential_backoff(_health_to_severity(hp))
+        @retry_backoff ||= begin
+          hp = @subscriber.health_points
+          _exponential_backoff(_health_to_severity(hp))
+        end
       end
 
 

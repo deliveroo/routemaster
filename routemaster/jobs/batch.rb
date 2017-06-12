@@ -34,17 +34,11 @@ module Routemaster
         begin
           @delivery.call(batch.subscriber, events)
           batch.delete
-        rescue Services::Deliver::CantDeliver => e
+        rescue Exceptions::DeliveryFailure => e
           _log_exception(e)
-          raise Models::Queue::Retry, _backoff(batch)
+          raise Models::Queue::Retry, e.delay
         end
         self
-      end
-
-      private
-      
-      def _backoff(batch)
-        Services::Throttle.new(batch: batch).retry_backoff
       end
     end
   end
