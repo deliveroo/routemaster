@@ -34,12 +34,12 @@ module Routemaster
 
 
       def notice_failure
-        @subscriber.change_health_by(-2)
+        @subscriber.change_health_by(_damage_rate)
       end
 
 
       def notice_success
-        @subscriber.change_health_by(1)
+        @subscriber.change_health_by(_heal_rate)
       end
 
 
@@ -92,6 +92,15 @@ module Routemaster
 
       def _backoff_limit
         @@_backoff_limit ||= Integer(ENV.fetch('ROUTEMASTER_BACKOFF_LIMIT'))
+      end
+
+
+      def _heal_rate
+        @@_heal_rate ||= Integer(ENV.fetch('ROUTEMASTER_HP_HEAL_RATE', '1'))
+      end
+
+      def _damage_rate
+        @@_damage_rate ||= Integer(ENV.fetch('ROUTEMASTER_HP_DAMAGE_RATE', '-2'))
       end
     end
   end
