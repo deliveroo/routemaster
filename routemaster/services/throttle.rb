@@ -18,20 +18,28 @@ module Routemaster
 
 
       def check!(current_time)
-        if _should_deliver?
+        if delay = _halt_with_backoff?
+          raise Exceptions::EarlyThrottle.new(delay, @subscriber.name)
+        else
           @subscriber.attempting_delivery(current_time)
           true
-        else
-          raise Exceptions::EarlyThrottle.new(retry_backoff, @subscriber.name)
         end
       end
 
 
       def retry_backoff
-        @retry_backoff ||= begin
-          hp = @subscriber.health_points
-          _exponential_backoff(_health_to_severity(hp))
-        end
+        hp = @subscriber.health_points
+        _exponential_backoff(_health_to_severity(hp))
+      end
+
+
+      def notice_failure
+        @subscriber.change_health_by(-2)
+      end
+
+
+      def notice_success
+        @subscriber.change_health_by(1)
       end
 
 
@@ -47,14 +55,16 @@ module Routemaster
       # had enough time to recover and the delivery can be
       # attempted imemediately.
       #
-      def _should_deliver?
+      def _halt_with_backoff?
+        return false if @subscriber.health_points >= MAX_HP
+
         last_attempt = @subscriber.last_attempted_at
-        return true unless last_attempt
-        return true if @subscriber.health_points >= MAX_HP
+        return false unless last_attempt
 
         delay = retry_backoff
+        return false if _stale_enough?(last_attempt, delay)
 
-        _stale_enough?(last_attempt, delay)
+        delay
       end
 
 
@@ -78,6 +88,7 @@ module Routemaster
         backoff = 1_000 * 2 ** [severity-1, _backoff_limit].min
         backoff + rand(backoff)
       end
+
 
       def _backoff_limit
         @@_backoff_limit ||= Integer(ENV.fetch('ROUTEMASTER_BACKOFF_LIMIT'))

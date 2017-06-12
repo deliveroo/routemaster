@@ -45,13 +45,13 @@ module Routemaster
           end
 
           unless response.success?
-            @subscriber.change_health_by(-2)
+            _throttle.notice_failure
             error = Exceptions::CantDeliver.new("HTTP #{response.status}", _throttle.retry_backoff)
           end
         rescue Exceptions::EarlyThrottle => e
           error = e
         rescue Faraday::Error::ClientError => e
-          @subscriber.change_health_by(-2)
+          _throttle.notice_failure
           error = Exceptions::CantDeliver.new("#{e.class.name}: #{e.message}", _throttle.retry_backoff)
         end
 
@@ -67,7 +67,7 @@ module Routemaster
           _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
           raise error
         else
-          @subscriber.change_health_by(1)
+          _throttle.notice_success
           _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
         end
         true

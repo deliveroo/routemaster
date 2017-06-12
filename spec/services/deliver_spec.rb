@@ -103,7 +103,10 @@ describe Routemaster::Services::Deliver do
     end
 
     shared_examples_for 'a subscriber throttler' do
-      let(:throttle) { instance_double(Routemaster::Services::Throttle) }
+      let(:throttle) do
+        instance_double(Routemaster::Services::Throttle, notice_success: base_hp, notice_failure: base_hp)
+      end
+
       before do
         allow(Routemaster::Services::Throttle).to receive(:new).with(subscriber).and_return(throttle)
       end
@@ -116,8 +119,6 @@ describe Routemaster::Services::Deliver do
         it "doesn't abort the delivery" do
           expect { perform }.to_not raise_error
         end
-
-        it_behaves_like 'it updates the HP of the subscriber', by: 1
       end
 
       context 'when the throttler says that deliveries to the subscriber should be delayed' do
