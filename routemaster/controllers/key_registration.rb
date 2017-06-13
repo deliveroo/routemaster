@@ -22,8 +22,7 @@ module Routemaster
           halt 400, "expected 'service_name' key"
         end
         new_key = Models::ClientToken.generate_api_key(data["service_name"])
-        status 201
-        {"new_key": new_key}.to_json
+        [201, {'Location': env["PATH_INFO"]}, {'new_key': new_key}.to_json]
       end
 
       delete '/api_keys/:key_name' do
