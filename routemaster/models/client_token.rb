@@ -18,7 +18,7 @@ module Routemaster
       end
 
       def self.generate_api_key(service_name)
-        new_key = SecureRandom.uuid 
+        new_key = SecureRandom.hex(16)
         _redis.hset(REDIS_KEY, new_key, service_name)
         new_key
       end

@@ -32,3 +32,13 @@ if ENV['NEW_RELIC_LICENSE_KEY']
     add_transaction_tracer :perform, :category => :task
   end
 end
+
+if ENV['ROUTEMASTER_CLIENTS']
+  require 'routemaster/mixins/redis'
+  require 'routemaster/mixins/log'
+  $stderr.puts "Warning: Migrating $ROUTEMASTER_CLIENTS to redis storage. Support adding clients via environment variable is deprecated. See README"
+  ENV.fetch('ROUTEMASTER_CLIENTS', '').split(',').each do |old_id|
+    service_name, uuid = old_id.split "--"
+    Object.new.extend(Routemaster::Mixins::Redis)._redis.hset("api_keys", uuid, service_name)
+  end
+end

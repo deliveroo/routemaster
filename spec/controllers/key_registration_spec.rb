@@ -1,7 +1,6 @@
 require 'spec_helper'
 require 'routemaster/application'
 require 'routemaster/controllers/key_registration'
-require 'routemaster/mixins/redis'
 require 'spec/support/rack_test'
 require 'spec/support/persistence'
 
@@ -19,13 +18,6 @@ describe Routemaster::Controllers::KeyRegistration, type: :controller do
     let(:create_key) do
       basic_authorize root_key, 'x'
       post '/api_keys',
-        {'service_name' => 'table_service'}.to_json,
-        {'CONTENT_TYPE' => 'application/json'}
-    end
-
-    let(:delete_key) do
-      basic_authorize root_key, 'x'
-      delete '/api_keys',
         {'service_name' => 'table_service'}.to_json,
         {'CONTENT_TYPE' => 'application/json'}
     end
