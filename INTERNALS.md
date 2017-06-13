@@ -195,6 +195,13 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
   NB: this is represented as a list so that atomic operations can be used (eg.
   `BRPOPLPUSH`) and no jobs ever get lost.
 
+`jobs:pending:index:{q}` (set)
+
+  A set of worker identifiers, acting as an index for the previous key. Values
+  are exactly the set of possible `{worker}` values above.
+  Added to whenever popping from the queue, removed from only when scrubbing the
+  queue.
+
 `workers` (hash)
 
   Maps worker identifiers to the timestamp they were last

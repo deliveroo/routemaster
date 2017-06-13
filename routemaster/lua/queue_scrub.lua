@@ -6,6 +6,9 @@
 -- KEYS[1]: list, the worker queue
 -- KEYS[2]: list, the job queue
 -- KEYS[3]: set,  the job index
+-- KEYS[4]: set,  the queue's worker/pending index
+--
+-- ARGV[1]: the worker ID
 --
 
 local counter = 0
@@ -14,5 +17,8 @@ while true do
   if not item then break end
   counter = counter + 1
 end
+
+redis.call('SREM', KEYS[4], ARGV[1])
+
 return counter
 
