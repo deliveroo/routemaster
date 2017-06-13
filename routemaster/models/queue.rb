@@ -96,6 +96,7 @@ module Routemaster
           raise "Worker '#{worker_id}' already has a batch acquired"
         end
 
+        _redis.sadd(_pending_index, worker_id)
         job_data = _redis.brpoplpush(_queue_key, pending_key, timeout: _acquire_timeout)
         return if job_data.nil?
 
@@ -146,13 +147,14 @@ module Routemaster
       # Re-queue all jobs marked as aquired, if the block returns true for a
       # worker ID.
       def scrub
-        _redis.scan_each(match: _pending_key('*'), count: 10) do |key|
-          worker_id = key.split(':').last
+        _redis.sscan_each(_pending_index, count: 10) do |worker_id|
           next unless yield worker_id
+          key = _pending_key(worker_id)
 
           count = _redis_lua_run(
             'queue_scrub',
-            keys: [key, _queue_key, _index_key])
+            keys: [key, _queue_key, _index_key, _pending_index],
+            argv: [worker_id])
           _counters.incr('jobs.scrubbed', queue: name, count: count)
           _log.warn { "scrubbed worker.#{worker_id}" }
         end
@@ -186,6 +188,10 @@ module Routemaster
 
       def _pending_key(worker_id)
         "jobs:pending:#{@name}:#{worker_id}"
+      end
+
+      def _pending_index
+        "jobs:pending:index:#{@name}"
       end
 
       def _queue_key
