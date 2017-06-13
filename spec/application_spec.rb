@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'routemaster/application'
+require 'routemaster/models/client_token'
 require 'spec/support/rack_test'
 
 describe Routemaster::Application, type: :controller do
@@ -17,8 +18,8 @@ describe Routemaster::Application, type: :controller do
   describe 'unknown endpoint' do
 
     before do
-      ENV['ROUTEMASTER_CLIENTS'] = 'demo'
-      authorize 'demo', 'x'
+      uuid = Routemaster::Models::ClientToken.generate_api_key({"service": "rspec", "owner": "rspec"})
+      authorize uuid, 'demo'
     end
 
     it 'responds with an error, no content' do

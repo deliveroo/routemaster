@@ -19,15 +19,23 @@ describe 'Client integration', slow:true do
   after  { client_processes.each { |c| c.wait_stop } }
   after  { client_processes.each { |c| c.stop } }
 
+  let(:uuid) do
+    # Arbitrary hardcoded key
+    _redis.hset("api_keys:1c44d34f-6e53-4a4f-9756-4bb8480a7a19", "xkey", "xval")
+    "1c44d34f-6e53-4a4f-9756-4bb8480a7a19"
+  end
+
   let(:client) { 
     Routemaster::Client.configure do |c|
       c.url = 'https://127.0.0.1:17893'
-      c.uuid = 'demo'
+      c.uuid = uuid
       c.verify_ssl = false
     end
   }
 
-  let(:subscriber) { Routemaster::Models::Subscriber.find('demo') }
+  after { Routemaster::Client::Connection.reset_connection }
+
+  let(:subscriber) { Routemaster::Models::Subscriber.find(uuid) }
   let(:topic) { Routemaster::Models::Topic.find('widgets') }
 
   it 'connects' do
