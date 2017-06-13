@@ -1,5 +1,5 @@
 GIT
-  remote: git://github.com/deliveroo/routemaster-client.git
+  remote: https://github.com/deliveroo/routemaster-client
   revision: 2430d8ed3f1b2f126ba1b4af2c665c5e04348058
   branch: reset_client_connection
   specs:
