@@ -20,13 +20,9 @@ module Routemaster
       end
 
       def self.generate_api_key(service_name)
-        unique_key = nil
-        while unique_key.nil? do
-          new_key = SecureRandom.uuid 
-          unique_key = new_key unless _redis.exists "#{PREFIX}#{new_key}"
-        end
-        _redis.set("#{PREFIX}#{unique_key}", service_name)
-        unique_key
+        new_key = SecureRandom.uuid 
+        _redis.set("#{PREFIX}#{new_key}", service_name)
+        new_key
       end
 
       def self.delete_key(key)

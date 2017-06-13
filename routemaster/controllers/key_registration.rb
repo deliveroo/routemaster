@@ -18,7 +18,7 @@ module Routemaster
       end
 
       post '/api_keys', parse: :json do
-        if !data.has_key? "service_name"
+        unless data.has_key? "service_name"
           halt 400, "expected 'service_name' key"
         end
         new_key = Models::ClientToken.generate_api_key(data["service_name"])

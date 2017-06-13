@@ -297,9 +297,10 @@ Will return a 204 if no clients exist yet
     >> { service_name: <string> }
 
 As `ROUTEMASTER_ROOT_KEY:<ignored>`
-Returns a 201 on success
+On success, responds with a 201 and
+    >> { new_key: <new uuid string> }
 
-#### Deleteing a client
+#### Deleting a client
 
     >> DELETE /api_keys/:key_name
 
