@@ -280,8 +280,31 @@ All requests over non-SSL connections will be met with a 308 Permanent Redirect.
 HTTP Basic is required for all requests. The password will be ignored, and the
 username should be a unique per client uuid.
 
-The list of allowed clients is part of the configuration, and is passed as a
-comma-separated list to the `ROUTEMASTER_CLIENTS` environment variable.
+All allowed clients are stored in redis. These clients can be listed, added
+and deleted using the $ROUTEMASTER_ROOT_KEY environment variable. All
+authentication is done with basic auth
+
+#### Listing allowed clients
+
+    >> GET /api_keys
+
+As `ROUTEMASTER_ROOT_KEY:<ignored>`
+Will return a 204 if no clients exist yet
+
+#### Adding a client
+
+    >> POST /api_keys
+    >> { service_name: <string> }
+
+As `ROUTEMASTER_ROOT_KEY:<ignored>`
+Returns a 201 on success
+
+#### Deleteing a client
+
+    >> DELETE /api_keys/:key_name
+
+As `ROUTEMASTER_ROOT_KEY:<ignored>`
+Returns a 204
 
 
 ### Publication (creating topics)
