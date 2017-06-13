@@ -16,7 +16,7 @@ module Routemaster
       private
 
       def _authenticate(uuid, _username)
-        !! Models::ClientToken.get_all.has_key?(uuid)
+        Models::ClientToken.exists?(uuid)
       end
     end
   end

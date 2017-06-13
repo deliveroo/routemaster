@@ -21,7 +21,7 @@ describe 'Client integration', slow:true do
 
   let(:uuid) do
     # Arbitrary hardcoded key
-    _redis.hset("api_keys:1c44d34f-6e53-4a4f-9756-4bb8480a7a19", "xkey", "xval")
+    _redis.hset('api_keys', '1c44d34f-6e53-4a4f-9756-4bb8480a7a19', 'xkey')
     "1c44d34f-6e53-4a4f-9756-4bb8480a7a19"
   end
 
