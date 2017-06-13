@@ -1,31 +1,27 @@
 require 'routemaster/controllers'
 require 'routemaster/controllers/parser'
-require 'routemaster/mixins/redis'
+require 'routemaster/middleware/root_authentication'
 require 'routemaster/models/client_token'
 require 'sinatra/base'
-require 'securerandom'
 
 module Routemaster
   module Controllers
     class KeyRegistration < Sinatra::Base
       register Parser
 
-      use Middleware::RootAuthentication
-
-      # TODO: Think about whether these are the keys we actually want
-      CREATE_KEYS = %w(service_name owner)
+      use Routemaster::Middleware::RootAuthentication, /^\/api_key.*/
 
       get '/api_keys' do
         keys = Models::ClientToken.get_all
-        halt 204 if keys.nil?
+        halt 204 if keys.empty?
         keys.to_json
       end
 
       post '/api_keys', parse: :json do
-        if (data.keys - CREATE_KEYS).any?
-          halt 400, "bad data in payload #{data.keys}"
+        if !data.has_key? "service_name"
+          halt 400, "expected 'service_name' key"
         end
-        new_key = Models::ClientToken.generate_api_key(data)
+        new_key = Models::ClientToken.generate_api_key(data["service_name"])
         status 201
         {"new_key": new_key}.to_json
       end

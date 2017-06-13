@@ -1,4 +1,5 @@
 require 'routemaster/middleware'
+require 'routemaster/models/client_token'
 require 'rack/auth/basic'
 
 module Routemaster
@@ -14,15 +15,8 @@ module Routemaster
 
       private
 
-      def _authenticate(_username, uuid)
-        keys = Models::ClientToken.get_all
-
-        p "#{self.class} - keys - #{keys}"
-        p "#{self.class} - _username - #{_username}"
-        p "#{self.class} - uuid - #{uuid}"
-        p keys.has_key?(uuid)
-
-        keys.has_key?(uuid)
+      def _authenticate(uuid, _username)
+        !! Models::ClientToken.get_all.has_key?(uuid)
       end
     end
   end
