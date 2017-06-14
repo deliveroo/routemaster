@@ -27,9 +27,15 @@ module Routemaster
       end
 
 
+      # in ms, integer
+      #
+      # hp == 0     => 3333ms
+      # hp == 50    => 833ms
+      # hp == 100   => 0ms
+      #
       def retry_backoff
         hp = @subscriber.health_points
-        _exponential_backoff(_health_to_severity(hp))
+        ((MAX_HP - hp) ** 2 / 3).round
       end
 
 
@@ -75,29 +81,10 @@ module Routemaster
       end
 
 
-      def _health_to_severity(hp)
-        1.0 * (MAX_HP - hp) * (_backoff_limit+1) / MAX_HP
-      end
-
-
-      # Uses a severity level to calculate an exponential backoff delay,
-      # expressed in milliseconds.
-      #
-      def _exponential_backoff(severity)
-        return 0 if severity == 0
-        backoff = 1_000 * 2 ** [severity-1, _backoff_limit].min
-        backoff + rand(backoff)
-      end
-
-
-      def _backoff_limit
-        @@_backoff_limit ||= Integer(ENV.fetch('ROUTEMASTER_BACKOFF_LIMIT'))
-      end
-
-
       def _heal_rate
         @@_heal_rate ||= Integer(ENV.fetch('ROUTEMASTER_HP_HEAL_RATE', '1'))
       end
+
 
       def _damage_rate
         @@_damage_rate ||= Integer(ENV.fetch('ROUTEMASTER_HP_DAMAGE_RATE', '-2'))
