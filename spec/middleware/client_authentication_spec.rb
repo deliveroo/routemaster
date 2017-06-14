@@ -40,7 +40,7 @@ describe Routemaster::Middleware::ClientAuthentication, type: :controller do
       expect(last_response).to be_ok
     end
 
-    it 'returns the username' do
+    it 'returns the client uuid' do
       perform
       expect(last_response.body).to eq(uuid)
     end
