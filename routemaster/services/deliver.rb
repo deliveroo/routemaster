@@ -35,6 +35,7 @@ module Routemaster
         _log.debug { "starting delivery to '#{@subscriber.name}'" }
 
         error = nil
+        status = nil
         start_at = Routemaster.now
         begin
           @throttle.check!(start_at)
@@ -49,6 +50,7 @@ module Routemaster
             error = Exceptions::CantDeliver.new("HTTP #{response.status}", @throttle.retry_backoff)
           end
         rescue Exceptions::EarlyThrottle => e
+          status = 'throttled'
           error = e
         rescue Faraday::Error::ClientError => e
           @throttle.notice_failure
@@ -56,7 +58,7 @@ module Routemaster
         end
 
         elapsed = Routemaster.now - start_at
-        status = error ? 'failure' : 'success'
+        status ||= error ? 'failure' : 'success'
         _update_counters(status, elapsed)
         
         if error

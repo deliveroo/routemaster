@@ -122,6 +122,12 @@ describe Routemaster::Services::Deliver do
         it "doesn't abort the delivery" do
           expect { perform }.to_not raise_error
         end
+
+        it 'increments delivery.batches counter, reporting the batch as successful' do
+          expect { perform rescue nil }.to change { 
+            get_counter('delivery.batches', {queue: 'alice', status: "success"})
+          }.by(1)
+        end
       end
 
       context 'when the throttler says that deliveries to the subscriber should be delayed' do
@@ -140,6 +146,12 @@ describe Routemaster::Services::Deliver do
           expect { perform rescue nil }.to_not change {
             reloaded_subscriber.health_points
           }
+        end
+
+        it 'increments delivery.batches counter, reporting the batch as throttled' do
+          expect { perform rescue nil }.to change { 
+            get_counter('delivery.batches', {queue: 'alice', status: "throttled"})
+          }.by(1)
         end
       end
     end
