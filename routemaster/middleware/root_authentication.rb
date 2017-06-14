@@ -24,7 +24,7 @@ module Routemaster
         @protected_path === env["PATH_INFO"]
       end
 
-      def _authenticate(uuid, _username)
+      def _authenticate(uuid, _)
         ENV.fetch('ROUTEMASTER_ROOT_KEY') == uuid
       end
     end

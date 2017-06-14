@@ -17,12 +17,10 @@ module Routemaster
         keys.to_json
       end
 
-      post '/api_keys', parse: :json do
-        unless data.has_key? "service_name"
-          halt 400, "expected 'service_name' key"
-        end
-        new_key = Models::ClientToken.generate_api_key(data["service_name"])
-        [201, {'Location': env["PATH_INFO"]}, {'new_key': new_key}.to_json]
+      post '/api_keys/:key_name', parse: :json do
+        new_key = Models::ClientToken.generate_api_key(params['key_name'])
+        status 200
+        {'new_key': new_key}.to_json
       end
 
       delete '/api_keys/:key_name' do
