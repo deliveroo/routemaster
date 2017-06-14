@@ -17,14 +17,14 @@ module Routemaster
         keys.to_json
       end
 
-      post '/api_keys/:key_name', parse: :json do
-        new_key = Models::ClientToken.generate_api_key(params['key_name'])
+      post '/api_keys/:service_name', parse: :json do
+        new_key = Models::ClientToken.generate_api_key(params['service_name'])
         status 200
         {'new_key': new_key}.to_json
       end
 
-      delete '/api_keys/:key_name' do
-        Models::ClientToken.delete_key(params['key_name'])
+      delete '/api_keys/:existing_uuid' do
+        Models::ClientToken.delete_key(params['existing_uuid'])
         halt 204
       end
     end

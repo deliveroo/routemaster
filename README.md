@@ -293,17 +293,18 @@ Will return a 204 if no clients exist yet
 
 #### Adding a client
 
-    >> POST /api_keys
-    >> { service_name: <string> }
+    >> POST /api_keys/:service_name
 
+Where :service_name is the name of the service you're provisioning for
 As `ROUTEMASTER_ROOT_KEY:<ignored>`
-On success, responds with a 201 and
+1n success, responds with a 200 and
     >> { new_key: <new uuid string> }
 
 #### Deleting a client
 
-    >> DELETE /api_keys/:key_name
+    >> DELETE /api_keys/:existing_uuid
 
+Where :existing_uuid is the uuid that you want to delete
 As `ROUTEMASTER_ROOT_KEY:<ignored>`
 Returns a 204
 
