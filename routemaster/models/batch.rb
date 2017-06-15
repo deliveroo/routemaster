@@ -87,14 +87,6 @@ module Routemaster
       end
 
 
-      # Increment the delivery attempts counter
-      def fail
-        _redis_lua_run(
-          'batch_fail',
-          keys: [_batch_key])
-      end
-
-
       # Returns the list of (serialised) payloads in the batch.
       # Memoised.
       # 

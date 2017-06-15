@@ -1,7 +1,9 @@
 require 'routemaster/services'
+require 'routemaster/services/throttle'
 require 'routemaster/mixins/log'
 require 'routemaster/mixins/log_exception'
 require 'routemaster/mixins/counters'
+require 'routemaster/exceptions'
 require 'faraday'
 require 'typhoeus'
 require 'typhoeus/adapters/faraday'
@@ -19,46 +21,52 @@ module Routemaster
       CONNECT_TIMEOUT = ENV.fetch('ROUTEMASTER_CONNECT_TIMEOUT').to_i
       TIMEOUT         = ENV.fetch('ROUTEMASTER_TIMEOUT').to_i
 
-      CantDeliver = Class.new(StandardError)
-
       def self.call(*args)
         new(*args).call
       end
 
-      def initialize(subscriber, events)
+      def initialize(subscriber, events, throttle_service: Services::Throttle)
         @subscriber = subscriber
         @buffer     = events
+        @throttle   = throttle_service.new(@subscriber)
       end
 
       def call
         _log.debug { "starting delivery to '#{@subscriber.name}'" }
 
         error = nil
+        status = nil
         start_at = Routemaster.now
         begin
-        # send data
+          @throttle.check!(start_at)
+          # send data
           response = _conn.post do |post|
             post.headers['Content-Type'] = 'application/json'
             post.body = Oj.dump(_data, mode: :compat)
           end
-          error = CantDeliver.new("HTTP #{response.status}") unless response.success?
+
+          unless response.success?
+            @throttle.notice_failure
+            error = Exceptions::CantDeliver.new("HTTP #{response.status}", @throttle.retry_backoff)
+          end
+        rescue Exceptions::EarlyThrottle => e
+          status = 'throttled'
+          error = e
         rescue Faraday::Error::ClientError => e
-          error = CantDeliver.new("#{e.class.name}: #{e.message}")
+          @throttle.notice_failure
+          error = Exceptions::CantDeliver.new("#{e.class.name}: #{e.message}", @throttle.retry_backoff)
         end
 
-        t = Routemaster.now - start_at
-        status = error ? 'failure' : 'success'
-
-        _counters.incr('delivery.events',  queue: @subscriber.name, count: _data.length, status: status)
-        _counters.incr('delivery.batches', queue: @subscriber.name, count: 1,            status: status)
-        _counters.incr('delivery.time',    queue: @subscriber.name, count: t,            status: status)
-        _counters.incr('delivery.time2',   queue: @subscriber.name, count: t*t,          status: status)
+        elapsed = Routemaster.now - start_at
+        status ||= error ? 'failure' : 'success'
+        _update_counters(status, elapsed)
         
         if error
           _log.warn { "failed to deliver #{@buffer.length} events to '#{@subscriber.name}'" }
           raise error
         else
-        _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
+          @throttle.notice_success
+          _log.debug { "delivered #{@buffer.length} events to '#{@subscriber.name}'" }
         end
         true
       end
@@ -94,6 +102,14 @@ module Routemaster
 
       def _verify_ssl?
         !!( ENV.fetch('ROUTEMASTER_SSL_VERIFY') =~ /^(true|on|yes|1)$/i )
+      end
+
+
+      def _update_counters(status, t)
+        _counters.incr('delivery.events',  queue: @subscriber.name, count: _data.length, status: status)
+        _counters.incr('delivery.batches', queue: @subscriber.name, count: 1,            status: status)
+        _counters.incr('delivery.time',    queue: @subscriber.name, count: t,            status: status)
+        _counters.incr('delivery.time2',   queue: @subscriber.name, count: t*t,          status: status)
       end
     end
   end
