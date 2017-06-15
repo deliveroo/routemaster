@@ -65,7 +65,8 @@ module Routemaster
       end
 
       context 'when delivery fails' do
-        before { allow(delivery).to receive(:call).and_raise(Services::Deliver::CantDeliver) }
+        let(:delay_ms) { 42.0 }
+        before { allow(delivery).to receive(:call).and_raise(Routemaster::Exceptions::DeliveryFailure.new("Failed!", delay_ms)) }
 
         it 'raise a Retry error' do
           perform
@@ -74,16 +75,12 @@ module Routemaster
         
         it 'sets a retry delay' do
           perform
-          expect(@error.delay).to be_between(1000, 2000)
-        end
-
-        it 'increments the attempts counter' do
-          expect { perform }.to change { batch.reload.attempts }.from(0).to(1)
+          expect(@error.delay).to eq delay_ms
         end
 
         it 'logs the error' do
           expect(Services::Logger.instance).to receive(:warn) do |&block|
-            expect(block.call).to match /CantDeliver/
+            expect(block.call).to match /DeliveryFailure|CantDeliver|EarlyThrottle/
           end
           perform  
         end

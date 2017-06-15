@@ -139,13 +139,15 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
   - `timeout`: how long to defer event delivery for batching purposes (aka deadline).
   - `max_events`: maximum number of events to batch.
   - `uuid`: the credential to use when delivering events.
+  - `health_points`: Increases by one on each successful delivery and decreases by two on each failure. Defatuls to 100, which is perfect subscriber health.
+  - `last_attempted_at`: timestamp of the latest attempted delivery (HTTP request to the subscriber), successful or not.
 
 `batch:{bid}` (list)
 
   A list whose first items are:
   - the subscriber token this batch is for,
   - the timestamp at which the batch was created,
-  - the number of delivery attempts for this batch.
+  - unused, reserved.
   followed by the serialized messages to deliver. 
   
   `bid` is the batch's UID.
