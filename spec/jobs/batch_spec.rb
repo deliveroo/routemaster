@@ -80,6 +80,13 @@ module Routemaster
         it 'increments the attempts counter' do
           expect { perform }.to change { batch.reload.attempts }.from(0).to(1)
         end
+
+        it 'logs the error' do
+          expect(Services::Logger.instance).to receive(:warn) do |&block|
+            expect(block.call).to match /CantDeliver/
+          end
+          perform  
+        end
       end
 
       context 'when subscriber has been removed' do

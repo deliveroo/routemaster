@@ -1,9 +1,12 @@
 require 'logger'
 require 'delegate'
+require 'singleton'
 
 module Routemaster
   module Services
     class Logger < SimpleDelegator
+      include Singleton
+
       def initialize
         file_path = ENV['ROUTEMASTER_LOG_FILE']
         file = (file_path && File.exist?(file_path)) ? File.open(file_path, 'a') : $stderr
