@@ -79,6 +79,30 @@ module Routemaster::Models
       _attributes['uuid']
     end
 
+    def health_points
+      _attributes.fetch('health_points', '100').to_i
+    end
+
+    def change_health_by(offset)
+      new_value = _redis_lua_run(
+        'subscriber_change_health_by',
+        keys: [_key],
+        argv: [offset]
+      )
+      @_attributes = nil
+      new_value
+    end
+
+    # Returns nil for new subscribers that have never received an event.
+    #
+    def last_attempted_at
+      _attributes['last_attempted_at']&.to_i
+    end
+
+    def attempting_delivery(time = Routemaster.now)
+      _write_attribute('last_attempted_at', time)
+    end
+
     def to_s
       "subscriber for '#{@name}'"
     end
@@ -138,6 +162,12 @@ module Routemaster::Models
 
     def _key
       @_key ||= self.class.send(:_key, @name)
+    end
+
+    def _write_attribute(field, value)
+      _redis.hset(_key, field, value)
+      @_attributes = nil
+      value
     end
   end
 end
