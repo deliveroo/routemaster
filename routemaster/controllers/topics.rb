@@ -40,6 +40,7 @@ module Routemaster
         end
 
         begin
+          raise ArgumentError, "timestamp is from the future" if data['timestamp'].to_i > Routemaster.now
           event = Routemaster::Models::Event.new(
             topic: params['name'],
             type:  data.fetch('type'),
