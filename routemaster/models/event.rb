@@ -23,6 +23,7 @@ module Routemaster
         @data      = EventData.build options[:data]
 
         _assert VALID_TYPES.include?(@type), 'bad event type'
+        _assert options[:timestamp].to_i <= Routemaster.now, 'timestamp is from the future'
       end
 
       def to_hash

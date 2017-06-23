@@ -62,6 +62,19 @@ describe Routemaster::Controllers::Topics, type: :controller do
       end
     end
 
+    context 'when supplying a future timestamp' do
+      let(:data) {{
+        type: 'create',
+        url:  'https://example.com/widgets/123',
+        timestamp: (Time.now.to_i * 1e3) + 5000
+      }}
+
+      it 'returns 400' do
+        perform
+        expect(last_response.status).to eq(400)
+      end
+    end
+
     context 'when supplying a data payload' do
       let(:event_payload) {{
         'lat' => 45.1882728, 'lon' => 5.723756
