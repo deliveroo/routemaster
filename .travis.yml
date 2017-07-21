@@ -1,4 +1,7 @@
 language: ruby
+sudo: required
+services:
+  - docker
 cache: bundler
 rvm:
   - 2.3.3
@@ -7,6 +10,7 @@ services:
 script:
   - bundle exec rspec --format d
   - bundle exec codeclimate-test-reporter
+  - docker build --rm=false .
 addons:
   code_climate:
     repo_token: bd632b47fe1e702f5e3f39b6a67e60f23e7aaa7194c45dbdf735539800d78d5a
