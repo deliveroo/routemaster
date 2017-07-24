@@ -20,6 +20,7 @@ RUN bundle install --jobs 8 --retry 5 --local --deployment \
 ADD . $ARG_HOME
 RUN rm -rf $ARG_HOME/vendor \
     && mv /tmp/vendor $ARG_HOME/ \
+    && rm -rf $ARG_HOME/vendor/cache \
     && chown -R $ARG_USER:$ARG_USER $ARG_HOME
 USER $ARG_USER
 RUN bundle check
