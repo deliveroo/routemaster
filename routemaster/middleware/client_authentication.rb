@@ -4,19 +4,19 @@ require 'rack/auth/basic'
 
 module Routemaster
   module Middleware
-    class ClientAuthentication
+    class ClientAuthentication < Rack::Auth::Basic
       def initialize(app)
-        @app = Rack::Auth::Basic.new(app) { |u,p| _authenticate(u,p) }
+        super(app, &method(:_authenticate))
       end
 
       def call(env)
-        @app.call(env)
+        super(env)
       end
 
       private
 
-      def _authenticate(uuid, _username)
-        Models::ClientToken.exists?(uuid)
+      def _authenticate(token, _)
+        Models::ClientToken.exists?(token)
       end
     end
   end

@@ -11,10 +11,10 @@ describe Routemaster::Middleware::RootAuthentication, type: :controller do
     end
   end
 
-  let(:app) { described_class.new(Demo.new, /^\/protected_path.*/) }
+  let(:app) { described_class.new(Demo.new) }
   let(:perform) { get '/protected_path' }
 
-  context 'without proper credentials' do
+  context 'without any credentials' do
     it 'fails' do
       perform
       expect(last_response.status).to eq(401)
@@ -31,8 +31,8 @@ describe Routemaster::Middleware::RootAuthentication, type: :controller do
   end
 
   context 'with client-token credentials' do
-    let(:uuid) { Routemaster::Models::ClientToken.generate_api_key "arbitary" => "data" }
-    before { authorize uuid, 'john-mcfoo' }
+    let(:token) { Routemaster::Models::ClientToken.create! name: 'john-mcfoo' }
+    before { authorize token, 'john-mcfoo' }
 
     it 'fails' do
       perform
@@ -40,18 +40,15 @@ describe Routemaster::Middleware::RootAuthentication, type: :controller do
     end
   end
 
-  context 'with $ROUTEMASTER_ROOT_KEY' do
-    let(:uuid) { ENV['ROUTEMASTER_ROOT_KEY'] }
-    before { authorize uuid, 'john-mcfoo' }
+  context 'with ROUTEMASTER_ROOT_KEY' do
+    let(:token) { 'dead-0000-beef' }
+    before do
+      ENV['ROUTEMASTER_ROOT_KEY'] = token
+      authorize token, 'john-mcfoo' 
+    end
+
     it 'passes' do
       perform
-      expect(last_response.status).to be(200)
-    end
-  end
-
-  context 'only protects given path' do
-    it 'passes' do
-      get '/non_protected_path_no_auth'
       expect(last_response.status).to be(200)
     end
   end

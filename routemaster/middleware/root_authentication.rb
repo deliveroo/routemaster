@@ -3,29 +3,25 @@ require 'rack/auth/basic'
 
 module Routemaster
   module Middleware
-    class RootAuthentication
-      def initialize(app, protected_path)
-        @app = app
-        @protected_path = protected_path
+    class RootAuthentication < Rack::Auth::Basic
+      def initialize(app, protected_paths: /.*/)
+        @protected_paths = protected_paths
+        @_app = app
+        super(app, &method(:_authenticate))
       end
 
       def call(env)
-        app = @app
-        if protected_path?(env)
-          app = Rack::Auth::Basic.new(app) { |u,p| _authenticate(u,p) }
+        if env.fetch('PATH_INFO') =~ @protected_paths
+          super(env)
+        else
+          @_app.call(env)
         end
-
-        app.call(env)
       end
 
       private
 
-      def protected_path?(env)
-        @protected_path === env["PATH_INFO"]
-      end
-
-      def _authenticate(uuid, _)
-        ENV.fetch('ROUTEMASTER_ROOT_KEY') == uuid
+      def _authenticate(token, _)
+        ENV.fetch('ROUTEMASTER_ROOT_KEY') == token
       end
     end
   end

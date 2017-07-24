@@ -6,7 +6,7 @@ require 'routemaster/controllers/pulse'
 require 'routemaster/controllers/topics'
 require 'routemaster/controllers/health'
 require 'routemaster/controllers/subscriber'
-require 'routemaster/controllers/key_registration'
+require 'routemaster/controllers/api_token'
 require 'routemaster/mixins/log_exception'
 require 'routemaster/models/client_token'
 
@@ -23,7 +23,7 @@ module Routemaster
     use Controllers::Health
 
     # Authenticated privately, only for Root
-    use Controllers::KeyRegistration
+    use Controllers::ApiToken
 
     # Authenticated, accessible by clients
     use Middleware::ClientAuthentication

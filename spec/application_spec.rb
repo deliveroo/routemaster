@@ -2,6 +2,7 @@ require 'spec_helper'
 require 'routemaster/application'
 require 'routemaster/models/client_token'
 require 'spec/support/rack_test'
+require 'spec/support/persistence'
 
 describe Routemaster::Application, type: :controller do
 
@@ -15,18 +16,36 @@ describe Routemaster::Application, type: :controller do
 
   let(:perform_fail) { get '/fail' }
 
-  describe 'unknown endpoint' do
+  def authorize!
+    token = Routemaster::Models::ClientToken.create!(name: 'rspec')
+    authorize token, 'rspec'
+  end
 
-    before do
-      uuid = Routemaster::Models::ClientToken.generate_api_key({"service": "rspec", "owner": "rspec"})
-      authorize uuid, 'demo'
+  describe 'default authentication' do
+    it 'requires auth' do
+      post '/private'
+      expect(last_response.status).to eq(401)
     end
+
+    it 'handles bad credentials' do
+      authorize 'bad', 'secret'
+      post '/private'
+      expect(last_response.status).to eq(401)
+    end
+  end
+
+  describe 'unknown endpoint' do
+    before { authorize! }
 
     it 'responds with an error, no content' do
       post '/whatever'
-      expect(last_response).to be_not_found
+      expect(last_response.status).to eq(404)
       expect(last_response.body).to be_empty
     end
+  end
+
+  describe 'exception handling' do
+    before { authorize! }
 
     it 'delivers the exception' do
       expect_any_instance_of(app).to receive(:deliver_exception)

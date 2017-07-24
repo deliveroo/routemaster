@@ -1,4 +1,5 @@
 require 'routemaster/models'
+require 'routemaster/models/user'
 require 'routemaster/mixins/redis'
 require 'securerandom'
 
@@ -7,24 +8,25 @@ module Routemaster
     class ClientToken
       include Mixins::Redis
 
-      REDIS_KEY = 'api_keys'.freeze
+      KEY_BY_TOKEN   = 'api_tokens:by_token'.freeze
 
-      def self.get_all
-        _redis.hgetall REDIS_KEY
+      def self.all
+        _redis.hgetall KEY_BY_TOKEN
       end
 
       def self.exists?(key)
-        _redis.hexists REDIS_KEY, key
+        _redis.hexists(KEY_BY_TOKEN, key)
       end
 
-      def self.generate_api_key(service_name)
-        new_key = SecureRandom.hex(16)
-        _redis.hset(REDIS_KEY, new_key, service_name)
-        new_key
+      def self.create!(name:, token: nil)
+        service = User.new(name)
+        token ||= '%s--%s' % [service, SecureRandom.hex(16)]
+        _redis.hset(KEY_BY_TOKEN, token, service)
+        token
       end
 
-      def self.delete_key(key)
-        _redis.hdel REDIS_KEY, key
+      def self.destroy!(token:)
+        _redis.hdel(KEY_BY_TOKEN, token)
       end
     end
   end

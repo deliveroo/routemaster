@@ -32,17 +32,17 @@ describe Routemaster::Middleware::ClientAuthentication, type: :controller do
   end
 
   context 'with proper credentials' do
-    let(:uuid) { Routemaster::Models::ClientToken.generate_api_key "arbitary" => "data" }
-    before { authorize uuid, 'john-mcfoo' }
+    let(:token) { Routemaster::Models::ClientToken.create! name: 'john-mcfoo' }
+    before { authorize token, 'john-mcfoo' }
 
     it 'succeeds' do
       perform
       expect(last_response).to be_ok
     end
 
-    it 'returns the client uuid' do
+    it 'returns the client token' do
       perform
-      expect(last_response.body).to eq(uuid)
+      expect(last_response.body).to eq(token)
     end
   end
 end

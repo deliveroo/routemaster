@@ -290,32 +290,40 @@ HTTP Basic is required for all requests. The password will be ignored, and the
 username should be a unique per client uuid.
 
 All allowed clients are stored in redis. These clients can be listed, added
-and deleted using the $ROUTEMASTER_ROOT_KEY environment variable. All
+and deleted using the `ROUTEMASTER_ROOT_KEY` environment variable. All
 authentication is done with basic auth
 
-#### Listing allowed clients
+#### Listing allowed client tokens
 
-    >> GET /api_keys
+Authenticating with the root key,
 
-As `ROUTEMASTER_ROOT_KEY:<ignored>`
-Will return a 204 if no clients exist yet
+    >> GET /api_tokens
+
+    << [{ "name": <string>, "token": <string> }, ...]
+
+Will return a 204 if no clients exist yet.
 
 #### Adding a client
 
-    >> POST /api_keys/:service_name
+Authenticating with the root key,
 
-Where :service_name is the name of the service you're provisioning for
-As `ROUTEMASTER_ROOT_KEY:<ignored>`
-1n success, responds with a 200 and
-    >> { new_key: <new uuid string> }
+    >> POST /api_tokens
+    >> Content-Type: application/json
+    >>
+    >> { "name": <string> }
+
+    << { "name": <string>, "token": <string> }
+
+Returns status 201, generates a new API token, and returns it.
 
 #### Deleting a client
 
-    >> DELETE /api_keys/:existing_uuid
+Authenticating with the root key,
 
-Where :existing_uuid is the uuid that you want to delete
-As `ROUTEMASTER_ROOT_KEY:<ignored>`
-Returns a 204
+    >> DELETE /api_keys/:token
+
+Always returns status 204, and deletes the API token if it exists. Note that
+this does _not_ cause the corresponding subscriber to become unsubscribed.
 
 
 ### Publication (creating topics)
