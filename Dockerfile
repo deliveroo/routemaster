@@ -1,7 +1,6 @@
 FROM ruby:2.3.3-alpine
 
 # App home directory and app user can be injected through build params.
-ARG ARG_PORT=3000
 ARG ARG_HOME=/app
 ARG ARG_USER=app
 
@@ -25,7 +24,13 @@ RUN rm -rf $ARG_HOME/vendor \
 USER $ARG_USER
 RUN bundle check
 
+
+ARG ARG_PORT=3000
+ARG ARG_PROCESS=web
+
 ENV PORT=$ARG_PORT
+ENV PROCESS=$ARG_PROCESS
 
 EXPOSE $PORT
-CMD ["bundle", "exec", "puma", "-I.", "-C", "config/puma.rb"]
+
+CMD ["sh", "-c", "foreman start ${PROCESS}"]
