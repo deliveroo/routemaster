@@ -65,5 +65,7 @@ group :development do
 end
 
 group :test do
-  gem 'codeclimate-test-reporter', require: nil
+  gem 'codeclimate-test-reporter',
+      require: false,
+      git: 'https://github.com/deliveroo/ruby-test-reporter.git'
 end
