@@ -1,9 +1,0 @@
-language: ruby
-rvm:
-  - 2.3.3
-script:
-  - echo 'I am deprecated'
-install:
-  - echo 'I am deprecated'
-env:
-  - CI_RUN_INDEX=0
