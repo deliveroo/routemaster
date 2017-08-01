@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+
+  redis:
+    image: redis:3.2.9
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.ci
+    environment:
+      - CIRCLECI=true
+      - CIRCLE_BUILD_NUM=${CIRCLE_BUILD_NUM}
+      - CIRCLE_BRANCH=${CIRCLE_BRANCH}
+      - CIRCLE_SHA1=${CIRCLE_SHA1}
+      - CODECLIMATE_REPO_TOKEN=${CODECLIMATE_REPO_TOKEN}
+      - RAILS_ENV=test
+      - ROUTEMASTER_REDIS_URL=redis://redis:6379/0
+    links:
+      - redis
+
+  wait:
+    image: dadarek/wait-for-dependencies:0.1
+    links:
+      - redis

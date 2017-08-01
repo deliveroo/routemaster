@@ -1,0 +1,68 @@
+defaults: &defaults
+  working_directory: /routemaster
+  docker:
+    - image: marcinw/circle:latest
+
+version: 2
+
+jobs:
+  run_ci_1: &test_run
+    <<: *defaults
+
+    steps:
+      - setup_remote_docker:
+          reusable: true
+
+      - checkout
+
+      - run:
+          name: Ensure clean slate
+          command: bin/ci down
+
+      - run:
+          name: Build composition
+          command: bin/ci build
+
+      - run:
+          name: Wait for Redis to start
+          command: bin/ci run --rm wait redis:6379
+
+      - run:
+          name: Run RSpec and report test results
+          command: bin/ci run --rm app bin/test_and_report
+
+  run_ci_2:
+    <<: *test_run
+
+  run_ci_3:
+    <<: *test_run
+
+  run_ci_4:
+    <<: *test_run
+
+  run_ci_5:
+    <<: *test_run
+
+  build_image:
+    <<: *defaults
+
+    steps:
+      - setup_remote_docker:
+          reusable: true
+
+      - checkout
+
+      - run:
+          name: Build production image
+          command: docker build -f Dockerfile -t routemaster .
+
+workflows:
+  version: 2
+  test_and_build:
+    jobs:
+      - run_ci_1
+      - run_ci_2
+      - run_ci_3
+      - run_ci_4
+      - run_ci_5
+      - build_image

@@ -1,6 +1,5 @@
 .git
 log
-.env.test
 .gitignore
 .travis.yml
 routemaster.graffle

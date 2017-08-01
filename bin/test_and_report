@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+set -e
+
+bundle exec rspec
+bundle exec codeclimate-test-reporter coverage/.resultset.json

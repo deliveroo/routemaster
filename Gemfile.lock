@@ -1,11 +1,16 @@
+GIT
+  remote: https://github.com/deliveroo/ruby-test-reporter.git
+  revision: 457a6b9d630a5bc1b5246a9dd5801b28c817c812
+  specs:
+    codeclimate-test-reporter (1.0.8)
+      simplecov (<= 0.13)
+
 GEM
   remote: https://rubygems.org/
   specs:
     addressable (2.5.0)
       public_suffix (~> 2.0, >= 2.0.2)
     byebug (9.0.6)
-    codeclimate-test-reporter (1.0.6)
-      simplecov
     coderay (1.1.1)
     connection_pool (2.2.1)
     crack (0.4.3)
@@ -42,7 +47,7 @@ GEM
       rspec (>= 2.99.0, < 4.0)
     hashdiff (0.3.2)
     honeybadger (3.1.0)
-    json (2.0.3)
+    json (2.1.0)
     listen (3.1.5)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
@@ -113,7 +118,7 @@ GEM
       docile (~> 1.1.0)
       json (>= 1.8, < 3)
       simplecov-html (~> 0.10.0)
-    simplecov-html (0.10.0)
+    simplecov-html (0.10.1)
     sinatra (1.4.8)
       rack (~> 1.5)
       rack-protection (~> 1.4)
@@ -135,7 +140,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  codeclimate-test-reporter
+  codeclimate-test-reporter!
   connection_pool
   dogapi
   dotenv
@@ -168,4 +173,4 @@ RUBY VERSION
    ruby 2.3.3p222
 
 BUNDLED WITH
-   1.14.6
+   1.15.3
