@@ -1,9 +1,6 @@
 language: ruby
-dist: trusty
 rvm:
   - 2.3.3
-services:
-  - redis-server
 script:
   - echo 'I am deprecated'
 install:
