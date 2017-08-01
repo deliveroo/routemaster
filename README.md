@@ -526,7 +526,7 @@ Support for sending-side autoscaling:
 This project contains a `Dockerfile` and a Docker image is being built on every CI run to ensure smoother transition to a Docker-based architecture. Normally that step would not require any manual input from you as a developer but you may still want to manually check if your image builds or test any changes to the `Dockerfile`. Make sure you have Docker installed on your local machine and run the following command from the root of the project:
 
 ```bash
-docker build --rm=false -t routemaster .
+docker build -t routemaster .
 ```
 
 If you want to get a shell on a Docker container built from this image, build the image first (see above), then run:
