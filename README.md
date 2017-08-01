@@ -510,7 +510,6 @@ Support for sending-side autoscaling:
   We plan to address this with (optional) subscribed locking in the _watch_.
 - Support for HireFire-based autoscaling of _watch_ processes.
 
-
 --------------------------------------------------------------------------------
 
 ## Sources of inspiration
