@@ -9,7 +9,6 @@ rvm:
 services:
   - redis-server
 script:
-  - echo $CODECLIMATE_REPO_TOKEN
   - bundle exec rspec --format d
   - bundle exec codeclimate-test-reporter
   - docker build .
