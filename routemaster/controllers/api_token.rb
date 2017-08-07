@@ -1,16 +1,10 @@
-require 'routemaster/controllers'
-require 'routemaster/controllers/parser'
-require 'routemaster/middleware/root_authentication'
+require 'routemaster/controllers/base'
 require 'routemaster/models/client_token'
-require 'sinatra/base'
 
 module Routemaster
   module Controllers
-    class ApiToken < Sinatra::Base
-      register Parser
-      use Middleware::RootAuthentication, protected_paths: %r{^/api_tokens}
-
-      get '/api_tokens' do
+    class ApiToken < Base
+      get '/api_tokens', auth: :root do
         keys = Models::ClientToken.all
         halt 204 if keys.empty?
         keys.reduce([]) { |ary,(k,v)|
@@ -18,7 +12,7 @@ module Routemaster
         }.to_json
       end
 
-      post '/api_tokens', parse: :json do
+      post '/api_tokens', auth: :root, parse: :json do
         begin
           token = Models::ClientToken.create!(name: data['name'])
         rescue ArgumentError => e
@@ -33,7 +27,7 @@ module Routemaster
         }.to_json
       end
 
-      delete '/api_tokens/:token' do
+      delete '/api_tokens/:token', auth: :root do
         Models::ClientToken.destroy!(token: params['token'])
         halt 204
       end

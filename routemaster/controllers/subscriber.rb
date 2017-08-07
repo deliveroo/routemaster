@@ -1,19 +1,16 @@
-require 'routemaster/controllers'
+require 'routemaster/controllers/base'
 require 'routemaster/models/topic'
 require 'routemaster/models/subscriber'
 require 'routemaster/models/batch'
 require 'routemaster/services/update_subscriber_topics'
-require 'routemaster/controllers/parser'
-require 'sinatra/base'
 
 module Routemaster
   module Controllers
-    class Subscriber < Sinatra::Base
-      register Parser
-
+    class Subscriber < Base
       VALID_KEYS = %w(topics callback uuid max timeout)
 
-      post %r{^/(subscription|subscriber)$}, parse: :json do
+      post %r{^/(subscription|subscriber)$}, auth: :client, parse: :json do
+        $stderr.puts data.inspect
         if (data.keys - VALID_KEYS).any?
           halt 400, 'bad data in payload'
         end
@@ -28,7 +25,7 @@ module Routemaster
         halt 404 unless topics.all?
 
         begin
-          sub = Models::Subscriber.new(name: request.env['REMOTE_USER'])
+          sub = Models::Subscriber.new(name: current_token)
           sub.callback   = data['callback']
           sub.uuid       = data['uuid']
           sub.timeout    = data['timeout'] if data['timeout']
@@ -46,12 +43,12 @@ module Routemaster
         halt 204
       end
 
-      delete '/subscriber' do
+      delete '/subscriber', auth: %i[root client] do
         _load_subscriber.destroy
         halt 204
       end
 
-      delete '/subscriber/topics/:name' do
+      delete '/subscriber/topics/:name', auth: %i[root client] do
         subscriber = _load_subscriber
         topic = Models::Topic.find(params['name'])
         if topic.nil?
@@ -81,7 +78,7 @@ module Routemaster
       #   }, ...
       # ]
 
-      get %r{^/(subscriptions|subscribers)$} do
+      get %r{^/(subscriptions|subscribers)$}, auth: %i[root client] do
         content_type :json
         gauges = Models::Batch.gauges
         payload = Models::Subscriber.map do |subscriber|
@@ -102,7 +99,7 @@ module Routemaster
       private
 
       def _load_subscriber
-        sub = Models::Subscriber.find(request.env['REMOTE_USER'])
+        sub = Models::Subscriber.find(current_token)
         sub or halt 404, 'subscriber not found'
       end
     end

@@ -7,6 +7,8 @@ require 'spec/support/env'
 describe Routemaster::Controllers::Pulse, type: :controller do
   let(:app) { described_class }
 
+  before { authorize ENV['ROUTEMASTER_ROOT_KEY'], 'x' }
+
   describe 'GET /pulse' do
     let(:perform) { get '/pulse' }
 

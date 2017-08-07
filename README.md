@@ -110,18 +110,17 @@ A subscriber can "catch up" event if it hasn't pulled events for a while
 
 ## Installing & Configuring
 
-In order to have routemaster receive connections from a receiver or emitter
-you'll need to add their identifier to the `ROUTEMASTER_CLIENTS` environment
-variable.
+In order to have Routemaster receive connections from a publisher or a
+subscriber, their API tokens ("uuid") must be registered.
 
-By default the bus will send events to `demo`, eg:
+Registration is performed using the `/api_token` APIs using the
+`ROUTEMASTER_ROOT_KEY` API token, like so:
 
 ```
-# Allowed UUIDs, separated by commas
-ROUTEMASTER_CLIENTS=demo,my-service--6f1d6311-98a9-42ab-8da4-ed2d7d5b86c4`
+curl -s -X POST -u <root-key> https://bus.example.com/api_tokens
 ```
 
-For further configuration options please check the provided `.env` files
+For further configuration options please check the provided `.env` files.
 
 ### Development
 
@@ -286,12 +285,15 @@ Note that both endpoints require authentication.
 ### Authentication, security.
 
 All requests over non-SSL connections will be met with a 308 Permanent Redirect.
-HTTP Basic is required for all requests. The password will be ignored, and the
-username should be a unique per client uuid.
 
-All allowed clients are stored in redis. These clients can be listed, added
-and deleted using the `ROUTEMASTER_ROOT_KEY` environment variable. All
-authentication is done with basic auth
+HTTP Basic is required for all requests. The password will be ignored, and the
+username should be a unique per client token.
+
+All allowed clients are stored in Redis. A "root" token must be specified in the
+`ROUTEMASTER_ROOT_KEY` environment variable. This key has the permissions to
+add, delete, and list the client tokens. Other clients (publishers and
+subscribers) must use a token created by this user, at the `/api_tokens`
+endpoint (see below).
 
 #### Listing allowed client tokens
 
@@ -320,19 +322,20 @@ Returns status 201, generates a new API token, and returns it.
 
 Authenticating with the root key,
 
-    >> DELETE /api_keys/:token
+    >> DELETE /api_tokens/:token
 
 Always returns status 204, and deletes the API token if it exists. Note that
-this does _not_ cause the corresponding subscriber to become unsubscribed.
+this does _not_ cause the corresponding subscriber (if any) to become
+unsubscribed.
 
 
 ### Publication (creating topics)
 
-There is no need to explicitely create topics; they will be when pushing the
+There is no need to explicitly create topics; they will be when pushing the
 first event to the bus.
 
-**ONLY ONE CLIENT CAN PUSH EVENTS TO A TOPIC**: all but the first client to
-push to a given topic will see their requests met with errors.
+**ONLY ONE CLIENT CAN PUSH EVENTS TO A TOPIC**: all but the first client to push
+to a given topic will see their requests met with errors.
 
 
 ### Pushing
@@ -392,7 +395,7 @@ A client can therefore only obtain events from their own subscription.
     >> {
     >>   topics:   [<name>, ...],
     >>   callback: <url>,
-    >>   uuid:     <uuid>,
+    >>   uuid:     <token>,
     >>   timeout:  <t>,
     >>   max:      <n>
     >> ]
@@ -401,8 +404,8 @@ Subscribes the client to receive events from the named topics. When events are
 ready, they will be POSTed to the `<url>` (see below), at most every `<t>`
 milliseconds (default 500). At most `<n>` events will be sent in each batch
 (default 100).
-The `<uuid>` will be used as an HTTP Basic password to the client for
-authentication.
+The `<token>` will be used as an HTTP Basic **username** (not password) to the
+client for authentication.
 
 The response is always empty. No side effect if already subscribed to a given
 topic.  If a previously subscribed topic is not listed, it will be unsubscribed.
@@ -447,6 +450,11 @@ Possible response statuses:
 - 200, 204: Event batch is ackownledged, and will be deleted from the
   subscription queue.
 - Anything else: failure, batch to be sent again later.
+
+Note that if the subscriber doesn't respond to the HTTP request within
+`ROUTEMASTER_TIMEOUT` (or if the bus can't connect to it within
+`ROUTEMASTER_CONNECT_TIMEOUT`), the delivery will be considered to have failed
+and will be re-attempted.
 
 
 ### Removing topics
@@ -506,7 +514,8 @@ Routermaster provides monitoring endpoints:
 - `<staleness>`: timestamp (seconds since epoch) of the oldest pending event.
 
 
-Monitoring resources can be queries by clients with a UUID included in `ROUTEMASTER_CLIENTS`.
+Monitoring resources can be queries by clients using a client token or the root
+token.
 
 Routemaster does not, and will not include a UI for monitoring, as that would
 complexify its codebase too much (it's a separate concern, really).

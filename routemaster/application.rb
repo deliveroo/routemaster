@@ -1,7 +1,6 @@
 require 'routemaster'
 require 'sinatra'
 require 'rack/ssl'
-require 'routemaster/middleware/client_authentication'
 require 'routemaster/controllers/pulse'
 require 'routemaster/controllers/topics'
 require 'routemaster/controllers/health'
@@ -21,12 +20,7 @@ module Routemaster
 
     use Rack::SSL
     use Controllers::Health
-
-    # Authenticated privately, only for Root
     use Controllers::ApiToken
-
-    # Authenticated, accessible by clients
-    use Middleware::ClientAuthentication
     use Controllers::Pulse
     use Controllers::Topics
     use Controllers::Subscriber

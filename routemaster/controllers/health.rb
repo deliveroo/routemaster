@@ -1,10 +1,9 @@
-require 'routemaster/controllers'
-require 'sinatra'
+require 'routemaster/controllers/base'
 
 module Routemaster
   module Controllers
-    class Health < Sinatra::Base
-      get %r{^/health/ping(|.json)$} do
+    class Health < Base
+      get %r{^/health/ping(|.json)$}, auth: :none do
         content_type :json
         { pong: Time.now }.to_json
       end

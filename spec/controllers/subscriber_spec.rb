@@ -8,7 +8,7 @@ require 'json'
 
 describe Routemaster::Controllers::Subscriber, type: :controller do
   let(:uid) { 'charlie' }
-  let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
+  let(:app) { described_class.new }
 
   let(:subscriber) do
     Routemaster::Models::Subscriber.new(name: 'charlie').save
@@ -19,6 +19,11 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
       name: 'widgets',
       publisher: 'bob'
     )
+  end
+
+  before do
+    Routemaster::Models::ClientToken.create! name: uid, token: uid
+    authorize uid, 'x'
   end
 
   describe 'GET /subscribers' do
