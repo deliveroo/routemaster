@@ -27,7 +27,7 @@ module Routemaster
           auth = Rack::Auth::Basic::Request.new(request.env)
 
           return unless auth.provided? && auth.basic? && auth.credentials.size == 2
-          yield *auth.credentials
+          yield(*auth.credentials)
         end
 
         def authenticate_root
