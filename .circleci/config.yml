@@ -1,7 +1,7 @@
 defaults: &defaults
   working_directory: /routemaster
   docker:
-    - image: marcinw/circle:latest
+    - image: deliveroo/circleci:0.1.0
 
 version: 2
 
@@ -17,19 +17,19 @@ jobs:
 
       - run:
           name: Ensure clean slate
-          command: bin/ci down
+          command: ci down
 
       - run:
           name: Build composition
-          command: bin/ci build
+          command: ci build
 
       - run:
           name: Wait for Redis to start
-          command: bin/ci run --rm wait redis:6379
+          command: ci run --rm wait wfi redis:6379
 
       - run:
           name: Run RSpec and report test results
-          command: bin/ci run --rm app bin/test_and_report
+          command: ci run --rm app bin/test_and_report
 
   run_ci_2:
     <<: *test_run

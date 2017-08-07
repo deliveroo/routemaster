@@ -21,6 +21,6 @@ services:
       - redis
 
   wait:
-    image: dadarek/wait-for-dependencies:0.1
+    image: deliveroo/circleci:0.1.0
     links:
       - redis
