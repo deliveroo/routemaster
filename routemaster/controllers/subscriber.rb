@@ -10,7 +10,6 @@ module Routemaster
       VALID_KEYS = %w(topics callback uuid max timeout)
 
       post %r{^/(subscription|subscriber)$}, auth: :client, parse: :json do
-        $stderr.puts data.inspect
         if (data.keys - VALID_KEYS).any?
           halt 400, 'bad data in payload'
         end
