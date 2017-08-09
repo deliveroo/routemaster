@@ -29,12 +29,11 @@ module Routemaster
       end
 
 
-      # in ms, integer
-      #
-      # hp == 0     => 3333ms
-      # hp == 50    => 833ms
-      # hp == 100   => 0ms
-      #
+      # in ms, integer.
+      # hp == 0     => 60_000 ms
+      # hp == 1     => 15_000 ms
+      # hp == 10    =>     59 ms
+      # hp == 100   =>      0 ms
       def retry_backoff
         hp = @subscriber.health_points
         (_max_backoff * 2.0 ** (- hp)).round

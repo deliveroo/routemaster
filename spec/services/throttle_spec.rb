@@ -132,7 +132,7 @@ RSpec.describe Routemaster::Services::Throttle do
       context "with 99 HP" do
         let(:hp) { 99 }
 
-        it "returns the rigth value" do
+        it "returns the right value" do
           expect(perform).to eq 0
         end
       end
