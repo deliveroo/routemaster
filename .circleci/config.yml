@@ -6,8 +6,12 @@ defaults: &defaults
 version: 2
 
 jobs:
-  run_ci_1: &test_run
+  run_test_suite:
     <<: *defaults
+
+    # we want to run tests multiple times to minimise the risk of flaky tests in
+    # this (critical) application
+    parallelism: 5
 
     steps:
       - setup_remote_docker:
@@ -31,18 +35,6 @@ jobs:
           name: Run RSpec and report test results
           command: ci run --rm app bin/test_and_report
 
-  run_ci_2:
-    <<: *test_run
-
-  run_ci_3:
-    <<: *test_run
-
-  run_ci_4:
-    <<: *test_run
-
-  run_ci_5:
-    <<: *test_run
-
   build_image:
     <<: *defaults
 
@@ -60,9 +52,5 @@ workflows:
   version: 2
   test_and_build:
     jobs:
-      - run_ci_1
-      - run_ci_2
-      - run_ci_3
-      - run_ci_4
-      - run_ci_5
+      - run_test_suite
       - build_image
