@@ -5,9 +5,14 @@ require 'spec/support/persistence'
 
 describe Routemaster::Controllers::Topics, type: :controller do
   let(:uid) { 'joe-user' }
-  let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
+  let(:app) { described_class.new }
   let(:topic_name) { 'widgets' }
   let(:topic) { Routemaster::Models::Topic.find_or_create!(name: topic_name, publisher: uid) }
+
+  before do
+    Routemaster::Models::ClientToken.create! name: uid, token: uid
+    authorize uid, 'x'
+  end
 
   describe 'POST /topics/:name' do
     let(:perform) { post "/topics/#{topic_name}", payload, 'CONTENT_TYPE' => 'application/json' }
@@ -128,7 +133,7 @@ describe Routemaster::Controllers::Topics, type: :controller do
 
   describe 'GET /topics' do
     let(:uid) { 'joe-user' }
-    let(:app) { AuthenticatedApp.new(described_class, uid: uid) }
+    let(:app) { described_class.new }
 
     let(:perform) { get "/topics" }
 

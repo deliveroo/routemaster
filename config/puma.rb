@@ -205,6 +205,8 @@ on_worker_boot do
     redis_pool_size: Integer(ENV.fetch('PUMA_THREADS')),
     process_type:    'web'
   )
+
+  require 'config/compatible_credentials.rb'
 end
 
 on_worker_shutdown do
