@@ -1,7 +1,10 @@
 require 'spec_helper'
 require 'spec/support/integration'
 require 'routemaster/client'
+require 'routemaster/mixins/redis'
+require 'routemaster/models/client_token'
 require 'routemaster/models/subscription'
+
 
 describe 'Event delivery', type: :acceptance, slow: true do
   let(:processes) { Acceptance::ProcessLibrary.new }
@@ -13,13 +16,17 @@ describe 'Event delivery', type: :acceptance, slow: true do
   after  { processes.all.each { |p| p.wait_stop } }
   after  { processes.all.each { |p| p.stop } }
 
+  let(:client_token) { Routemaster::Models::ClientToken.create!(name: 'test') }
+  let(:bus_token) { '1c44d34f-6e53-4a4f-9756-4bb8480a7a19' }
+
   let(:client) {
     Routemaster::Client.configure do |c|
       c.url = 'https://127.0.0.1:17893'
-      c.uuid = 'demo'
+      c.uuid = client_token
       c.verify_ssl = false
     end
   }
+  after { Routemaster::Client::Connection.reset_connection }
   let(:max_events) { '1' }
   let(:timeout) { '0' }
   let(:receiver) { processes.client }
@@ -33,7 +40,7 @@ describe 'Event delivery', type: :acceptance, slow: true do
     client.subscribe(
       topics:   %w(cats dogs),
       callback: 'https://127.0.0.1:17894/events',
-      uuid:     'demo-client',
+      uuid:     bus_token,
       max:      Integer(max_events),
       timeout:  Integer(timeout)
     )
@@ -94,14 +101,14 @@ describe 'Event delivery', type: :acceptance, slow: true do
     subscribe
     client.created('cats', 'https://example.com/cats/2')
     client.created('cats', 'https://example.com/cats/3')
-    processes.watch.wait_log %r(counter:events.added:2.*queue:demo)
+    processes.watch.wait_log %r(counter:events.added:2.*queue:#{client_token})
   end
 
   it 'emits delivery metrics' do
     subscribe
     client.created('cats', 'https://example.com/cats/2')
     client.created('cats', 'https://example.com/cats/3')
-    processes.watch.wait_log %r(counter:delivery.events:2.*queue:demo)
+    processes.watch.wait_log %r(counter:delivery.events:2.*queue:#{client_token})
   end
 end
 

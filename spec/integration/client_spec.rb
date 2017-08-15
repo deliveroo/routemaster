@@ -1,6 +1,8 @@
 require 'spec_helper'
 require 'spec/support/integration'
+require 'spec/support/env'
 require 'routemaster/client'
+require 'routemaster/models/client_token'
 require 'routemaster/models/subscriber'
 require 'routemaster/models/topic'
 require 'routemaster/models/batch'
@@ -22,12 +24,16 @@ describe 'Client integration', slow:true do
   let(:client) { 
     Routemaster::Client.configure do |c|
       c.url = 'https://127.0.0.1:17893'
-      c.uuid = 'demo'
+      c.uuid = token
       c.verify_ssl = false
     end
   }
 
-  let(:subscriber) { Routemaster::Models::Subscriber.find('demo') }
+  let(:token) { Routemaster::Models::ClientToken.create!(name: 'test') }
+
+  after { Routemaster::Client::Connection.reset_connection }
+
+  let(:subscriber) { Routemaster::Models::Subscriber.find(token) }
   let(:topic) { Routemaster::Models::Topic.find('widgets') }
 
   it 'connects' do

@@ -1,12 +1,13 @@
 require 'routemaster'
 require 'sinatra'
 require 'rack/ssl'
-require 'routemaster/middleware/authentication'
 require 'routemaster/controllers/pulse'
 require 'routemaster/controllers/topics'
 require 'routemaster/controllers/health'
 require 'routemaster/controllers/subscriber'
+require 'routemaster/controllers/api_token'
 require 'routemaster/mixins/log_exception'
+require 'routemaster/models/client_token'
 
 module Routemaster
   class Application < Sinatra::Base
@@ -19,8 +20,7 @@ module Routemaster
 
     use Rack::SSL
     use Controllers::Health
-
-    use Middleware::Authentication
+    use Controllers::ApiToken
     use Controllers::Pulse
     use Controllers::Topics
     use Controllers::Subscriber

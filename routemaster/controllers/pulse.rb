@@ -1,17 +1,18 @@
-require 'routemaster/controllers'
+require 'routemaster/controllers/base'
 require 'routemaster/services/pulse'
 require 'routemaster/models/queue'
-require 'sinatra'
 
 module Routemaster
   module Controllers
-    class Pulse < Sinatra::Base
-      get '/pulse' do
+    class Pulse < Base
+      register Auth
+
+      get '/pulse', auth: %i[root client] do
         has_pulse = Services::Pulse.new.run
         halt(has_pulse ? 204 : 500)
       end
 
-      get '/pulse/scaling' do
+      get '/pulse/scaling', auth: %i[root client] do
         count = Models::Queue.reduce(0) do |accum,q|
           accum + q.length(deadline: Routemaster.now + Integer(ENV.fetch('ROUTEMASTER_SCALING_DEADLINE')))
         end

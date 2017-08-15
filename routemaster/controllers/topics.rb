@@ -1,18 +1,16 @@
-require 'routemaster/controllers'
-require 'routemaster/controllers/parser'
+require 'routemaster/controllers/base'
 require 'routemaster/models/topic'
 require 'routemaster/services/ingest'
 require 'routemaster/mixins/log'
-require 'sinatra'
 require 'json'
 
 module Routemaster
   module Controllers
-    class Topics < Sinatra::Base
+    class Topics < Base
       include Mixins::Log
       register Parser
 
-      get '/topics' do
+      get '/topics', auth: %i[client root] do
         content_type :json
         Routemaster::Models::Topic.all.map do |topic|
           {
@@ -23,11 +21,11 @@ module Routemaster
         end.to_json
       end
 
-      post '/topics/:name', parse: :json do
+      post '/topics/:name', auth: :client, parse: :json do
         begin
           topic = Routemaster::Models::Topic.find_or_create!(
             name:       params['name'],
-            publisher:  request.env['REMOTE_USER']
+            publisher:  current_token
           )
         rescue ArgumentError
           halt 400, 'bad topic'
@@ -58,7 +56,7 @@ module Routemaster
         halt :ok
       end
 
-      delete '/topics/:name' do
+      delete '/topics/:name', auth: %i[client root] do
         topic = Routemaster::Models::Topic.find(params[:name])
         halt 404 if topic.nil?
         topic.destroy
