@@ -71,7 +71,15 @@ module Routemaster
         delay = retry_backoff
         return false if _stale_enough?(last_attempt, delay)
 
-        delay
+        _randomize delay
+      end
+
+
+      # Return a random value between `delay` and `delay` * 1.5.
+      # Delay randomisation avoid concurrent workers simultaneously popping jobs
+      # off the stack and accidentally increasing throughput.
+      def _randomize(delay)
+        (delay * (1.0 + 0.5 * rand)).round
       end
 
 
