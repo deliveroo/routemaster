@@ -1,5 +1,5 @@
 require 'routemaster/services'
-require 'routemaster/mixins/log'
+require 'routemaster/mixins/assert'
 require 'routemaster/exceptions'
 
 # throttle |ˈθrɒt(ə)l|
@@ -10,6 +10,8 @@ require 'routemaster/exceptions'
 module Routemaster
   module Services
     class Throttle
+      include Mixins::Assert
+
       MAX_HP = 100
 
       def initialize(subscriber)
@@ -27,15 +29,14 @@ module Routemaster
       end
 
 
-      # in ms, integer
-      #
-      # hp == 0     => 3333ms
-      # hp == 50    => 833ms
-      # hp == 100   => 0ms
-      #
+      # in ms, integer.
+      # hp == 0     => 60_000 ms
+      # hp == 1     => 15_000 ms
+      # hp == 10    =>     59 ms
+      # hp == 100   =>      0 ms
       def retry_backoff
         hp = @subscriber.health_points
-        ((MAX_HP - hp) ** 2 / 3).round
+        (_max_backoff * 2.0 ** (- hp)).round
       end
 
 
@@ -70,7 +71,15 @@ module Routemaster
         delay = retry_backoff
         return false if _stale_enough?(last_attempt, delay)
 
-        delay
+        _randomize delay
+      end
+
+
+      # Return a random value between `delay` and `delay` * 1.5.
+      # Delay randomisation avoid concurrent workers simultaneously popping jobs
+      # off the stack and accidentally increasing throughput.
+      def _randomize(delay)
+        (delay * (1.0 + 0.5 * rand)).round
       end
 
 
@@ -81,13 +90,24 @@ module Routemaster
       end
 
 
+      def _max_backoff
+        @@_max_backoff ||= Integer(ENV.fetch('MAX_BACKOFF_MS')).tap do |x|
+          _assert((1..600_000).include? x)
+        end
+      end
+
+
       def _heal_rate
-        @@_heal_rate ||= Integer(ENV.fetch('ROUTEMASTER_HP_HEAL_RATE', '1'))
+        @@_heal_rate ||= Integer(ENV.fetch('ROUTEMASTER_HP_HEAL_RATE')).tap do |x|
+          _assert((1..100).include? x)
+        end
       end
 
 
       def _damage_rate
-        @@_damage_rate ||= Integer(ENV.fetch('ROUTEMASTER_HP_DAMAGE_RATE', '-2'))
+        @@_damage_rate ||= Integer(ENV.fetch('ROUTEMASTER_HP_DAMAGE_RATE')).tap do |x|
+          _assert((-100..-1).include? x)
+        end
       end
     end
   end

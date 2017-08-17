@@ -58,7 +58,7 @@ RSpec.describe Routemaster::Services::Throttle do
 
 
     describe "when the subscriber is NOT healthy" do
-      let(:hp) { 50 }
+      let(:hp) { 2 }
 
       describe "when the subscriber has never received an event before (its last_attempted_at timestamp is nil)" do
         let(:last_attempted_at) { nil }
@@ -75,7 +75,7 @@ RSpec.describe Routemaster::Services::Throttle do
         let(:last_attempted_at) { 1 }
 
         describe "when the last delivery attempt to the subscriber is more recent than what the backoff would enforce" do
-          let(:last_attempted_at) { Routemaster.now - 800 }
+          let(:last_attempted_at) { Routemaster.now - 10_000 }
 
           it 'raises an EarlyThrottle exception' do
             expect {
@@ -125,7 +125,7 @@ RSpec.describe Routemaster::Services::Throttle do
         let(:hp) { 100 }
 
         it "returns zero" do
-          expect(perform).to eql 0
+          expect(perform).to eq 0
         end
       end
 
@@ -137,43 +137,43 @@ RSpec.describe Routemaster::Services::Throttle do
         end
       end
 
-      context "with 97 HP" do
-        let(:hp) { 97 }
+      context "with 10 HP" do
+        let(:hp) { 10 }
 
         it "returns the right value" do
-          expect(perform).to eq 3
+          expect(perform).to eq 59
         end
       end
 
-      context "with 78 HP" do
-        let(:hp) { 78 }
+      context "with 3 HP" do
+        let(:hp) { 3 }
 
         it "returns the right value" do
-          expect(perform).to eq 161
+          expect(perform).to eq 7500
         end
       end
 
-      context "with 50 HP" do
-        let(:hp) { 50 }
+      context "with 2 HP" do
+        let(:hp) { 2 }
 
         it "returns the right value" do
-          expect(perform).to eq 833
+          expect(perform).to eq 15000
         end
       end
 
-      context "with 15 HP" do
-        let(:hp) { 15 }
+      context "with 1 HP" do
+        let(:hp) { 1 }
 
         it "returns the right value" do
-          expect(perform).to eq 2408
+          expect(perform).to eq 30000
         end
       end
 
       context "with 0 HP" do
         let(:hp) { 0 }
 
-        it "returns the right value" do
-          expect(perform).to eq 3333
+        it "returns MAX_BACKOFF_MS" do
+          expect(perform).to eq 60000
         end
       end
     end
