@@ -1,5 +1,6 @@
 require 'routemaster/controllers/base'
 require 'routemaster/models/client_token'
+require 'routemaster/models/subscriber'
 
 module Routemaster
   module Controllers
@@ -28,6 +29,7 @@ module Routemaster
       end
 
       delete '/api_tokens/:token', auth: :root do
+        Models::Subscriber.new(name: params['token']).destroy
         Models::ClientToken.destroy!(token: params['token'])
         halt 204
       end
