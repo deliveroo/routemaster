@@ -5,7 +5,8 @@ require 'spec/support/persistence'
 describe Routemaster::Models::ClientToken do
 
   describe '.create!' do
-    let(:perform) { described_class.create!(name: 'john-mcfoo') }
+    let(:options) {{ name: 'john-mcfoo' }}
+    let(:perform) { described_class.create!(**options) }
 
     it 'passes' do
       expect { perform }.not_to raise_error
@@ -13,6 +14,18 @@ describe Routemaster::Models::ClientToken do
 
     it 'returns a token' do
       expect(perform).to be_a_kind_of(String)
+    end
+
+    context 'with a bad service name' do
+      let(:options) {{ name: 'john <script> mcfoo' }}
+
+      it { expect { perform }.to raise_error(ArgumentError) }
+    end
+
+    context 'with a bad token value' do
+      let(:options) {{ name: 'john-mcfoo', token: 'hax0r <script> token' }}
+
+      it { expect { perform }.to raise_error(ArgumentError) }
     end
   end
 
