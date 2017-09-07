@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'routemaster/models/event'
+require 'securerandom'
 
 describe Routemaster::Models::Event do
   let(:options) {{
@@ -43,6 +44,11 @@ describe Routemaster::Models::Event do
     it 'fails if the data blob is too large' do
       options[:data] = { 'foo' => SecureRandom.hex(33) }
       expect { subject }.to raise_error(ArgumentError)
+    end
+
+    it 'passes if the timestamp is in the future' do
+      options[:timestamp] = Routemaster.now + 3_600_000
+      expect { subject }.not_to raise_error
     end
   end
 
