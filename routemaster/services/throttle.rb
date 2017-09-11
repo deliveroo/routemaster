@@ -19,7 +19,7 @@ module Routemaster
       end
 
 
-      def check!(current_time)
+      def check!(current_time = Routemaster.now)
         if delay = _halt_with_backoff?
           raise Exceptions::EarlyThrottle.new(delay, @subscriber.name)
         else
