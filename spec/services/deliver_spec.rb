@@ -77,6 +77,58 @@ describe Routemaster::Services::Deliver do
         }.by(1)
       end
 
+      context 'on the first delivery attempt' do
+        before { batch.load_and_count }
+
+        # double check preconditions
+        it { perform rescue nil ; expect(batch.attempts).to eq 1 }
+
+        it 'increments latency.batches counter' do
+          expect { perform rescue nil }.to change {
+            get_counter('latency.batches', { queue: 'alice' })
+          }.by(1)
+        end
+
+        it 'increments latency.time.first counter' do
+          expect { perform rescue nil }.to change {
+            get_counter('latency.time.first', { queue: 'alice' })
+          }
+        end
+
+        if options[:status] == 'success'
+          it 'increments latency.time.last counter' do
+            expect { perform rescue nil }.to change {
+              get_counter('latency.time.last', { queue: 'alice' })
+            }
+          end
+        else
+          it 'does not change latency.time.last counter' do
+            expect { perform rescue nil }.not_to change {
+              get_counter('latency.time.last', { queue: 'alice' })
+            }
+          end
+        end
+      end
+
+      context 'on the second delivery attempt' do
+        before { 2.times { batch.reload.load_and_count} }
+
+        # double check preconditions
+        it { perform rescue nil ; expect(batch.attempts).to eq 2 }
+
+        it 'does not change latency.batches counter' do
+          expect { perform rescue nil }.not_to change {
+            get_counter('latency.batches', { queue: 'alice' })
+          }
+        end
+
+        it 'does not increment latency.time.first counter' do
+          expect { perform rescue nil }.not_to change {
+            get_counter('latency.time.first', { queue: 'alice' })
+          }
+        end
+      end
+
       unless options[:no_timer]
         it 'increments delivery.time counter' do
           expect { perform rescue nil }.to change { 

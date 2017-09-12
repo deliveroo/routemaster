@@ -51,7 +51,8 @@ module Routemaster
       # wrap a block in counters handling
       def _with_counters
         start_at = Routemaster.now
-        latency = @batch.created_at - start_at
+        latency = start_at - @batch.created_at
+        _update_pre_counters(latency)
         yield.tap do |status, error|
           elapsed = Routemaster.now - start_at
           _update_post_counters(status, elapsed, latency)
@@ -127,7 +128,13 @@ module Routemaster
         _counters.incr('delivery.batches',  queue: @batch.subscriber_name, count: 1,             status: status)
         _counters.incr('delivery.time',     queue: @batch.subscriber_name, count: delivery_time, status: status)
         _counters.incr('delivery.time2',    queue: @batch.subscriber_name, count: delivery_time, status: status)
+        _counters.incr('latency.time.last', queue: @batch.subscriber_name, count: latency) if status == 'success'
       end
+
+      def _update_pre_counters(latency)
+        return unless @batch.attempts == 1
+        _counters.incr('latency.batches',     queue: @batch.subscriber_name, count: 1)
+        _counters.incr('latency.time.first',  queue: @batch.subscriber_name, count: latency)
       end
     end
   end
