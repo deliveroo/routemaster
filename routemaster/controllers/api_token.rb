@@ -1,5 +1,6 @@
 require 'routemaster/controllers/base'
 require 'routemaster/models/client_token'
+require 'routemaster/models/subscriber'
 
 module Routemaster
   module Controllers
@@ -14,7 +15,7 @@ module Routemaster
 
       post '/api_tokens', auth: :root, parse: :json do
         begin
-          token = Models::ClientToken.create!(name: data['name'])
+          token = Models::ClientToken.create!(name: data['name'], token: data['token'])
         rescue ArgumentError => e
           halt 400, e.message
         end
@@ -28,6 +29,7 @@ module Routemaster
       end
 
       delete '/api_tokens/:token', auth: :root do
+        Models::Subscriber.new(name: params['token']).destroy
         Models::ClientToken.destroy!(token: params['token'])
         halt 204
       end
