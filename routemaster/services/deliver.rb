@@ -128,13 +128,13 @@ module Routemaster
         _counters.incr('delivery.batches',  queue: @batch.subscriber_name, count: 1,              status: status)
         _counters.incr('delivery.time',     queue: @batch.subscriber_name, count: delivery_time,  status: status)
         _counters.incr('delivery.time2',    queue: @batch.subscriber_name, count: delivery_time2, status: status)
-        _counters.incr('latency.time.last', queue: @batch.subscriber_name, count: latency) if status == 'success'
+        _counters.incr('latency.batches.last_attempt', queue: @batch.subscriber_name, count: latency) if status == 'success'
       end
 
       def _update_pre_counters(latency)
         return unless @batch.attempts == 1
-        _counters.incr('latency.batches',     queue: @batch.subscriber_name, count: 1)
-        _counters.incr('latency.time.first',  queue: @batch.subscriber_name, count: latency)
+        _counters.incr('latency.batches.count',     queue: @batch.subscriber_name, count: 1)
+        _counters.incr('latency.batches.first_attempt',  queue: @batch.subscriber_name, count: latency)
       end
     end
   end
