@@ -21,6 +21,7 @@ module Routemaster
       def self.create!(name:, token: nil)
         service = User.new(name)
         token ||= '%s--%s' % [service, SecureRandom.hex(16)]
+        token = User.new(token)
         _redis.hset(KEY_BY_TOKEN, token, service)
         token
       end
