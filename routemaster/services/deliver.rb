@@ -34,7 +34,7 @@ module Routemaster
       def call
         _log.debug { "starting delivery to '#{@batch.subscriber_name}'" }
 
-        status, error = _with_counters { _with_throttle { _do_delivery } }
+        _, error = _with_counters { _with_throttle { _do_delivery } }
         
         if error
           _log.warn { "failed to deliver #{@buffer.length} events to '#{@batch.subscriber_name}'" }
@@ -53,7 +53,7 @@ module Routemaster
         start_at = Routemaster.now
         latency = start_at - @batch.created_at
         _update_pre_counters(latency)
-        yield.tap do |status, error|
+        yield.tap do |status, _error|
           elapsed = Routemaster.now - start_at
           _update_post_counters(status, elapsed, latency)
         end
@@ -62,7 +62,7 @@ module Routemaster
       # wrap block in a throttle check
       def _with_throttle
         @throttle.check!
-        yield.tap do |status, error|
+        yield.tap do |status, _error|
           case status
           when 'failure' then @throttle.notice_failure
           when 'success' then @throttle.notice_success
@@ -124,10 +124,10 @@ module Routemaster
 
       def _update_post_counters(status, delivery_time, latency)
         delivery_time2 = delivery_time * delivery_time
-        _counters.incr('delivery.events',   queue: @batch.subscriber_name, count: _data.length,  status: status)
-        _counters.incr('delivery.batches',  queue: @batch.subscriber_name, count: 1,             status: status)
-        _counters.incr('delivery.time',     queue: @batch.subscriber_name, count: delivery_time, status: status)
-        _counters.incr('delivery.time2',    queue: @batch.subscriber_name, count: delivery_time, status: status)
+        _counters.incr('delivery.events',   queue: @batch.subscriber_name, count: _data.length,   status: status)
+        _counters.incr('delivery.batches',  queue: @batch.subscriber_name, count: 1,              status: status)
+        _counters.incr('delivery.time',     queue: @batch.subscriber_name, count: delivery_time,  status: status)
+        _counters.incr('delivery.time2',    queue: @batch.subscriber_name, count: delivery_time2, status: status)
         _counters.incr('latency.time.last', queue: @batch.subscriber_name, count: latency) if status == 'success'
       end
 
