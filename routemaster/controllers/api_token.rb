@@ -15,7 +15,7 @@ module Routemaster
 
       post '/api_tokens', auth: :root, parse: :json do
         begin
-          token = Models::ClientToken.create!(name: data['name'])
+          token = Models::ClientToken.create!(name: data['name'], token: data['token'])
         rescue ArgumentError => e
           halt 400, e.message
         end

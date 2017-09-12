@@ -35,6 +35,16 @@ describe Routemaster::Controllers::ApiToken, type: :controller do
       expect(response_body).to include('name' => 'alice', 'token' => anything)
     end
 
+    it 'can create token with specific value' do
+      basic_authorize root_key, 'x'
+      post '/api_tokens',
+        { name: 'alice', token: 'alice-0000-1111-2222' }.to_json,
+        'CONTENT_TYPE' => 'application/json'
+      expect(last_response.status).to eq(201)
+      response_body = JSON.parse(last_response.body)
+      expect(response_body).to include('name' => 'alice', 'token' => 'alice-0000-1111-2222')
+    end
+
     it 'can list existing tokens' do
       create_key
       list_keys
