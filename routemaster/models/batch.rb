@@ -42,7 +42,7 @@ module Routemaster
       end
 
       def subscriber_name
-        @subscriber_name ||= _redis.lindex(_batch_key, 0)
+        @_subscriber_name ||= _redis.lindex(_batch_key, 0)
       end
 
 
@@ -83,7 +83,25 @@ module Routemaster
 
       # Counts the number of times delivery was attempted
       def attempts
-        _redis.lindex(_batch_key, 2).to_i
+        @_attempts ||= _redis.lindex(_batch_key, 2).to_i
+      end
+
+      def created_at
+        @_created_at ||= _redis.lindex(_batch_key, 1).to_i
+      end
+
+
+      # Load batch data and increment the attempt counter
+      def load_and_count
+        list = _redis_lua_run(		
+          'batch_load_and_count',
+          keys: [_batch_key])
+        return unless list && list.length >= PREFIX_COUNT
+        @_subscriber_name = list[0]
+        @_created_at      = list[1].to_i
+        @_attempts        = list[2].to_i
+        @_data            = list[3..-1]
+        self
       end
 
 

@@ -207,6 +207,31 @@ describe Routemaster::Models::Batch do
   end
 
 
+  describe '#load_and_count' do
+    subject { do_ingest(2) }
+
+    it 'increments #attempts' do
+      expect { 
+        subject.load_and_count
+      }.to change {
+        subject.reload.attempts
+      }.by(1)
+    end
+
+    it 'returns the batch' do
+      expect(subject.load_and_count).to eq(subject)
+    end
+
+    context 'when the batch does not exist' do
+      before { subject.delete }
+      it 'is nil' do
+        expect(subject.load_and_count).to be_nil
+      end
+    end
+  end
+
+
+
   describe '#length' do
     subject { do_ingest(2) }
     let(:result) { subject.reload.length }

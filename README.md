@@ -195,6 +195,10 @@ as well as the following counter metrics:
     - `delivery.batches` (one count per batch)
     - `delivery.time` (sum of delivery times in milliseconds)
     - `delivery.time2` (sum of delivery times squared)
+- latency metrics, tagged by subscriber:
+    - `latency.batches.count` (number of batch first delivery attempts)
+    - `latency.batches.first_attempt` (sum of times from batch creation to first delivery attempt)
+    - `latency.batches.last_attempt` (sum of times from batch creation to successful delivery attempt)
 - `process` (tagged with `status:start` or `:stop`, and `type:web` or
   `:worker`), incremented when processes boot or shut down (cleanly)
 

@@ -21,7 +21,7 @@ module Routemaster
         batch.promote
 
         # handle unsubscription, autodrop
-        unless batch.valid?
+        unless batch.load_and_count&.valid?
           batch.delete
           return self
         end
@@ -33,7 +33,7 @@ module Routemaster
           select { |msg| msg.kind_of?(Models::Event) }
 
         begin
-          @delivery.call(batch.subscriber, events)
+          @delivery.call(batch, events)
           batch.delete
         rescue Exceptions::DeliveryFailure => e
           _log_exception(e)

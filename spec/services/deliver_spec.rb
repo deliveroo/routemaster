@@ -5,6 +5,8 @@ require 'spec/support/webmock'
 require 'spec/support/counters'
 require 'routemaster/services/deliver'
 require 'routemaster/models/subscriber'
+require 'routemaster/models/batch'
+require 'routemaster/services/codec'
 
 describe Routemaster::Services::Deliver do
   let(:buffer) { Array.new }
@@ -19,13 +21,23 @@ describe Routemaster::Services::Deliver do
       }
     ).save
   end
+
+  let(:batch) do
+    buffer.map { |event|
+      Routemaster::Models::Batch.ingest(
+        subscriber: subscriber,
+        timestamp:  event.timestamp,
+        data:       Routemaster::Services::Codec.new.dump(event))
+    }.last
+  end
+
   def reloaded_subscriber
     Routemaster::Models::Subscriber.new(name: subscriber.name)
   end
 
   let(:callback) { 'https://alice.com/widgets' }
 
-  subject { described_class.new(subscriber, buffer) }
+  subject { described_class.new(batch: batch, events: buffer) }
 
   before do
     WebMock.enable!
@@ -65,15 +77,67 @@ describe Routemaster::Services::Deliver do
         }.by(1)
       end
 
+      context 'on the first delivery attempt' do
+        before { batch.load_and_count }
+
+        # double check preconditions
+        it { perform rescue nil ; expect(batch.attempts).to eq 1 }
+
+        it 'increments latency.batches.count counter' do
+          expect { perform rescue nil }.to change {
+            get_counter('latency.batches.count', { queue: 'alice' })
+          }.by(1)
+        end
+
+        it 'increments latency.batches.first_attempt counter' do
+          expect { perform rescue nil }.to change {
+            get_counter('latency.batches.first_attempt', { queue: 'alice' })
+          }
+        end
+
+        if options[:status] == 'success'
+          it 'increments latency.batches.last_attempt counter' do
+            expect { perform rescue nil }.to change {
+              get_counter('latency.batches.last_attempt', { queue: 'alice' })
+            }
+          end
+        else
+          it 'does not change latency.batches.last_attempt counter' do
+            expect { perform rescue nil }.not_to change {
+              get_counter('latency.batches.last_attempt', { queue: 'alice' })
+            }
+          end
+        end
+      end
+
+      context 'on the second delivery attempt' do
+        before { 2.times { batch.reload.load_and_count} }
+
+        # double check preconditions
+        it { perform rescue nil ; expect(batch.attempts).to eq 2 }
+
+        it 'does not change latency.batches.count counter' do
+          expect { perform rescue nil }.not_to change {
+            get_counter('latency.batches.count', { queue: 'alice' })
+          }
+        end
+
+        it 'does not increment latency.batches.first_attempt counter' do
+          expect { perform rescue nil }.not_to change {
+            get_counter('latency.batches.first_attempt', { queue: 'alice' })
+          }
+        end
+      end
+
       unless options[:no_timer]
         it 'increments delivery.time counter' do
-          expect { perform rescue nil }.to change { 
+          expect { perform rescue nil }.to change {
             get_counter('delivery.time', tag.merge(queue: 'alice'))
           }
         end
 
         it 'increments delivery.time counter' do
-          expect { perform rescue nil }.to change { 
+          expect { perform rescue nil }.to change {
             get_counter('delivery.time2', tag.merge(queue: 'alice'))
           }
         end
@@ -82,7 +146,7 @@ describe Routemaster::Services::Deliver do
 
     shared_examples 'a delivery failure' do |options|
       options ||= {}
-      
+ 
       it "raises a Routemaster::Exceptions::DeliveryFailure exception" do
         expect { perform }.to raise_error(Routemaster::Exceptions::DeliveryFailure)
       end
@@ -112,7 +176,7 @@ describe Routemaster::Services::Deliver do
         allow(throttle_klass).to receive(:new).with(subscriber).and_return(throttle)
       end
 
-      subject { described_class.new(subscriber, buffer, throttle_service: throttle_klass) }
+      subject { described_class.new(batch: batch, events: buffer, throttle_service: throttle_klass) }
 
       context 'when the throttler says that it is OK to deliver to the subscriber' do
         before do
@@ -158,6 +222,12 @@ describe Routemaster::Services::Deliver do
 
 
     context 'when there are no events' do
+      before {
+        buffer << make_event
+        batch
+        buffer.clear
+      }
+
       it 'passes' do
         expect { perform }.not_to raise_error
       end
@@ -173,6 +243,7 @@ describe Routemaster::Services::Deliver do
     end
 
     context 'when there are events' do
+
       before do
         3.times { buffer.push make_event }
       end

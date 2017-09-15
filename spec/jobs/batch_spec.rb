@@ -44,8 +44,8 @@ module Routemaster
       it { expect { perform }.not_to change { @error } }
 
       it 'attempts delivery' do
-        expect(delivery).to receive(:call) do |sub,ev|
-          expect(sub).to eq(subscriber)
+        expect(delivery).to receive(:call) do |b,ev|
+          expect(b.uid).to eq(batch.uid)
           expect(ev).to eq(messages)
         end
         perform

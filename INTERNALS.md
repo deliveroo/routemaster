@@ -147,7 +147,7 @@ All timestamps are represented as integers, milliseconds since the Unix epoch.
   A list whose first items are:
   - the subscriber token this batch is for,
   - the timestamp at which the batch was created,
-  - unused, reserved.
+  - the number of delivery attempts for this batch,
   followed by the serialized messages to deliver. 
   
   `bid` is the batch's UID.
