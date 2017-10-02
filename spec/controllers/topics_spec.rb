@@ -52,19 +52,6 @@ describe Routemaster::Controllers::Topics, type: :controller do
         perform
         expect(last_response).to be_ok
       end
-
-      context 'when the timestamp is in the future' do
-        let(:data) {{
-          type: 'create',
-          url:  'https://example.com/widgets/123',
-          timestamp: Time.now.to_i * 1e3 + 3_600_000
-        }}
-
-        it 'responds bad request' do
-          perform
-          expect(last_response).to be_bad_request
-        end
-      end
     end
 
     context 'when supplying a null timestamp' do
@@ -77,19 +64,6 @@ describe Routemaster::Controllers::Topics, type: :controller do
       it 'responds ok' do
         perform
         expect(last_response).to be_ok
-      end
-    end
-
-    context 'when supplying a future timestamp' do
-      let(:data) {{
-        type: 'create',
-        url:  'https://example.com/widgets/123',
-        timestamp: (Time.now.to_i * 1e3) + 5000
-      }}
-
-      it 'returns 400' do
-        perform
-        expect(last_response.status).to eq(400)
       end
     end
 
@@ -197,7 +171,7 @@ describe Routemaster::Controllers::Topics, type: :controller do
       end
 
       it 'deletes the topic' do
-        expect { perform }.to change { 
+        expect { perform }.to change {
           Routemaster::Models::Topic.find(topic_name)&.name
         }.to(nil)
       end

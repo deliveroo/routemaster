@@ -37,10 +37,6 @@ module Routemaster
           halt 400, 'bad event'
         end
 
-        if data['timestamp'] && data['timestamp'] > Routemaster.now
-          halt 400, 'timestamp is in the future'
-        end
-
         begin
           event = Routemaster::Models::Event.new(
             topic: params['name'],
