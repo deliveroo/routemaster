@@ -1,56 +1,182 @@
+version: 2
+
 defaults: &defaults
   working_directory: /routemaster
   docker:
-    - image: deliveroo/circleci:0.1.0
+    - image: deliveroo/circleci:0.1.8
 
-version: 2
+build_steps: &build_steps
+  steps:
+    - setup_remote_docker:
+        reusable: true
+        version: 17.05.0-ce
+
+    - checkout
+
+    - run:
+        name: Clean up env
+        command: ci down
+
+    - run:
+        name: Build Docker image
+        command: |
+          docker build \
+            -f Dockerfile \
+            -t "${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1}" \
+            .
+
+    - run:
+        name: Save Docker image
+        command: |
+          mkdir -p workspace
+          docker save \
+            "${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1}" \
+            --output workspace/${CIRCLE_SHA1}.tar
+
+    - persist_to_workspace:
+        root: workspace
+        paths:
+          - '*.tar'
+
+push_steps: &push_steps
+  steps:
+  - setup_remote_docker:
+      reusable: true
+      version: 17.05.0-ce
+
+  - attach_workspace:
+      at: workspace
+
+  - run:
+      name: Import Docker image
+      command: docker load --input workspace/${CIRCLE_SHA1}.tar
+
+  - run:
+      name: Push Docker image to repository
+      command: |
+        `print_env ${TARGET}`
+        push_image_to_ecr \
+          --image-name "${CIRCLE_PROJECT_REPONAME}" \
+          --ecr-repo $AWS_ECR_REPO_URL \
+          --ecr-region $AWS_REGION
+
+test_steps: &test_steps
+  steps:
+    - setup_remote_docker:
+        reusable: true
+        version: 17.05.0-ce
+
+    - checkout
+
+    - run:
+        name: Wait for Redis to start
+        command: ci run --rm wait wfi redis:6379
+
+    - run:
+        name: Run RSpec and report test results
+        command: ci run --rm app bin/test_and_report
+
+filter_tests: &filter_tests
+  filters:
+    branches:
+      ignore:
+      - sandbox
+      - staging
+      - production
+
+filter_sandbox: &filter_sandbox
+  filters:
+    branches:
+      only:
+      - sandbox
+
+filter_staging: &filter_staging
+  filters:
+    branches:
+      only:
+      - staging
+
+filter_production: &filter_production
+  filters:
+    branches:
+      only:
+      - master
 
 jobs:
-  run_test_suite:
+  build:
     <<: *defaults
+    <<: *build_steps
 
-    # we want to run tests multiple times to minimise the risk of flaky tests in
-    # this (critical) application
+  push_sandbox:
+    <<: *defaults
+    <<: *push_steps
+
+    environment:
+      TARGET: sandbox
+
+  push_staging:
+    <<: *defaults
+    <<: *push_steps
+
+    environment:
+      TARGET: staging
+
+  push_production:
+    <<: *defaults
+    <<: *push_steps
+
+    environment:
+      TARGET: production
+
+  tests:
+    <<: *defaults
+    <<: *test_steps
+    # We want to run tests multiple times to minimise the risk of flaky tests
     parallelism: 5
-
-    steps:
-      - setup_remote_docker:
-          reusable: true
-
-      - checkout
-
-      - run:
-          name: Ensure clean slate
-          command: ci down
-
-      - run:
-          name: Build composition
-          command: ci build
-
-      - run:
-          name: Wait for Redis to start
-          command: ci run --rm wait wfi redis:6379
-
-      - run:
-          name: Run RSpec and report test results
-          command: ci run --rm app bin/test_and_report
-
-  build_image:
-    <<: *defaults
-
-    steps:
-      - setup_remote_docker:
-          reusable: true
-
-      - checkout
-
-      - run:
-          name: Build production image
-          command: docker build -f Dockerfile -t routemaster .
 
 workflows:
   version: 2
-  test_and_build:
+
+  tests:
     jobs:
-      - run_test_suite
-      - build_image
+      - tests:
+          <<: *filter_tests
+
+  sandbox:
+    jobs:
+      - tests:
+          <<: *filter_sandbox
+      - build:
+          <<: *filter_sandbox
+          requires:
+          - tests
+      - push_sandbox:
+          <<: *filter_sandbox
+          requires:
+          - build
+
+  staging:
+    jobs:
+      - tests:
+          <<: *filter_staging
+      - build:
+          <<: *filter_staging
+          requires:
+          - tests
+      - push_staging:
+          <<: *filter_staging
+          requires:
+          - build
+
+  production:
+    jobs:
+      - tests:
+          <<: *filter_production
+      - build:
+          <<: *filter_production
+          requires:
+          - tests
+      - push_production:
+          <<: *filter_production
+          requires:
+          - build
