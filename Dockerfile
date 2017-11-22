@@ -1,3 +1,7 @@
+FROM deliveroo/decrypt_env:0.5.5 as decrypt_env
+
+COPY --from=decrypt_env /decrypt_env /usr/bin/decrypt_env
+
 FROM ruby:2.3.3-alpine
 
 # App home directory and app user can be injected through build params.
@@ -22,10 +26,4 @@ RUN rm -rf $ARG_HOME/vendor \
     && chown -R $ARG_USER:$ARG_USER $ARG_HOME
 USER $ARG_USER
 
-ARG ARG_PORT=3000
-ENV PORT=$ARG_PORT
-EXPOSE $PORT
-
-ARG ARG_PROCESS=web
-ENV PROCESS=$ARG_PROCESS
-CMD ["sh", "-c", "foreman start ${PROCESS}"]
+ENTRYPOINT ["decrypt_env"]
