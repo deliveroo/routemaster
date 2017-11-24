@@ -8,7 +8,6 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.ci
     environment:
       - CIRCLECI=true
       - CIRCLE_BUILD_NUM=${CIRCLE_BUILD_NUM}
