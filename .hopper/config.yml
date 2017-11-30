@@ -6,6 +6,4 @@ services:
       worker:
         cpu: 256
         memory: 1024
-        linuxParameters:
-          initProcessEnabled: true
         command: "bin/worker"
