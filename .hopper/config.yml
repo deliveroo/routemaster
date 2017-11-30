@@ -5,7 +5,5 @@ services:
     containerDefinitions:
       worker:
         cpu: 256
-        memory: 1024
-        linuxParameters:
-          initProcessEnabled: true
+        memory: 512
         command: "bin/worker"
