@@ -1,0 +1,9 @@
+version: '1'
+
+services:
+  worker:
+    containerDefinitions:
+      worker:
+        cpu: 256
+        memory: 1024
+        command: "bin/worker"
