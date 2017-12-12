@@ -23,6 +23,10 @@ module Routemaster
         end
         halt 404 unless topics.all?
 
+        _log.info do
+          "Client #{_current_client} subscribing to: [#{data['topics'].join(', ')}]."
+        end
+
         begin
           sub = Models::Subscriber.new(name: current_token)
           sub.callback   = data['callback']
@@ -43,6 +47,10 @@ module Routemaster
       end
 
       delete '/subscriber', auth: %i[root client] do
+        _log.info do
+          "Client #{_current_client} deleting itself and unsubscribing from everything."
+        end
+
         _load_subscriber.destroy
         halt 204
       end
@@ -57,6 +65,10 @@ module Routemaster
         subscription = Models::Subscription.find(topic: topic, subscriber: subscriber)
         if subscription.nil?
           halt 404, 'not subscribed'
+        end
+
+        _log.info do
+          "Client #{_current_client} unsubscribing from: '#{topic.name}'."
         end
 
         subscription.destroy
@@ -100,6 +112,10 @@ module Routemaster
       def _load_subscriber
         sub = Models::Subscriber.find(current_token)
         sub or halt 404, 'subscriber not found'
+      end
+
+      def _current_client
+        @_current_client ||= Models::ClientToken.token_name(current_token)
       end
     end
   end
