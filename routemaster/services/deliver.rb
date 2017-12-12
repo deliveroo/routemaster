@@ -40,7 +40,7 @@ module Routemaster
           _log.warn { "failed to deliver #{@buffer.length} events to '#{@batch.subscriber_name}'" }
           raise error
         else
-          _log.debug { "delivered #{@buffer.length} events to '#{@batch.subscriber_name}'" }
+          _log.info { "delivered #{@buffer.length} events to '#{@batch.subscriber_name}'" }
         end
         true
       end
