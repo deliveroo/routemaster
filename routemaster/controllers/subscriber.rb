@@ -9,7 +9,7 @@ module Routemaster
     class Subscriber < Base
       VALID_KEYS = %w(topics callback uuid max timeout)
 
-      post %r{^/(subscription|subscriber)$}, auth: :client, parse: :json do
+      post %r{/(subscription|subscriber)}, auth: :client, parse: :json do
         if (data.keys - VALID_KEYS).any?
           halt 400, 'bad data in payload'
         end
@@ -77,7 +77,7 @@ module Routemaster
       #   }, ...
       # ]
 
-      get %r{^/(subscriptions|subscribers)$}, auth: %i[root client] do
+      get %r{/(subscriptions|subscribers)}, auth: %i[root client] do
         content_type :json
         gauges = Models::Batch.gauges
         payload = Models::Subscriber.map do |subscriber|
