@@ -81,20 +81,22 @@ filter_tests: &filter_tests
     branches:
       ignore:
       - sandbox
+      - ecs_sandbox
       - staging
+      - ecs_staging
       - production
 
 filter_sandbox: &filter_sandbox
   filters:
     branches:
       only:
-      - sandbox
+      - ecs_sandbox
 
 filter_staging: &filter_staging
   filters:
     branches:
       only:
-      - staging
+      - ecs_staging
 
 filter_production: &filter_production
   filters:

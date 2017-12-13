@@ -1,6 +1,5 @@
 require 'routemaster'
 require 'sinatra'
-require 'rack/ssl'
 require 'routemaster/controllers/pulse'
 require 'routemaster/controllers/topics'
 require 'routemaster/controllers/health'
@@ -18,7 +17,11 @@ module Routemaster
       set :raise_errors, false
     end
 
-    use Rack::SSL
+    if ENV.fetch('FORCE_SSL', 'true') =~ /YES|TRUE|ON|1/i
+      require 'rack/ssl'
+      use Rack::SSL
+    end
+
     use Controllers::Health
     use Controllers::ApiToken
     use Controllers::Pulse
