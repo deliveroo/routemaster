@@ -29,6 +29,10 @@ module Routemaster
       def self.destroy!(token:)
         _redis.hdel(KEY_BY_TOKEN, token)
       end
+
+      def self.token_name(token)
+        _redis.hget(KEY_BY_TOKEN, token)
+      end
     end
   end
 end

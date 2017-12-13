@@ -65,4 +65,10 @@ describe Routemaster::Models::ClientToken do
   end
   
   
+  describe '.token_name' do
+    it "returns the service name associated to a token" do
+      t_reginald = described_class.create!(name: 'reginald')
+      expect(described_class.token_name(t_reginald)).to eq 'reginald'
+    end
+  end
 end
