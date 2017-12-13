@@ -1,6 +1,22 @@
 version: '1'
 
 services:
+  web:
+    containerDefinitions:
+      worker:
+        cpu: 256
+        memory: 512
+        command: "puma -I. -C config/puma.rb"
+        portMappings:
+        - containerPort: 8000
+  internal-web:
+    containerDefinitions:
+      worker:
+        cpu: 256
+        memory: 512
+        command: "puma -I. -C config/puma.rb"
+        portMappings:
+        - containerPort: 8000
   worker:
     containerDefinitions:
       worker:
