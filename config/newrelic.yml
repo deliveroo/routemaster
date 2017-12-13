@@ -116,7 +116,10 @@ common: &default_settings
   # minute. Included in the transaction is the exact call sequence of
   # the transactions including any SQL statements issued.
   transaction_tracer:
-
+    # Having the arguments will give us better visibility about the Redis
+    # commands we run
+    record_redis_arguments: true
+    
     # Transaction tracer is enabled by default. Set this to false to
     # turn it off. This feature is only available at the Professional
     # and above product levels.

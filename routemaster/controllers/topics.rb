@@ -8,6 +8,7 @@ module Routemaster
   module Controllers
     class Topics < Base
       include Mixins::Log
+
       register Parser
 
       get '/topics', auth: %i[client root] do

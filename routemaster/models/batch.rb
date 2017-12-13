@@ -93,7 +93,7 @@ module Routemaster
 
       # Load batch data and increment the attempt counter
       def load_and_count
-        list = _redis_lua_run(		
+        list = _redis_lua_run(
           'batch_load_and_count',
           keys: [_batch_key])
         return unless list && list.length >= PREFIX_COUNT
@@ -107,7 +107,7 @@ module Routemaster
 
       # Returns the list of (serialised) payloads in the batch.
       # Memoised.
-      # 
+      #
       # It is not an error if the batch no longer exists.
       def data
         @_data ||= _redis.lrange(_batch_key, PREFIX_COUNT, -1)
@@ -127,7 +127,7 @@ module Routemaster
 
       # Transitions a batch from current.
       # A non-current batch will no have data added to it.
-      # 
+      #
       # It is not an error if the batch is not current, or no longer exists.
       def promote
         _redis_lua_run(
@@ -172,7 +172,7 @@ module Routemaster
               'batch_ingest',
               keys: [batch_ref_key, _batch_key(uid), _batch_key(alt_uid), _index_key, _batch_gauge_key, _event_gauge_key],
               argv: [uid, alt_uid, data, subscriber.name, PREFIX_COUNT, subscriber.max_events, now])
-          
+
           _counters.incr('events.added', queue: subscriber.name)
           new(subscriber: subscriber, uid: actual_uid, deadline: deadline, length: length)
         end
