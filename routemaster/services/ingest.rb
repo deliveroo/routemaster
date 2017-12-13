@@ -39,6 +39,10 @@ module Routemaster
               trace_with_newrelic('Custom/Services/queue-push') do
                 @queue.push(job)
               end
+
+              trace_with_newrelic('Custom/Services/queue-promote') do
+                @queue.promote(job) if batch.full?
+              end
             end
           end
 
