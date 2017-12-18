@@ -4,9 +4,6 @@ web_worker_config: &web_worker_config
   cpu: 256
   memory: 512
   command: "puma -I. -C config/puma.rb"
-  portMappings:
-  - containerPort: 8000
-
 
 services:
   web:
