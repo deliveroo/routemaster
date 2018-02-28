@@ -7,9 +7,9 @@ services:
         cpu: 1024
         memory: 1024
         essential: true
-        command: "FORCE_SSL=false bundle exec dotenv puma -I . -p 3000 -C config/puma.rb"
+        command: "FORCE_SSL=false bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
         portMappings:
-          - containerPort: 3000
+          - containerPort: 8000
 
   web:
     containerDefinitions:
@@ -17,9 +17,9 @@ services:
         cpu: 1024
         memory: 1024
         essential: true
-        command: "FORCE_SSL=false bundle exec dotenv puma -I . -p 3000 -C config/puma.rb"
+        command: "FORCE_SSL=false bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
         portMappings:
-          - containerPort: 3000
+          - containerPort: 8000
 
   worker:
     containerDefinitions:
