@@ -5,6 +5,7 @@ services:
     containerDefinitions:
       web:
         cpu: 1024
+        memory: 1024
         essential: true
         command: "FORCE_SSL=false bundle exec dotenv puma -I . -p 3000 -C config/puma.rb"
         portMappings:

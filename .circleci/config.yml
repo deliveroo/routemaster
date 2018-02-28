@@ -82,6 +82,7 @@ workflows:
           filters:
             branches:
               only:
+                - hopper-staging
                 - staging
 
       - push_image_production:
