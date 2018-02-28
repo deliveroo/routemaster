@@ -9,8 +9,6 @@ jobs:
   run_test_suite:
     <<: *defaults
 
-    parallelism: 3
-
     steps:
       - setup_remote_docker:
           reusable: true
@@ -49,4 +47,6 @@ workflows:
   test_and_build:
     jobs:
       - run_test_suite
-      - build_image
+      - build_image:
+          requires:
+            - run_ci
