@@ -1,7 +1,7 @@
 defaults: &defaults
   working_directory: /routemaster
   docker:
-    - image: deliveroo/circleci:0.1.15
+    - image: deliveroo/circleci:0.1.8
 
 version: 2
 
