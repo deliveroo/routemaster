@@ -15,6 +15,7 @@ RUN gem install bundler \
 
 WORKDIR $ARG_HOME
 ADD vendor $ARG_HOME/vendor
+ADD .ruby-version $ARG_HOME/
 ADD Gemfile* $ARG_HOME/
 RUN bundle install --jobs 8 --retry 5 --local --deployment \
     && mv $ARG_HOME/vendor /tmp/vendor

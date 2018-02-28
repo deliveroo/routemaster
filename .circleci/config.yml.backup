@@ -1,0 +1,94 @@
+version: 2
+
+docker_version: &docker_version 17.06.0-ce
+
+defaults: &defaults
+  working_directory: /routemaster
+  docker:
+    - image: deliveroo/circleci:0.1.15
+
+jobs:
+  run_ci:
+    <<: *defaults
+    steps:
+      - setup_remote_docker:
+          version: *docker_version
+          reusable: true
+
+      - checkout
+
+      - run:
+          name: Clean up reusable docker
+          command: docker system prune -f
+
+      - run:
+          name: Build composition
+          command: ci build
+
+      - run:
+          name: Wait for Redis to start
+          command: docker-compose -f docker-compose.ci.yml run --rm wait wfi redis:6379
+
+      - run:
+          name: Run and report test results
+          command: docker-compose -f docker-compose.ci.yml run --rm app bin/test_and_report
+
+  push_image: &push_image
+    <<: *defaults
+    steps:
+      - setup_remote_docker:
+          reusable: true
+          version: *docker_version
+
+      - checkout
+
+      - run:
+          name: Make sure we are on HEAD
+          command: ensure_head
+
+      - run:
+          name: Build image
+          command: docker build --tag routemaster:${CIRCLE_SHA1} .
+
+      - run:
+          name: Push image to ECR
+          command: |
+            `print_env ${TARGET}`
+            push_image_to_ecr \
+              --image-name routemaster \
+              --ecr-repo $AWS_ECR_REPO_URL \
+              --aws-region $AWS_REGION
+
+  push_image_staging:
+    <<: *push_image
+    environment:
+      - TARGET: staging
+
+
+  push_image_production:
+    <<: *push_image
+    environment:
+      - TARGET: production
+
+workflows:
+  version: 2
+  test_and_build:
+    jobs:
+      - run_ci
+
+      - push_image_staging:
+          requires:
+            - run_ci
+          filters:
+            branches:
+              only:
+                - ecs_staging
+                - staging
+
+      - push_image_production:
+          requires:
+            - run_ci
+          filters:
+            branches:
+              only:
+                - master
