@@ -1,8 +1,6 @@
 #!/usr/bin/env puma
 
-port_number = ENV['PORT'].to_i
-port_number = 4000 if port_number == 0
-port(port_number)
+port Integer(ENV.fetch('PORT'))
 
 # The directory to operate out of.
 #
