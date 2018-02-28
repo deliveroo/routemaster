@@ -38,3 +38,7 @@ workflows:
       - build_image:
           requires:
             - run_ci
+          filters:
+            branches:
+              only:
+                - ecs_staging
