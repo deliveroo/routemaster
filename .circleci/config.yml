@@ -1,5 +1,7 @@
 version: 2
 
+docker_version: &docker_version 17.06.0-ce
+
 defaults: &defaults
   working_directory: /routemaster
   docker:
