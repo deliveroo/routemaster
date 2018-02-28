@@ -1,40 +1,52 @@
 defaults: &defaults
   working_directory: /routemaster
   docker:
-    - image: deliveroo/circleci:0.1.8
+    - image: deliveroo/circleci:0.1.15
 
 version: 2
 
-docker_version: &docker_version 17.06.0-ce
-
 jobs:
-  build:
+  run_test_suite:
     <<: *defaults
+
+    parallelism: 3
+
     steps:
       - setup_remote_docker:
-          version: *docker_version
           reusable: true
 
       - checkout
+
+      - run:
+          name: Ensure clean slate
+          command: ci down
+
+      - run:
+          name: Build composition
+          command: ci build
+
+      - run:
+          name: Wait for Redis to start
+          command: ci run --rm wait wfi redis:6379
+
+      - run:
+          name: Run RSpec and report test results
+          command: ci run --rm app bin/test_and_report
+
+  build_image:
+    <<: *defaults
+
+    steps:
+      - setup_remote_docker:
+          reusable: true
+
+      - checkout
+
       - run: echo BUILT
-
-  test:
-    <<: *defaults
-    steps:
-      - setup_remote_docker:
-          version: *docker_version
-          reusable: true
-
-      - checkout
-
-      - run: ci down
-      - run: ci build
-      - run: ci run --rm wait wfi redis:6379
-      - run: ci run --rm app bin/test_and_report
 
 workflows:
   version: 2
-  build_and_test:
+  test_and_build:
     jobs:
-      - build
-      - test
+      - run_test_suite
+      - build_image
