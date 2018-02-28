@@ -21,7 +21,7 @@ module Routemaster
 
     let(:queue) { Models::Queue::MAIN }
 
-    def perform
+    let(:perform) do
       events.each do |event|
         described_class.new(topic: topic, event: event, queue: queue).call
       end
@@ -72,6 +72,40 @@ module Routemaster
 
     it 'increments events.bytes' do
       expect { perform }.to change { get_counter('events.bytes', topic: 'widgets') }.from(0)
+    end
+
+    context 'when a specific subscriber is specified' do
+      let(:subscriber_name) { 'foo' }
+      let(:perform) do
+        events.each do |event|
+          described_class.new(topic: topic, event: event, queue: queue, subscriber_name: subscriber_name).call
+        end
+      end
+
+      it 'pushes to only that one subscriber' do
+        expect { perform }.to change {
+          Models::Batch.all.map { |b| b.subscriber.name }.sort
+        }.to eq %w[ foo ]
+      end
+
+      context 'when the subscriber with the given name is not subscribed to the topic' do
+        let(:subscriber_name) { 'bar' }
+
+        it 'fails with relevant error' do
+          expect { perform }.to raise_error(ArgumentError)
+            .with_message 'Subscriber not subscribed to topic'
+        end
+      end
+
+      context 'when the subscriber with the given name does not exist' do
+        let(:subscriber_name) { 'poo' }
+
+        it 'fails with relevant error' do
+          expect { perform }.to raise_error(ArgumentError)
+            .with_message 'Subscriber not found'
+        end
+      end
+
     end
   end
 end

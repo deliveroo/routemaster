@@ -86,6 +86,32 @@ describe Routemaster::Controllers::Topics, type: :controller do
       end
     end
 
+    context 'when supplying a target' do
+      let!(:subscriber) { Routemaster::Models::Subscriber.new(name: 'foo').save }
+      let!(:subscription) { Routemaster::Models::Subscription.new(topic: topic, subscriber: subscriber).save }
+      let(:data) {{
+        type: 'create',
+        url:  'https://example.com/widgets/123',
+        target: subscriber.name
+      }}
+
+      it 'responds ok' do
+        perform
+        expect(last_response).to be_ok
+      end
+
+      it 'pushes the event to the supplied target subscriber' do
+        batch = double 'batch', promote: nil
+        ingest = double 'ingest'
+        expect(ingest).to receive(:call).and_return(batch)
+        expect(Routemaster::Services::Ingest).to receive(:new) { |options|
+          expect(options[:subscriber_name]).to eq('foo')
+        }.and_return(ingest)
+        perform
+      end
+
+    end
+
     describe '(error cases)' do
       it 'returns 400 on bad JSON' do
         payload.replace('whatever')

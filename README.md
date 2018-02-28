@@ -367,7 +367,7 @@ entity, this extra event can be sent for all currently existing entities.
 (maximum 1024 characters, must use HTTPS scheme).
 
 `<timestamp>` (optional) is an integer number of milliseconds since the UNIX
-epoch and represents when the event occured. If unspecified it'll be set by the
+epoch and represents when the event occurred. If unspecified it'll be set by the
 bus on reception.
 
 `<data>` (optional) is discouraged although not deprecated. It is intended when
@@ -375,6 +375,11 @@ the RESN paradigm becomes impractical to implement — e.g. small, very
 frequently-changing representations that can't reasonably be fetched from the
 source and inconvenient to reify as changes in the domain (typically for storage
 reasons).
+
+`<target>` (optional) If present, the event will only be delivered to the
+subscriber with the given name.  
+The use case for this is when performing an "initial sync" (as described above)
+and we intend to avoid delivering these `noop` events to any other subscriber.
 
 
 The response is always empty (no body). Possible statuses (besides

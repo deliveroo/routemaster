@@ -47,7 +47,7 @@ module Routemaster
         end
 
         def where(subscriber: nil, topic: nil)
-          _assert(subscriber.nil? ^ topic.nil?, 'exactly one or subscriber or topic must be provided')
+          _assert(subscriber.nil? ^ topic.nil?, 'exactly one of subscriber or topic must be provided')
           if subscriber
             Set.new _redis.smembers(_key_subscriber(subscriber)).map { |name|
               topic = Topic.find(name)
