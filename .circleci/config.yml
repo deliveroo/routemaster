@@ -16,6 +16,7 @@ jobs:
 
     steps:
       <<: *step_defaults
+
       - checkout
       - run: ci down
       - run: ci build
@@ -27,6 +28,7 @@ jobs:
 
     steps:
       <<: *step_defaults
+
       - checkout
       - run: echo BUILT
 
