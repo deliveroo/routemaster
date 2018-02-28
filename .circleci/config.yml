@@ -1,7 +1,5 @@
 defaults: &defaults
   working_directory: /routemaster
-  docker:
-    - image: deliveroo/circleci:0.1.15
 
 version: 2
 
@@ -16,9 +14,11 @@ jobs:
           reusable: true
 
       - checkout
+      - run: echo BUILT
 
   test:
     <<: *defaults
+    steps:
       - setup_remote_docker:
           version: *docker_version
           reusable: true
@@ -32,7 +32,7 @@ jobs:
 
 workflows:
   version: 2
-  test_and_build:
+  build_and_test:
     jobs:
       - build
       - test
