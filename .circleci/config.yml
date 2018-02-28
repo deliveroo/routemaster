@@ -22,16 +22,12 @@ jobs:
           command: docker system prune -f
 
       - run:
-          name: Build composition
-          command: ci build
-
-      - run:
           name: Wait for Redis to start
-          command: ci run --rm wait wfi redis:6379
+          command: docker-compose -f docker-compose.ci.yml run --rm wait wfi redis:6379
 
       - run:
           name: Run and report test results
-          command: ci run --rm app bin/test_and_report
+          command: docker-compose -f docker-compose.ci.yml run --rm app bin/test_and_report
 
   push_image: &push_image
     <<: *defaults
