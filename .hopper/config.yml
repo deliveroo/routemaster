@@ -1,25 +1,19 @@
 version: '1'
 
-web_worker_config: &web_worker_config
-  cpu: 256
-  memory: 512
-  command: "puma -I. -C config/puma.rb"
-  portMappings:
-  - containerPort: 8000
-
-
 services:
   web:
     containerDefinitions:
       web:
-        <<: *web_worker_config
-  internal-web:
-    containerDefinitions:
-      internal-web:
-        <<: *web_worker_config
+        cpu: 1024
+        essential: true
+        command: "dotenv puma -I . -p 3000 -C config/puma.rb"
+        portMappings:
+          - containerPort: 3000
+
   worker:
     containerDefinitions:
       worker:
-        cpu: 256
-        memory: 512
-        command: "bin/worker"
+        cpu: 1024
+        memory: 1024
+        essential: true
+        command: "dotenv bin/worker"
