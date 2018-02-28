@@ -1,0 +1,19 @@
+version: '1'
+
+services:
+  web:
+    containerDefinitions:
+      web:
+        cpu: 1024
+        essential: true
+        command: "dotenv puma -I . -p 3000 -C config/puma.rb"
+        portMappings:
+          - containerPort: 3000
+
+  worker:
+    containerDefinitions:
+      worker:
+        cpu: 1024
+        memory: 1024
+        essential: true
+        command: "dotenv bin/worker"

@@ -30,7 +30,8 @@ rackup 'config.ru'
 #
 # The default is "development".
 #
-# environment 'production'
+environment ENV.fetch('RACK_ENV', 'development')
+
 
 # Daemonize the server into the background. Highly suggest that
 # this be combined with "pidfile" and "stdout_redirect".
@@ -67,7 +68,9 @@ rackup 'config.ru'
 #
 # The default is "0, 16".
 #
-threads 0, Integer(ENV.fetch('PUMA_THREADS'))
+thread_count = ENV['PUMA_THREADS'].to_i
+thread_count = 5 if thread_count == 0
+threads(thread_count, thread_count)
 
 # Bind the server to "url". "tcp://", "unix://" and "ssl://" are the only
 # accepted protocols.
@@ -112,7 +115,6 @@ threads 0, Integer(ENV.fetch('PUMA_THREADS'))
 # The default is "0".
 #
 # workers 2
-workers Integer(ENV.fetch('PUMA_WORKERS'))
 
 # Code to run immediately before the master starts workers.
 #

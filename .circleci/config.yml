@@ -1,56 +1,65 @@
-defaults: &defaults
+version: 2
+
+job_defaults: &job_defaults
   working_directory: /routemaster
   docker:
-    - image: deliveroo/circleci:0.1.0
-
-version: 2
+    - image: deliveroo/circleci:0.1.15
 
 jobs:
   run_test_suite:
-    <<: *defaults
-
-    # we want to run tests multiple times to minimise the risk of flaky tests in
-    # this (critical) application
-    parallelism: 5
-
+    <<: *job_defaults
     steps:
       - setup_remote_docker:
           reusable: true
-
       - checkout
+      - run: ci down
+      - run: ci build
+      - run: ci run --rm wait wfi redis:6379
+      - run: ci run --rm app bin/test_and_report
 
-      - run:
-          name: Ensure clean slate
-          command: ci down
-
-      - run:
-          name: Build composition
-          command: ci build
-
-      - run:
-          name: Wait for Redis to start
-          command: ci run --rm wait wfi redis:6379
-
-      - run:
-          name: Run RSpec and report test results
-          command: ci run --rm app bin/test_and_report
-
-  build_image:
-    <<: *defaults
-
+  push_image: &push_image
+    <<: *job_defaults
     steps:
       - setup_remote_docker:
           reusable: true
-
       - checkout
+      - run: ensure_head
+      - run: docker build --tag routemaster:${CIRCLE_SHA1} .
+      - run: |
+          `print_env ${TARGET}`
+          push_image_to_ecr \
+            --image-name routemaster \
+            --ecr-repo $AWS_ECR_REPO_URL \
+            --aws-region $AWS_REGION
 
-      - run:
-          name: Build production image
-          command: docker build -f Dockerfile -t routemaster .
+  push_image_staging:
+    <<: *push_image
+    environment:
+      - TARGET: staging
+
+
+  push_image_production:
+    <<: *push_image
+    environment:
+      - TARGET: production
 
 workflows:
   version: 2
   test_and_build:
     jobs:
       - run_test_suite
-      - build_image
+      - push_image_staging:
+          requires:
+            - run_ci
+          filters:
+            branches:
+              only:
+                - ecs_staging
+                - staging
+      - push_image_production:
+          requires:
+            - run_ci
+          filters:
+            branches:
+              only:
+                - master
