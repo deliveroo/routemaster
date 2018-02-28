@@ -1,4 +1,4 @@
-FROM deliveroo/hopper-runner:1.0.0 as hopper-runner
+FROM deliveroo/hopper-runner:1.2.0 as hopper-runner
 
 FROM ruby:2.3.3-alpine
 

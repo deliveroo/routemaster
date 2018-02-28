@@ -3,13 +3,13 @@ version: 2
 defaults: &defaults
   working_directory: /routemaster
   docker:
-    - image: deliveroo/circleci:0.1.8
+    - image: deliveroo/circleci:0.1.15
 
 build_steps: &build_steps
   steps:
     - setup_remote_docker:
         reusable: true
-        version: 17.05.0-ce
+        version: 17.11.0-ce
 
     - checkout
 
