@@ -42,7 +42,7 @@ common: &default_settings
   #       - Ajax Service
   #       - All Services
   #
-  app_name: Routemaster (<%= ENV["RACK_ENV"] %>)
+  app_name: <%= ENV["NEW_RELIC_APP_NAME"] || "Routemaster (#{ENV.fetch('RACK_ENV', 'development')})" %>
 
   # When "true", the agent collects performance data about your
   # application and reports this data to the New Relic service at
@@ -119,7 +119,7 @@ common: &default_settings
     # Having the arguments will give us better visibility about the Redis
     # commands we run
     record_redis_arguments: true
-    
+
     # Transaction tracer is enabled by default. Set this to false to
     # turn it off. This feature is only available at the Professional
     # and above product levels.
