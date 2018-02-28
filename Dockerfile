@@ -26,4 +26,15 @@ RUN rm -rf $ARG_HOME/vendor \
     && chown -R $ARG_USER:$ARG_USER $ARG_HOME
 USER $ARG_USER
 
+ARG ARG_RACK_ENV=production
+ENV RACK_ENV=$ARG_RAILS_ENV
+
+ARG ARG_PORT=3000
+ENV PORT=$ARG_PORT
+EXPOSE $PORT
+
+ARG ARG_PROCESS=web
+ENV PROCESS=$ARG_PROCESS
+
 ENTRYPOINT ["hopper-runner"]
+CMD ["bundle", "exec", "foreman start $PROCESS"]

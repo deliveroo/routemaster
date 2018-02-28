@@ -31,7 +31,7 @@ jobs:
 
       - run:
           name: Run and report test results
-          command: ci run --rm app bundle exec rspec
+          command: ci run --rm app bin/test_and_report
 
   push_image: &push_image
     <<: *defaults
