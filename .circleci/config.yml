@@ -23,6 +23,7 @@ jobs:
       - setup_remote_docker:
           reusable: true
       - checkout
+
       - run: ensure_head
       - run: docker build --tag routemaster:${CIRCLE_SHA1} .
       - run: |
