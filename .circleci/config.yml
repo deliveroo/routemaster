@@ -23,7 +23,7 @@ jobs:
 
       - run:
           name: Build composition
-          command: ci build && ci tag
+          command: ci build
 
       - run:
           name: Wait for Redis to start
