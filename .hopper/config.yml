@@ -1,9 +1,9 @@
 version: '1'
 
 services:
-  internal-web:
+  web:
     containerDefinitions:
-      internal-web:
+      web:
         cpu: 1024
         memory: 1024
         essential: true
@@ -11,9 +11,9 @@ services:
         portMappings:
           - containerPort: 8000
 
-  web:
+  public-web:
     containerDefinitions:
-      web:
+      public-web:
         cpu: 1024
         memory: 1024
         essential: true
