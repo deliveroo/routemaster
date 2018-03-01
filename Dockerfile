@@ -1,4 +1,7 @@
+FROM deliveroo/hopper-runner:1.2.0 as hopper-runner
 FROM ruby:2.3.3-alpine
+
+COPY --from=hopper-runner /hopper-runner /usr/bin/hopper-runner
 
 # App home directory and app user can be injected through build params.
 ARG ARG_HOME=/app
@@ -28,4 +31,6 @@ EXPOSE $PORT
 
 ARG ARG_PROCESS=web
 ENV PROCESS=$ARG_PROCESS
-CMD ["sh", "-c", "foreman start ${PROCESS}"]
+
+ENTRYPOINT ["hopper-runner"]
+CMD ["bundle", "exec", "foreman start $PROCESS"]

@@ -1,7 +1,7 @@
 defaults: &defaults
   working_directory: /routemaster
   docker:
-    - image: deliveroo/circleci:0.1.0
+    - image: deliveroo/circleci:0.1.15
 
 version: 2
 
@@ -32,12 +32,11 @@ jobs:
           command: ci run --rm wait wfi redis:6379
 
       - run:
-          name: Run RSpec and report test results
+          name: Run tests and report
           command: ci run --rm app bin/test_and_report
 
-  build_image:
+  push_image: &push_image
     <<: *defaults
-
     steps:
       - setup_remote_docker:
           reusable: true
@@ -45,12 +44,51 @@ jobs:
       - checkout
 
       - run:
-          name: Build production image
-          command: docker build -f Dockerfile -t routemaster .
+          name: Make sure we are on HEAD
+          command: ensure_head
+
+      - run:
+          name: Build image
+          command: docker build --tag routemaster:${CIRCLE_SHA1} .
+
+      - run:
+          name: Push image to ECR
+          command: |
+            `print_env ${TARGET}`
+            push_image_to_ecr \
+              --image-name routemaster \
+              --ecr-repo $AWS_ECR_REPO_URL \
+              --aws-region $AWS_REGION
+
+  push_image_staging:
+    <<: *push_image
+    environment:
+      - TARGET: staging
+
+  push_image_production:
+    <<: *push_image
+    environment:
+      - TARGET: production
 
 workflows:
   version: 2
   test_and_build:
     jobs:
       - run_test_suite
-      - build_image
+
+      - push_image_staging:
+          requires:
+            - run_test_suite
+          filters:
+            branches:
+              only:
+                - hopper-changes
+                - staging
+
+      - push_image_production:
+          requires:
+            - run_test_suite
+          filters:
+            branches:
+              only:
+                - master

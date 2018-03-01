@@ -1,0 +1,30 @@
+version: '1'
+
+services:
+  internal-web:
+    containerDefinitions:
+      internal-web:
+        cpu: 1024
+        memory: 1024
+        essential: true
+        command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
+        portMappings:
+          - containerPort: 8000
+
+  web:
+    containerDefinitions:
+      web:
+        cpu: 1024
+        memory: 1024
+        essential: true
+        command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
+        portMappings:
+          - containerPort: 8000
+
+  worker:
+    containerDefinitions:
+      worker:
+        cpu: 1024
+        memory: 1024
+        essential: true
+        command: "bundle exec dotenv bin/worker"

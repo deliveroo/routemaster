@@ -18,7 +18,8 @@ module Routemaster
       set :raise_errors, false
     end
 
-    use Rack::SSL
+    use Rack::SSL if ENV.fetch('FORCE_SSL', 'true') =~ /YES|TRUE|ON|1/i
+
     use Controllers::Health
     use Controllers::ApiToken
     use Controllers::Pulse

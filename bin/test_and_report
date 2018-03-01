@@ -3,4 +3,4 @@
 set -e
 
 bundle exec rspec
-bundle exec codeclimate-test-reporter coverage/.resultset.json
+bundle exec codeclimate-test-reporter

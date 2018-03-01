@@ -67,7 +67,8 @@ rackup 'config.ru'
 #
 # The default is "0, 16".
 #
-threads 0, Integer(ENV.fetch('PUMA_THREADS'))
+thread_count = Integer(ENV.fetch('PUMA_THREADS'))
+threads(thread_count, thread_count)
 
 # Bind the server to "url". "tcp://", "unix://" and "ssl://" are the only
 # accepted protocols.
