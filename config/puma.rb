@@ -186,6 +186,10 @@ worker_timeout Integer(ENV.fetch('PUMA_TIMEOUT'))
 #
 worker_boot_timeout Integer(ENV.fetch('PUMA_BOOT_TIMEOUT'))
 
+persistent_timeout_s = ENV['PUMA_PERSISTENT_TIMEOUT_S'].to_i
+persistent_timeout_s = 60 if persistent_timeout_s == 0
+persistent_timeout(persistent_timeout_s)
+
 # === Puma control rack application ===
 
 # Start the puma control rack application on "url". This application can
@@ -213,5 +217,3 @@ end
 on_worker_shutdown do
   Routemaster.teardown
 end
-
-queue_requests(true)
