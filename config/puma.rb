@@ -213,3 +213,5 @@ end
 on_worker_shutdown do
   Routemaster.teardown
 end
+
+queue_requests(true)
