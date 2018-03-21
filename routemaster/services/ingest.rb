@@ -16,17 +16,27 @@ module Routemaster
       include Mixins::Counters
       include Mixins::Newrelic
 
-      def initialize(topic:, event:, queue:)
+      def initialize(topic:, event:, queue:, subscriber_name: nil)
         _assert(event.topic == topic.name)
         @topic = topic
         @event = event
         @queue = queue
+        @subscriber_name = subscriber_name
       end
 
       def call
         trace_with_newrelic('Custom/Services/ingest') do
           data = Services::Codec.new.dump(@event)
-          @topic.subscribers.each do |s|
+          if @subscriber_name
+            subscriber = Models::Subscriber.find(@subscriber_name)
+            _assert subscriber, 'Subscriber not found'
+            _assert @topic.subscribers.include?(subscriber), 'Subscriber not subscribed to topic'
+            subscribers = [subscriber]
+          else
+            subscribers = @topic.subscribers
+          end
+
+          subscribers.each do |s|
             trace_with_newrelic("Custom/Services/ingest-#{s.name}") do
               batch = nil
 
