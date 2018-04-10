@@ -19,6 +19,9 @@ module Routemaster
         _log.warn { "Failed to decode message" }
         _log_exception(e)
         Models::Message::Garbled.new
+      rescue TypeError => e
+        _log.warn { "Failed. Code #{code}, Data #{data}, Hash #{hash}" }
+        Models::Message::Garbled.new
       end
 
       # Transforms a message into a string
