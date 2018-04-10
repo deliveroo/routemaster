@@ -8,8 +8,6 @@ services:
         memory: 1024
         essential: true
         command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
-        portMappings:
-          - containerPort: 8000
 
   public-web:
     containerDefinitions:
@@ -18,8 +16,6 @@ services:
         memory: 1024
         essential: true
         command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
-        portMappings:
-          - containerPort: 8000
 
   worker:
     containerDefinitions:
