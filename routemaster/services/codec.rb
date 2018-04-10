@@ -21,6 +21,7 @@ module Routemaster
         Models::Message::Garbled.new
       rescue TypeError => e
         _log.warn { "Failed. Code #{code}, Data #{data}, Hash #{hash}" }
+        _log_exception(e)
         Models::Message::Garbled.new
       end
 
