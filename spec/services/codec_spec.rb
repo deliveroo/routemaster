@@ -50,4 +50,14 @@ describe Routemaster::Services::Codec do
       expect(subject.load(data)).to be_a_kind_of(Routemaster::Models::Message)
     end
   end
+
+  context 'with an empty Hash message' do
+    let(:data) do
+      ['some message code', nil].to_msgpack
+    end
+
+    it 'returns garbled message' do
+      expect(subject.load(data)).to be_a Routemaster::Models::Message::Garbled
+    end
+  end
 end
