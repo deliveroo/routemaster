@@ -84,10 +84,12 @@ module Routemaster
           ['success', nil]
         else
           error = Exceptions::CantDeliver.new("HTTP #{response.status}", @throttle.retry_backoff)
+          _log.warn("Delivery failure, HTTP #{response.status}")
           ['failure', error]
         end
       rescue Faraday::Error::ClientError => e
         error = Exceptions::CantDeliver.new("#{e.class.name}: #{e.message}", @throttle.retry_backoff)
+        _log_exception(e)
         ['failure', error]
       end
 
