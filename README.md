@@ -579,3 +579,11 @@ If you want to get a shell on a Docker container built from this image, build th
 ```bash
 docker run --rm -it routemaster sh
 ```
+
+To run routemaster locally with docker-compose, run:
+
+```bash
+docker-compose up
+```
+
+This will spin up redis, the routemaster background worker and the routemaster web worker on port 3000.
