@@ -27,7 +27,7 @@ services:
 
   elasticache-public-web: # elasticache
     containerDefinitions:
-      public-web:
+      elasticache-public-web:
         cpu: 1024
         memory: 1024
         essential: true
@@ -35,7 +35,7 @@ services:
 
   elasticache-worker: # elasticache
     containerDefinitions:
-      worker:
+      elasticache-worker:
         cpu: 1024
         memory: 1024
         essential: true
