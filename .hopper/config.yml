@@ -1,7 +1,7 @@
 version: '1'
 
 services:
-  web:
+  web: # Redisgreen
     containerDefinitions:
       web:
         cpu: 1024
@@ -9,7 +9,7 @@ services:
         essential: true
         command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
 
-  public-web:
+  public-web: # redisgreen
     containerDefinitions:
       public-web:
         cpu: 1024
@@ -17,10 +17,26 @@ services:
         essential: true
         command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
 
-  worker:
+  worker: # redisgreen
     containerDefinitions:
       worker:
         cpu: 1024
         memory: 1024
         essential: true
         command: "bundle exec dotenv bin/worker"
+
+  elasticache-public-web: # elasticache
+    containerDefinitions:
+      elasticache-public-web:
+        cpu: 1024
+        memory: 1024
+        essential: true
+        command: "bin/run_with_elasticache_redis.sh bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
+
+  elasticache-worker: # elasticache
+    containerDefinitions:
+      elasticache-worker:
+        cpu: 1024
+        memory: 1024
+        essential: true
+        command: "bin/run_with_elasticache_redis.sh bundle exec dotenv bin/worker"
