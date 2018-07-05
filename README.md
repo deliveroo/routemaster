@@ -501,9 +501,11 @@ Routermaster provides monitoring endpoints:
     >> GET /subscriptions
     << [
     <<   {
-    <<     subscriber: <username>,
-    <<     callback:   <url>,
-    <<     topics:     [<name>, ...],
+    <<     subscriber:  <username>,
+    <<     callback:    <url>,
+    <<     max_events:  <value>,
+    <<     timeout:     <value>,
+    <<     topics:      [<name>, ...],
     <<     events: {
     <<       sent:       <sent_count>,
     <<       queued:     <queue_size>,

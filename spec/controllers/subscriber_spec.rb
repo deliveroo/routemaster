@@ -48,6 +48,8 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
         .to eql([{
           "subscriber" => "charlie",
           "callback"   => nil,
+          "max_events" => 100,
+          "timeout"    => 500,
           "topics"     => ["widgets"],
           "events"     => {
             "sent"   => nil,

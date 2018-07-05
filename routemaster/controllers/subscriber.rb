@@ -96,6 +96,8 @@ module Routemaster
           {
             subscriber: subscriber.name,
             callback: subscriber.callback,
+            max_events: subscriber.max_events,
+            timeout: subscriber.timeout,
             topics: subscriber.topics.map(&:name),
             events: {
               sent:   nil,
