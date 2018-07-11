@@ -42,7 +42,10 @@ common: &default_settings
   #       - Ajax Service
   #       - All Services
   #
-  app_name: <%= ENV["NEW_RELIC_APP_NAME"] || "Routemaster (#{ENV.fetch('RACK_ENV', 'development')})" %>
+  <% base_app_name = ENV["NEW_RELIC_APP_NAME"] || "Routemaster (#{ENV.fetch('RACK_ENV', 'development')})" %>
+  <% task_app_name = ENV.key?("HOPPER_SERVICE_NAME") ? "#{base_app_name} - #{ENV['HOPPER_SERVICE_NAME']}" : nil %>
+  <% full_app_name = [task_app_name, base_app_name].compact.join(";") %>
+  app_name: '<%= full_app_name %>'
 
   # When "true", the agent collects performance data about your
   # application and reports this data to the New Relic service at
