@@ -66,13 +66,13 @@ describe Routemaster::Services::Deliver do
       tag = { status: options.fetch(:status) }
 
       it 'increments delivery.events counter' do
-        expect { perform rescue nil }.to change { 
+        expect { perform rescue nil }.to change {
           get_counter('delivery.events', tag.merge(queue: 'alice'))
         }.by(count)
       end
 
       it 'increments delivery.batches counter' do
-        expect { perform rescue nil }.to change { 
+        expect { perform rescue nil }.to change {
           get_counter('delivery.batches', tag.merge(queue: 'alice'))
         }.by(1)
       end
@@ -146,7 +146,7 @@ describe Routemaster::Services::Deliver do
 
     shared_examples 'a delivery failure' do |options|
       options ||= {}
- 
+
       it "raises a Routemaster::Exceptions::DeliveryFailure exception" do
         expect { perform }.to raise_error(Routemaster::Exceptions::DeliveryFailure)
       end
@@ -188,7 +188,7 @@ describe Routemaster::Services::Deliver do
         end
 
         it 'increments delivery.batches counter, reporting the batch as successful' do
-          expect { perform rescue nil }.to change { 
+          expect { perform rescue nil }.to change {
             get_counter('delivery.batches', {queue: 'alice', status: "success"})
           }.by(1)
         end
@@ -213,7 +213,7 @@ describe Routemaster::Services::Deliver do
         end
 
         it 'increments delivery.batches counter, reporting the batch as throttled' do
-          expect { perform rescue nil }.to change { 
+          expect { perform rescue nil }.to change {
             get_counter('delivery.batches', {queue: 'alice', status: "throttled"})
           }.by(1)
         end
@@ -264,7 +264,7 @@ describe Routemaster::Services::Deliver do
       it 'sends valid JSON' do
         perform
         expect(@request.headers['Content-Type']).to eq('application/json')
-        expect { JSON.parse(@request.body) }.not_to raise_error 
+        expect { JSON.parse(@request.body) }.not_to raise_error
       end
 
       it 'delivers events in order' do
