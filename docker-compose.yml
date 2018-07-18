@@ -1,9 +1,11 @@
-version: '3'
+version: '3.6'
 
 services:
 
   redis:
     image: redis:3.2.9
+    networks:
+      db:
 
   web:
     build:
@@ -17,10 +19,12 @@ services:
       - PUMA_TIMEOUT=5
       - PUMA_THREADS=1
       - PUMA_WORKERS=1
-    links:
+    depends_on:
       - redis
+    networks:
+      db:
     ports:
-      - "3000:3000"
+      - 3000
 
   worker:
     build:
@@ -28,3 +32,8 @@ services:
     command: bundle exec bin/worker
     environment:
       - ROUTEMASTER_REDIS_URL=redis://redis:6379/0
+    networks:
+      db:
+
+networks:
+  db:
