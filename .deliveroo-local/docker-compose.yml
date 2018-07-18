@@ -1,0 +1,42 @@
+version: "3.6"
+
+services:
+
+  web:
+    command: foreman start --env /dev/null web
+    env_file: .deliveroo-local/.env
+    image: deliveroo-local/routemaster
+    labels:
+      - "traefik.docker.network=deliveroo-dns"
+      - "traefik.frontend.rule=Host:routemaster.deliveroo-local.com"
+      - "traefik.port=3000"
+    networks:
+      dns:
+    dns:
+      - 172.177.0.99
+
+  worker:
+    command: foreman start --env /dev/null worker
+    image: deliveroo-local/routemaster
+    env_file: .deliveroo-local/.env
+    restart: on-failure
+    networks:
+      dns:
+    dns:
+      - 172.177.0.99
+
+  test:
+    build: ./
+    command: "true"
+    image: deliveroo-local/routemaster
+    depends_on:
+      - redis
+    env_file: .deliveroo-local/.env.test
+    networks:
+      db:
+
+networks:
+  db:
+  dns:
+    external:
+      name: deliveroo-dns
