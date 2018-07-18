@@ -33,7 +33,6 @@ services:
         essential: true
         command: "bin/run_with_elasticache_redis.sh bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
 
-
   elasticache-internal: # elasticache
     containerDefinitions:
       elasticache-internal:
