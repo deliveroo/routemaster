@@ -8,8 +8,8 @@ ARG ARG_HOME=/app
 ARG ARG_USER=app
 
 RUN gem install bundler \
-    && apt update \
-    && apt install build-essential git \
+    && apt-get update \
+    && apt-get install --yes build-essential git \
     && addgroup -S $ARG_USER \
     && adduser -S -D -h /home/$ARG_USER -G $ARG_USER $ARG_USER
 
