@@ -7,7 +7,7 @@ COPY --from=hopper-runner /hopper-runner /usr/bin/hopper-runner
 ARG ARG_HOME=/app
 ARG ARG_USER=app
 
-RUN adduser --home /home/$ARG_USER --shell /bin/false
+RUN adduser --home /home/$ARG_USER --shell /bin/false $ARG_USER
 
 RUN apt-get update && apt-get install -q -y --no-install-recommends build-essential git
 
