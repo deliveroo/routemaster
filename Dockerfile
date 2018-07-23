@@ -1,5 +1,5 @@
 FROM deliveroo/hopper-runner:1.2.0 as hopper-runner
-FROM ruby:2.3.3-slim
+FROM ruby:2.3.3-slim-stretch
 
 COPY --from=hopper-runner /hopper-runner /usr/bin/hopper-runner
 
