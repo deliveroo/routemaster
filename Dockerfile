@@ -9,7 +9,7 @@ ARG ARG_USER=app
 
 RUN useradd -d /home/$ARG_USER -m --shell /bin/false --user-group $ARG_USER
 
-RUN apt-get update && apt-get install -q -y --no-install-recommends build-essential git libcurl4
+RUN apt-get update && apt-get install -q -y --no-install-recommends build-essential git
 
 RUN gem install bundler
 
