@@ -59,7 +59,7 @@ services:
 
   elasticache3-public-web: # elasticache redis3
     containerDefinitions:
-      elasticache-public-web:
+      elasticache3-public-web:
         cpu: 1024
         memory: 1024
         essential: true
@@ -67,7 +67,7 @@ services:
 
   elasticache3-internal: # elasticache redis3
     containerDefinitions:
-      elasticache-internal:
+      elasticache3-internal:
         cpu: 1024
         memory: 1024
         essential: true
@@ -75,7 +75,7 @@ services:
 
   elasticache3-worker: # elasticache redis3
     containerDefinitions:
-      elasticache-worker:
+      elasticache3-worker:
         cpu: 1024
         memory: 1024
         essential: true
