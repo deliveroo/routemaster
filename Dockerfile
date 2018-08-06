@@ -1,5 +1,5 @@
 FROM deliveroo/hopper-runner:1.2.0 as hopper-runner
-FROM ruby:2.3.3-alpine
+FROM ruby:2.3.3
 
 COPY --from=hopper-runner /hopper-runner /usr/bin/hopper-runner
 
@@ -7,10 +7,11 @@ COPY --from=hopper-runner /hopper-runner /usr/bin/hopper-runner
 ARG ARG_HOME=/app
 ARG ARG_USER=app
 
-RUN gem install bundler \
-    && apk add --no-cache build-base git \
-    && addgroup -S $ARG_USER \
-    && adduser -S -D -h /home/$ARG_USER -G $ARG_USER $ARG_USER
+RUN useradd -d /home/$ARG_USER -m --shell /bin/false --user-group $ARG_USER
+
+RUN apt-get update && apt-get install -q -y --no-install-recommends build-essential git
+
+RUN gem install bundler
 
 WORKDIR $ARG_HOME
 ADD vendor $ARG_HOME/vendor

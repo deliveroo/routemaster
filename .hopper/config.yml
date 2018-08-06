@@ -33,6 +33,14 @@ services:
         essential: true
         command: "bin/run_with_elasticache_redis.sh bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
 
+  elasticache-internal: # elasticache
+    containerDefinitions:
+      elasticache-internal:
+        cpu: 1024
+        memory: 1024
+        essential: true
+        command: "bin/run_with_elasticache_redis.sh bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
+
   elasticache-worker: # elasticache
     containerDefinitions:
       elasticache-worker:
@@ -40,3 +48,27 @@ services:
         memory: 1024
         essential: true
         command: "bin/run_with_elasticache_redis.sh bundle exec dotenv bin/worker"
+
+  elasticache3-public-web: # elasticache redis3
+    containerDefinitions:
+      elasticache-public-web:
+        cpu: 1024
+        memory: 1024
+        essential: true
+        command: "bin/run_with_elasticache_redis3.sh bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
+
+  elasticache3-internal: # elasticache redis3
+    containerDefinitions:
+      elasticache-internal:
+        cpu: 1024
+        memory: 1024
+        essential: true
+        command: "bin/run_with_elasticache_redis3.sh bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
+
+  elasticache3-worker: # elasticache redis3
+    containerDefinitions:
+      elasticache-worker:
+        cpu: 1024
+        memory: 1024
+        essential: true
+        command: "bin/run_with_elasticache_redis3.sh bundle exec dotenv bin/worker"
