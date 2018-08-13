@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
-# due to having two routemasters in one hopper app we need a way to
-# set the redis url differently for some of them. this is how we do it.
+# allows setting the redis url per-service
 set -e
 
 export ROUTEMASTER_REDIS_URL=$ELASTICACHE3_ROUTEMASTER_REDIS_URL
