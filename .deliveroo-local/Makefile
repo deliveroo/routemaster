@@ -5,8 +5,23 @@ compose = docker-compose -p $(project) -f ../docker-compose.yml -f docker-compos
 
 all: build start
 
-build:
+build: build/docker
 	@$(compose) build
+
+build/docker:
+	@sh ./make/generate-dockerfile.sh
+
+clean:
+	@$(compose) down
+
+destroy:
+	@$(compose) down -v --rmi=local --remove-orphans
+
+logs:
+	@$(compose) logs -f app worker
+
+restart:
+	@$(compose) up -d
 
 start:
 	@$(compose) up -d
