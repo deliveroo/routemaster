@@ -1,55 +1,7 @@
 version: '1'
 
 services:
-  web: # Redisgreen
-    containerDefinitions:
-      web:
-        cpu: 1024
-        memory: 1024
-        essential: true
-        command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
-
-  public-web: # redisgreen
-    containerDefinitions:
-      public-web:
-        cpu: 1024
-        memory: 1024
-        essential: true
-        command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
-
-  worker: # redisgreen
-    containerDefinitions:
-      worker:
-        cpu: 1024
-        memory: 1024
-        essential: true
-        command: "bundle exec dotenv bin/worker"
-
-  elasticache-public-web: # elasticache
-    containerDefinitions:
-      elasticache-public-web:
-        cpu: 1024
-        memory: 1024
-        essential: true
-        command: "bin/run_with_elasticache_redis.sh bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
-
-  elasticache-internal: # elasticache
-    containerDefinitions:
-      elasticache-internal:
-        cpu: 1024
-        memory: 1024
-        essential: true
-        command: "bin/run_with_elasticache_redis.sh bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
-
-  elasticache-worker: # elasticache
-    containerDefinitions:
-      elasticache-worker:
-        cpu: 1024
-        memory: 1024
-        essential: true
-        command: "bin/run_with_elasticache_redis.sh bundle exec dotenv bin/worker"
-
-  elasticache3-public-web: # elasticache redis3
+  elasticache3-public-web:
     containerDefinitions:
       elasticache3-public-web:
         cpu: 1024
@@ -57,7 +9,7 @@ services:
         essential: true
         command: "bin/run_with_elasticache_redis3.sh bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
 
-  elasticache3-internal: # elasticache redis3
+  elasticache3-internal:
     containerDefinitions:
       elasticache3-internal:
         cpu: 1024
@@ -65,7 +17,7 @@ services:
         essential: true
         command: "bin/run_with_elasticache_redis3.sh bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
 
-  elasticache3-worker: # elasticache redis3
+  elasticache3-worker:
     containerDefinitions:
       elasticache3-worker:
         cpu: 1024
