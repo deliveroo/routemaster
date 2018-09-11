@@ -11,6 +11,9 @@ build: build/docker
 build/docker:
 	@sh ./make/generate-dockerfile.sh
 
+check:
+	@sh ./make/check.sh
+
 clean:
 	@$(compose) down
 
@@ -23,7 +26,9 @@ logs:
 restart:
 	@$(compose) up -d
 
-start:
+start: start/services check
+
+start/services:
 	@$(compose) up -d
 
 test:
