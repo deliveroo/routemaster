@@ -7,7 +7,7 @@ services:
         cpu: 1024
         memory: 1024
         essential: true
-        command: "bin/run_with_elasticache_redis3.sh bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
+        command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
 
   elasticache3-internal:
     containerDefinitions:
@@ -15,7 +15,7 @@ services:
         cpu: 1024
         memory: 1024
         essential: true
-        command: "bin/run_with_elasticache_redis3.sh bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
+        command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
 
   elasticache3-worker:
     containerDefinitions:
@@ -23,4 +23,4 @@ services:
         cpu: 1024
         memory: 1024
         essential: true
-        command: "bin/run_with_elasticache_redis3.sh bundle exec dotenv bin/worker"
+        command: "bundle exec dotenv bin/worker"
