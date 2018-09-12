@@ -24,3 +24,21 @@ services:
         memory: 1024
         essential: true
         command: "bundle exec dotenv bin/worker"
+
+# This routemaster has its own elasticache redis instance just for Rider Locations.
+
+  rider_locations-internal:
+    containerDefinitions:
+      rider_locations-internal:
+        cpu: 1024
+        memory: 1024
+        essential: true
+        command: "bin/run_with_rider_locations_redis.sh bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
+
+  rider_locations-worker:
+    containerDefinitions:
+      rider_locations-worker:
+        cpu: 1024
+        memory: 1024
+        essential: true
+        command: "bin/run_with_rider_locations_redis.sh bundle exec dotenv bin/worker"
