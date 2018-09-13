@@ -43,7 +43,7 @@ services:
         essential: true
         command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
 
-  rl-worker-worker:
+  rl-worker:
     containerDefinitions:
       rl-worker:
         cpu: 1024
