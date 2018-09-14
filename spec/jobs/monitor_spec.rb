@@ -24,7 +24,7 @@ describe Routemaster::Jobs::Monitor do
         'bob'   => 42,
       }
     )
-  
+
     [
       Routemaster::Models::Job.new(name: 'null', args: 1, run_at: nil),
       Routemaster::Models::Job.new(name: 'null', args: 2, run_at: Routemaster.now + 1000),
@@ -35,23 +35,32 @@ describe Routemaster::Jobs::Monitor do
   end
 
   describe 'dispatches gauges' do
-    before { subject.call }
+    it 'should report necessary metrics with appropriate tags' do
+      subject.call
 
-    it { expect(@gauges).to include(['subscriber.queue.batches',  1, array_including('subscriber:alice')]) }
-    it { expect(@gauges).to include(['subscriber.queue.batches',  4, array_including('subscriber:bob')]) }
-    it { expect(@gauges).to include(['subscriber.queue.events',  12, array_including('subscriber:alice')]) }
-    it { expect(@gauges).to include(['subscriber.queue.events',  42, array_including('subscriber:bob')]) }
+      base_tags = [
+        'app:routemaster-dev',
+        'env:test',
+        'hopper_service_name:null',
+        'redis_env_key:routemaster_redis_url',
+      ]
 
-    it { expect(@gauges).to include(['jobs.count', 2, array_including(%w[queue:main status:instant])]) }
-    it { expect(@gauges).to include(['jobs.count', 1, array_including(%w[queue:main status:scheduled])]) }
+      expect(@gauges).to include(['subscriber.queue.batches', 1, array_including('subscriber:alice', *base_tags)])
+      expect(@gauges).to include(['subscriber.queue.batches', 4, array_including('subscriber:bob', *base_tags)])
+      expect(@gauges).to include(['subscriber.queue.events', 12, array_including('subscriber:alice', *base_tags)])
+      expect(@gauges).to include(['subscriber.queue.events', 42, array_including('subscriber:bob', *base_tags)])
 
-    it { expect(@gauges).to include(['redis.bytes_used',    a_kind_of(Integer), a_kind_of(Array)]) }
-    it { expect(@gauges).to include(['redis.low_mark',      a_kind_of(Integer), a_kind_of(Array)]) }
-    it { expect(@gauges).to include(['redis.high_mark',     a_kind_of(Integer), a_kind_of(Array)]) }
+      expect(@gauges).to include(['jobs.count', 2, array_including(['queue:main', 'status:instant', *base_tags])])
+      expect(@gauges).to include(['jobs.count', 1, array_including(['queue:main', 'status:scheduled', *base_tags])])
+
+      expect(@gauges).to include(['redis.bytes_used', a_kind_of(Integer), array_including(*base_tags)])
+      expect(@gauges).to include(['redis.low_mark', a_kind_of(Integer), array_including(*base_tags)])
+      expect(@gauges).to include(['redis.high_mark', a_kind_of(Integer), array_including(*base_tags)])
+    end
   end
 
   describe 'dispatches counters' do
-    before do 
+    before do
       Routemaster::Models::Counters.instance.incr(:foo, bar: :baz).flush
       subject.call
     end
@@ -76,7 +85,7 @@ describe Routemaster::Jobs::Monitor do
         subject.call
       }.to raise_error(Routemaster::Models::Queue::Retry)
     end
-    
+
     it 'sets a retry delay' do
       begin
         subject.call

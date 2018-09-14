@@ -15,9 +15,11 @@ module Routemaster
       def initialize(dispatcher: Routemaster::Services::Metrics::Emit.new)
         @dispatcher = dispatcher
         @tags = [
+          "app:#{ENV.fetch('ROUTEMASTER_APP_NAME')}",
           "env:#{ENV.fetch('RACK_ENV')}",
-          "app:#{ENV.ifetch('ROUTEMASTER_APP_NAME')}",
-        ]
+          "hopper_service_name:#{ENV.fetch('HOPPER_SERVICE_NAME')}",
+          "redis_env_key:#{ENV.fetch('REDIS_ENV_KEY')}",
+        ].map(&:downcase)
       end
 
       def call
