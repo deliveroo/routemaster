@@ -18,46 +18,28 @@ services:
     containerDefinitions:
       elasticache3-public-web:
         <<: *web_defaults
-        environment:
-          - name: REDIS_ENV_KEY
-            value: ROUTEMASTER_REDIS_URL
 
   elasticache3-internal:
     containerDefinitions:
       elasticache3-internal:
         <<: *web_defaults
-        environment:
-          - name: REDIS_ENV_KEY
-            value: ROUTEMASTER_REDIS_URL
 
   elasticache3-worker:
     containerDefinitions:
       elasticache3-worker:
         <<: *worker_defaults
-        environment:
-          - name: REDIS_ENV_KEY
-            value: ROUTEMASTER_REDIS_URL
 
   rl-public-web:
     containerDefinitions:
       rl-public-web:
         <<: *web_defaults
-        environment:
-          - name: REDIS_ENV_KEY
-            value: RIDER_LOCATIONS_ROUTEMASTER_REDIS_URL
 
   rl-internal:
     containerDefinitions:
       rl-internal:
         <<: *web_defaults
-        environment:
-          - name: REDIS_ENV_KEY
-            value: RIDER_LOCATIONS_ROUTEMASTER_REDIS_URL
 
   rl-worker:
     containerDefinitions:
       rl-worker:
         <<: *worker_defaults
-        environment:
-          - name: REDIS_ENV_KEY
-            value: RIDER_LOCATIONS_ROUTEMASTER_REDIS_URL
