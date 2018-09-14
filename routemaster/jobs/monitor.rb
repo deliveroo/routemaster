@@ -18,7 +18,7 @@ module Routemaster
           "app:#{ENV.fetch('ROUTEMASTER_APP_NAME')}",
           "env:#{ENV.fetch('RACK_ENV')}",
           "hopper_service_name:#{ENV.fetch('HOPPER_SERVICE_NAME')}",
-          "redis_env_key:#{ENV.fetch('REDIS_ENV_KEY')}",
+          "hopper_app_name:#{ENV.fetch('HOPPER_APP_NAME')}",
         ].map(&:downcase)
       end
 
