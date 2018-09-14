@@ -42,7 +42,7 @@ describe Routemaster::Jobs::Monitor do
         'app:routemaster-dev',
         'env:test',
         'hopper_service_name:null',
-        'redis_env_key:routemaster_redis_url',
+        'hopper_app_name:null',
       ]
 
       expect(@gauges).to include(['subscriber.queue.batches', 1, array_including('subscriber:alice', *base_tags)])
