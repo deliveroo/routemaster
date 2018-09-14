@@ -131,6 +131,11 @@ To get this application up and running you will need the following tools:
   * Just let it run with default settings
   * If you want to run it manually - `redis-server`
 
+Set your Redis server's URL for Routemaster using `ROUTEMASTER_REDIS_URL`.
+If you want to use another environment variable, set that and set the new
+environment variable's key as a value for `REDIS_ENV_KEY` environment
+variable.
+
 Routemaster only accepts HTTPS calls. To get around this restriction on
 development, please install [`puma-dev`](https://github.com/puma/puma-dev).
 
