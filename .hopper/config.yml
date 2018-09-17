@@ -12,6 +12,10 @@ web_defaults: &web_defaults
 worker_defaults: &worker_defaults
   <<: *container_defaults
   command: "bundle exec dotenv bin/worker"
+  environment:
+  - name: ROUTEMASTER_REDIS_URL_INDEX
+    value: 0
+
 
 services:
   elasticache3-public-web:

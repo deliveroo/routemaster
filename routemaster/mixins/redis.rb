@@ -14,9 +14,16 @@ module Routemaster
       def _redis
         @@_redis ||=
         ConnectionPool.wrap(size: Routemaster.config[:redis_pool_size], timeout: 2) do
-          key = ENV['REDIS_ENV_KEY']
-          key = 'ROUTEMASTER_REDIS_URL' unless (key && ENV.key?(key))
-          ::Redis.new(url: ENV.fetch(key))
+          redis_urls_string = ENV['ROUTEMASTER_REDIS_URLS'] || ENV['ROUTEMASTER_REDIS_URL']
+          redis_urls = redis_urls_string.split(',').map(&:strip).reject(&:empty?)
+          env_key = 'ROUTEMASTER_REDIS_URL_INDEX'
+          if ENV.key?(env_key)
+            redis_url_index = ENV.fetch(env_key).to_i
+          else
+            redis_url_index = Thread.current.object_id % redis_urls.size
+          end
+          redis_url = redis_urls[redis_url_index]
+          ::Redis.new(url: redis_url)
         end
       end
 
