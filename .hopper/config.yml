@@ -1,21 +1,16 @@
 version: '1'
 
-container_defaults: &container_defaults
-  cpu: 1024
-  memory: 1024
-  essential: true
-
 web_defaults: &web_defaults
-  <<: *container_defaults
+  cpu: 2048
+  memory: 2048
+  essential: true
   command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
 
 worker_defaults: &worker_defaults
-  <<: *container_defaults
+  cpu: 1024
+  memory: 1024
+  essential: true
   command: "bundle exec dotenv bin/worker"
-  environment:
-  - name: ROUTEMASTER_REDIS_URL_INDEX
-    value: 0
-
 
 services:
   elasticache3-public-web:
