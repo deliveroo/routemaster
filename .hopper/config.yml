@@ -1,15 +1,16 @@
 version: '1'
 
-web_defaults: &web_defaults
-  cpu: 2048
-  memory: 2048
-  essential: true
-  command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
-
-worker_defaults: &worker_defaults
+container_defaults: &container_defaults
   cpu: 1024
   memory: 1024
   essential: true
+
+web_defaults: &web_defaults
+  <<: *container_defaults
+  command: "bundle exec dotenv puma -I . -p 8000 -C config/puma.rb"
+
+worker_defaults: &worker_defaults
+  <<: *container_defaults
   command: "bundle exec dotenv bin/worker"
 
 services:
