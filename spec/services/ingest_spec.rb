@@ -76,14 +76,28 @@ module Routemaster
     end
 
     context 'when publisher details exist' do
-      let(:publisher) { 'pub-app--1d44d-6d00-48ee-a404-6d24a73' }
+      context 'publisher name respect separator format' do
+        let(:publisher) { 'pub-app--1d44d-6d00-48ee-a404-6d24a73' }
 
-      it 'increments events.published' do
-        expect { perform }.to change { get_counter('events.published', topic: 'widgets', publisher: 'pub-app') }.from(0).to(2)
+        it 'increments events.published' do
+          expect { perform }.to change { get_counter('events.published', topic: 'widgets', publisher: 'pub-app') }.from(0).to(2)
+        end
+
+        it 'increments events.bytes' do
+          expect { perform }.to change { get_counter('events.bytes', topic: 'widgets', publisher: 'pub-app') }.from(0)
+        end
       end
 
-      it 'increments events.bytes' do
-        expect { perform }.to change { get_counter('events.bytes', topic: 'widgets', publisher: 'pub-app') }.from(0)
+      context 'publisher name does not respect separator format' do
+        let(:publisher) { 'pub-app-1d44d-6d00-48ee-a404-6d24a73' }
+
+        it 'increments events.published' do
+          expect { perform }.to change { get_counter('events.published', topic: 'widgets', publisher: 'malformed') }.from(0).to(2)
+        end
+
+        it 'increments events.bytes' do
+          expect { perform }.to change { get_counter('events.bytes', topic: 'widgets', publisher: 'malformed') }.from(0)
+        end
       end
     end
   end
