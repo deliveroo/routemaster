@@ -9,9 +9,11 @@ require 'routemaster/models/job'
 
 module Routemaster
   module Services
-    # Enqueue an event for all topic subscribers, and
-    # update statistics.
+    # Enqueue an event for all topic subscribers and update statistics.
+
     class Ingest
+      DEFAULT_PUBLISHER_TAG = 'null'.freeze
+
       include Mixins::Assert
       include Mixins::Counters
       include Mixins::Newrelic
@@ -26,6 +28,8 @@ module Routemaster
       def call
         trace_with_newrelic('Custom/Services/ingest') do
           data = Services::Codec.new.dump(@event)
+          publisher = @topic.publisher.to_s.split('--').first || DEFAULT_PUBLISHER_TAG
+
           @topic.subscribers.each do |s|
             trace_with_newrelic("Custom/Services/ingest-#{s.name}") do
               batch = nil
@@ -48,8 +52,8 @@ module Routemaster
             end
           end
 
-          _counters.incr('events.published', topic: @topic.name)
-          _counters.incr('events.bytes', topic: @topic.name, count: data.length)
+          _counters.incr('events.published', topic: @topic.name, publisher: publisher)
+          _counters.incr('events.bytes', topic: @topic.name, count: data.length, publisher: publisher)
 
           trace_with_newrelic('Custom/Services/topic-increment') do
             @topic.increment_count

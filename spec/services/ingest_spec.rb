@@ -9,7 +9,8 @@ require 'routemaster/models/topic'
 
 module Routemaster
   describe Services::Ingest do
-    let(:topic) { Models::Topic.find_or_create!(name: 'widgets', publisher: nil) }
+    let(:publisher) { nil }
+    let(:topic) { Models::Topic.find_or_create!(name: 'widgets', publisher: publisher) }
 
     let(:subscribers) {[
       Models::Subscriber.new(name: 'foo').save,
@@ -67,11 +68,23 @@ module Routemaster
     end
 
     it 'increments events.published' do
-      expect { perform }.to change { get_counter('events.published', topic: 'widgets') }.from(0).to(2)
+      expect { perform }.to change { get_counter('events.published', topic: 'widgets', publisher: 'null') }.from(0).to(2)
     end
 
     it 'increments events.bytes' do
-      expect { perform }.to change { get_counter('events.bytes', topic: 'widgets') }.from(0)
+      expect { perform }.to change { get_counter('events.bytes', topic: 'widgets', publisher: 'null') }.from(0)
+    end
+
+    context 'when publisher details exist' do
+      let(:publisher) { 'pub-app--1d44d-6d00-48ee-a404-6d24a73' }
+
+      it 'increments events.published' do
+        expect { perform }.to change { get_counter('events.published', topic: 'widgets', publisher: 'pub-app') }.from(0).to(2)
+      end
+
+      it 'increments events.bytes' do
+        expect { perform }.to change { get_counter('events.bytes', topic: 'widgets', publisher: 'pub-app') }.from(0)
+      end
     end
   end
 end
