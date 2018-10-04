@@ -293,6 +293,14 @@ Note that both endpoints require authentication.
 
 ### Authentication, security.
 
+Note that is _preferable_ for all tokens to be prefixed with owning service
+and double hyphen. For example:
+
+- `publishing-service-one--UUID1234XXX`
+- `subscribing-service-one--UUID1234XXX`
+
+Following that format of tokens will help ensure proper reporting of metrics.
+
 All requests over non-SSL connections will be met with a 308 Permanent Redirect.
 
 HTTP Basic is required for all requests. The password will be ignored, and the
