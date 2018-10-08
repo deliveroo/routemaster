@@ -9,9 +9,10 @@ require 'json'
 describe Routemaster::Controllers::Subscriber, type: :controller do
   let(:uid) { 'charlie' }
   let(:app) { described_class.new }
+  let(:attributes) { nil }
 
   let(:subscriber) do
-    Routemaster::Models::Subscriber.new(name: 'charlie').save
+    Routemaster::Models::Subscriber.new(name: 'charlie', attributes: attributes).save
   end
 
   let(:topic) do
@@ -28,6 +29,8 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
 
   describe 'GET /subscribers' do
     let(:perform) { get "/subscribers" }
+    let(:uuid) { "subscriber-one--12345678" }
+    let(:attributes) { { uuid: uuid } }
 
     it 'responds' do
       perform
@@ -47,6 +50,7 @@ describe Routemaster::Controllers::Subscriber, type: :controller do
       expect(resp)
         .to eql([{
           "subscriber" => "charlie",
+          "uuid"       => uuid,
           "callback"   => nil,
           "max_events" => 100,
           "timeout"    => 500,

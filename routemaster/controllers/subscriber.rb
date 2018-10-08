@@ -79,7 +79,10 @@ module Routemaster
       # [
       #   {
       #     subscriber: <username>,
+      #     uuid: <uuid>,
       #     callback:   <url>,
+      #     max_events: <max_events>,
+      #     timeout: <timeout>,
       #     topics:     [<name>, ...],
       #     events: {
       #       sent:       <sent_count>,
@@ -95,6 +98,7 @@ module Routemaster
         payload = Models::Subscriber.map do |subscriber|
           {
             subscriber: subscriber.name,
+            uuid: subscriber.uuid,
             callback: subscriber.callback,
             max_events: subscriber.max_events,
             timeout: subscriber.timeout,
