@@ -79,7 +79,10 @@ module Routemaster
       # [
       #   {
       #     subscriber: <username>,
+      #     uuid: <uuid>,
       #     callback:   <url>,
+      #     max_events: <max_events>,
+      #     timeout: <timeout>,
       #     topics:     [<name>, ...],
       #     events: {
       #       sent:       <sent_count>,
