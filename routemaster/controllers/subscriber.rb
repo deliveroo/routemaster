@@ -95,6 +95,7 @@ module Routemaster
         payload = Models::Subscriber.map do |subscriber|
           {
             subscriber: subscriber.name,
+            uuid: subscriber.uuid,
             callback: subscriber.callback,
             max_events: subscriber.max_events,
             timeout: subscriber.timeout,
