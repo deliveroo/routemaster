@@ -18,6 +18,8 @@ module Routemaster
       include Mixins::LogException
       include Mixins::Counters
 
+      FARADAY_USER_AGENT = "routemaster-faraday-#{Faraday::VERSION}".freeze
+
       CONNECT_TIMEOUT = ENV.fetch('ROUTEMASTER_CONNECT_TIMEOUT').to_i
       TIMEOUT         = ENV.fetch('ROUTEMASTER_TIMEOUT').to_i
 
@@ -35,7 +37,7 @@ module Routemaster
         _log.debug { "starting delivery to '#{@batch.subscriber_name}'" }
 
         _, error = _with_counters { _with_throttle { _do_delivery } }
-        
+
         if error
           _log.warn { "failed to deliver #{@buffer.length} events to '#{@batch.subscriber_name}'" }
           raise error
@@ -108,7 +110,7 @@ module Routemaster
 
 
       def _conn
-        @_conn ||= Faraday.new(@batch.subscriber.callback, ssl: { verify: _verify_ssl? }) do |c|
+        @_conn ||= Faraday.new(@batch.subscriber.callback, ssl: { verify: _verify_ssl? }, headers: { user_agent: FARADAY_USER_AGENT }) do |c|
           c.adapter :typhoeus
           c.basic_auth(@batch.subscriber.uuid, 'x')
           c.options.open_timeout = CONNECT_TIMEOUT
