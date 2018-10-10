@@ -1,4 +1,4 @@
-FROM deliveroo/hopper-runner:1.2.0 as hopper-runner
+FROM deliveroo/hopper-runner:1.3.6 as hopper-runner
 FROM ruby:2.3.3
 
 COPY --from=hopper-runner /hopper-runner /usr/bin/hopper-runner
@@ -9,7 +9,8 @@ ARG ARG_USER=app
 
 RUN useradd -d /home/$ARG_USER -m --shell /bin/false --user-group $ARG_USER
 
-RUN apt-get update && apt-get install -q -y --no-install-recommends build-essential git
+RUN apt-get update && apt-get install -q -y --no-install-recommends build-essential git \
+    dnsutils tcpdump mtr-tiny
 
 RUN gem install bundler
 
