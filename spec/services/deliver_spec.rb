@@ -267,6 +267,11 @@ describe Routemaster::Services::Deliver do
         expect { JSON.parse(@request.body) }.not_to raise_error
       end
 
+      it 'sends User-Agent' do
+        perform
+        expect(@request.headers['User-Agent']).to eq(described_class::FARADAY_USER_AGENT)
+      end
+
       it 'delivers events in order' do
         perform
         events = JSON.parse(@request.body)
