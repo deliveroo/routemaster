@@ -43,3 +43,13 @@ services:
     containerDefinitions:
       rl-worker:
         <<: *worker_defaults
+
+  ow-internal:
+    containerDefinitions:
+      ow-internal:
+        <<: *web_defaults
+
+  ow-worker:
+    containerDefinitions:
+      ow-worker:
+        <<: *worker_defaults
