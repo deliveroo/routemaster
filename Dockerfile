@@ -1,4 +1,4 @@
-FROM deliveroo/hopper-runner:1.3.6 as hopper-runner
+FROM deliveroo/hopper-runner:1.4.0 as hopper-runner
 FROM ruby:2.3.3
 
 COPY --from=hopper-runner /hopper-runner /usr/bin/hopper-runner
