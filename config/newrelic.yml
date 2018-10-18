@@ -17,7 +17,6 @@ common: &default_settings
   # New Relic service.
   license_key: '<%= ENV["NEW_RELIC_LICENSE_KEY"] %>'
 
-
   attributes:
     include: "request.parameters.*"
 
