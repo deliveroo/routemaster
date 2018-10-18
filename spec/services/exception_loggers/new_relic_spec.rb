@@ -31,8 +31,7 @@ describe Routemaster::Services::ExceptionLoggers::NewRelic do
       before { ENV['NEW_RELIC_LICENSE_KEY'] = 'key' }
 
       it 'should send a notification to NewRelic' do
-        expect(::NewRelic::Agent).to receive(:notice_error).with(error)
-
+        expect(::NewRelic::Agent).to receive(:notice_error).with(error, instance_of(Hash))
         process
       end
     end
