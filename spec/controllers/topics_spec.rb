@@ -104,6 +104,37 @@ describe Routemaster::Controllers::Topics, type: :controller do
         perform
         expect(last_response.status).to eq(400)
       end
+
+      context 'runtime error' do
+        let(:exception_handler_class) do
+          service = ENV.fetch('EXCEPTION_SERVICE', 'print').camelize
+          Routemaster::Services::ExceptionLoggers.const_get(service)
+        end
+
+        let(:error) { RuntimeError.new('runtime error') }
+
+        before do
+          data[:timestamp] = nil
+          allow(Routemaster).to receive(:now) { raise(error) }
+        end
+
+        it 'returns 500' do
+          perform
+          expect(last_response.status).to eq(500)
+        end
+
+        it 'sends event options to exception handler' do
+          expect_any_instance_of(exception_handler_class).to receive(:process).with(error, {
+            custom_params: {
+              topic: 'widgets',
+              type: 'create',
+              url: 'https://example.com/widgets/123',
+              data: nil
+            }
+          }).once
+          perform
+        end
+      end
     end
 
     context 'when the topic is claimed' do

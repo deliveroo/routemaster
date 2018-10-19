@@ -20,7 +20,7 @@ module Routemaster
           abort 'Please install and configure honeybadger (or equivalent service) first!'
         end
 
-        def process(e, _env = ENV['RACK_ENV'])
+        def process(e, _options = {})
           ::Honeybadger.notify(e)
         end
       end

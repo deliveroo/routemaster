@@ -15,8 +15,8 @@ module Routemaster
           require 'newrelic_rpm'
         end
 
-        def process(e, _env = ENV['RACK_ENV'])
-          ::NewRelic::Agent.notice_error(e)
+        def process(e, options = {})
+          ::NewRelic::Agent.notice_error(e, options)
         end
       end
     end

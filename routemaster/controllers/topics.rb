@@ -2,12 +2,14 @@ require 'routemaster/controllers/base'
 require 'routemaster/models/topic'
 require 'routemaster/services/ingest'
 require 'routemaster/mixins/log'
+require 'routemaster/mixins/log_exception'
 require 'json'
 
 module Routemaster
   module Controllers
     class Topics < Base
       include Mixins::Log
+      include Mixins::LogException
 
       register Parser
 
@@ -38,18 +40,21 @@ module Routemaster
           halt 400, 'bad event'
         end
 
+        options = {}
         begin
-          event = Routemaster::Models::Event.new(
-            topic: params['name'],
-            type:  data.fetch('type'),
-            url:   data.fetch('url'),
-            data:  data.fetch('data', nil),
-            timestamp: data['timestamp'] || Routemaster.now
-          )
+          options[:topic] = params['name']
+          options[:type] = data.fetch('type')
+          options[:url] = data.fetch('url')
+          options[:data] = data.fetch('data', nil)
+          options[:timestamp] = data['timestamp'] || Routemaster.now
+          event = Routemaster::Models::Event.new(options)
         rescue ArgumentError => e
           _log.warn { "failed to parse event" }
           _log_exception(e)
           halt 400, 'bad event'
+        rescue => e
+          deliver_exception(e, custom_params: options)
+          halt 500
         end
 
         Services::Ingest.new(topic: topic, event: event, queue: Routemaster.batch_queue).call
