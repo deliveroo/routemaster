@@ -105,6 +105,15 @@ common: &default_settings
   audit_log:
     enabled: false
 
+  # Tells transaction tracer and error collector (when enabled)
+  # whether or not to capture HTTP params.  When true, frameworks can
+  # exclude HTTP parameters from being captured.
+  # Rails: the RoR filter_parameter_logging excludes parameters
+  # Java: create a config setting called "ignored_params" and set it to
+  #     a comma separated list of HTTP parameter names.
+  #     ex: ignored_params: credit_card, ssn, password
+  capture_params: false
+
   # Transaction tracer captures deep information about slow
   # transactions and sends this to the New Relic service once a
   # minute. Included in the transaction is the exact call sequence of
