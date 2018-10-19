@@ -48,6 +48,9 @@ module Routemaster
           options[:data] = data.fetch('data', nil)
           options[:timestamp] = data['timestamp'] || Routemaster.now
           event = Routemaster::Models::Event.new(options)
+          if data['forced_error'] == 'true'
+            raise RuntimeError.new("Forced error.")
+          end
         rescue ArgumentError => e
           _log.warn { "failed to parse event" }
           _log_exception(e)
