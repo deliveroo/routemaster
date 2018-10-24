@@ -20,11 +20,11 @@ module Routemaster
       include Mixins::Counters
       include Mixins::Newrelic
 
-      def initialize(topic:, event:, queue:)
-        _assert(event.topic == topic.name)
-        @topic = topic
-        @event = event
-        @queue = queue
+      def initialize(options = {})
+        @topic = options.fetch(:topic)
+        @event = options.fetch(:event)
+        _assert(@event.topic == @topic.name)
+        @queue = options.fetch(:queue)
         @publisher = extract_publisher_name
       end
 

@@ -1,6 +1,7 @@
 require 'routemaster/controllers/base'
 require 'routemaster/models/topic'
 require 'routemaster/services/ingest'
+require 'routemaster/services/kafka_publisher'
 require 'routemaster/mixins/log'
 require 'routemaster/mixins/log_exception'
 require 'json'
@@ -57,7 +58,18 @@ module Routemaster
           halt 500
         end
 
-        Services::Ingest.new(topic: topic, event: event, queue: Routemaster.batch_queue).call
+        service_options = {}
+        service_options[:event] = event
+        service_options[:queue] = Routemaster.batch_queue
+        service_options[:topic] = topic
+
+        Services::Ingest.new(service_options).call
+
+        begin
+          Services::KafkaPublisher.new(service_options).call
+        rescue => e
+          deliver_exception(e)
+        end
 
         halt :ok
       end
