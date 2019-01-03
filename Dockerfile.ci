@@ -4,7 +4,8 @@ FROM ruby:2.3.3-alpine
 ARG ARG_HOME=/app
 ARG ARG_USER=app
 
-RUN gem install bundler \
+RUN gem update --system \
+    && gem install bundler \
     && apk add --no-cache build-base git \
     && addgroup -S $ARG_USER \
     && adduser -S -D -h /home/$ARG_USER -G $ARG_USER $ARG_USER

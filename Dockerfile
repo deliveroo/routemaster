@@ -12,7 +12,7 @@ RUN useradd -d /home/$ARG_USER -m --shell /bin/false --user-group $ARG_USER
 RUN apt-get update && apt-get install -q -y --no-install-recommends build-essential git \
     dnsutils tcpdump mtr-tiny
 
-RUN gem install bundler
+RUN gem update --system && gem install bundler
 
 WORKDIR $ARG_HOME
 ADD vendor $ARG_HOME/vendor
