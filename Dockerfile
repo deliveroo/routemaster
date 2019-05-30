@@ -11,8 +11,13 @@ RUN useradd -d /home/$ARG_USER -m --shell /bin/false --user-group $ARG_USER
 
 RUN sed -i '/jessie-updates/d' /etc/apt/sources.list  # Now archived
 
-RUN apt-get update && apt-get install -q -y -V --no-install-recommends build-essential git \
-    dnsutils tcpdump mtr-tiny
+RUN apt-get update \
+    && apt-get install -q -y -V --no-install-recommends \
+        build-essential \
+        dnsutils \
+        git \
+        mtr-tiny \
+        tcpdump
 
 RUN gem install bundler
 
