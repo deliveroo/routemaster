@@ -1,13 +1,19 @@
-FROM ruby:2.3.3-alpine
+FROM ruby:2.3.3
 
 # App home directory and app user can be injected through build params.
 ARG ARG_HOME=/app
 ARG ARG_USER=app
 
-RUN gem install bundler \
-    && apk add --no-cache build-base git \
-    && addgroup -S $ARG_USER \
-    && adduser -S -D -h /home/$ARG_USER -G $ARG_USER $ARG_USER
+RUN useradd -d /home/$ARG_USER -m --shell /bin/false --user-group $ARG_USER
+
+RUN sed -i '/jessie-updates/d' /etc/apt/sources.list  # Now archived
+
+RUN apt-get update \
+    && apt-get install -q -y -V --no-install-recommends \
+        build-essential \
+        git
+
+RUN gem install bundler
 
 WORKDIR $ARG_HOME
 ADD vendor $ARG_HOME/vendor
