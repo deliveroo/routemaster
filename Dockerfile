@@ -22,16 +22,11 @@ RUN apt-get update \
 RUN gem install bundler
 
 WORKDIR $ARG_HOME
-ADD vendor $ARG_HOME/vendor
 ADD Gemfile* $ARG_HOME/
-RUN bundle install --jobs 8 --retry 5 --local --deployment \
-    && mv $ARG_HOME/vendor /tmp/vendor
+RUN bundle install --jobs 8 --retry 5 --deployment
 
 ADD . $ARG_HOME
-RUN rm -rf $ARG_HOME/vendor \
-    && mv /tmp/vendor $ARG_HOME/ \
-    && rm -rf $ARG_HOME/vendor/cache \
-    && chown -R $ARG_USER:$ARG_USER $ARG_HOME
+RUN chown -R $ARG_USER:$ARG_USER $ARG_HOME
 USER $ARG_USER
 
 ARG ARG_PORT=3000
