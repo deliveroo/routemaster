@@ -20,7 +20,7 @@ module Acceptance
 
     def start
       raise 'already started' if @pid
-      _log 'starting'
+      _logline 'starting'
       @loglines = []
       rd, wr = IO.pipe
       if @pid = fork
@@ -28,7 +28,7 @@ module Acceptance
         wr.close
         @reader = Thread.new { _read_log(rd) }
       else
-        _log "forked (##{$$})"
+        _logline "forked (##{$$})"
         # child
         rd.close
         ENV['ROUTEMASTER_LOG_FILE'] = nil
@@ -45,8 +45,8 @@ module Acceptance
     # politely ask the process to stop
     def stop
       return if @pid.nil?
-      _log "stopping (##{@pid})"
-      Process.kill('TERM', @pid)
+      _logline "stopping (##{@pid})"
+      Process.kill('INT', @pid)
       self
     end
 
@@ -54,9 +54,9 @@ module Acceptance
     # it is ready for use
     def wait_start
       return unless @start_regexp && @pid
-      _log 'waiting to start'
+      _logline 'waiting to start'
       wait_log @start_regexp
-      _log "started (##{@pid})"
+      _logline "started (##{@pid})"
       self
     end
 
@@ -64,9 +64,9 @@ module Acceptance
     # the process has stoped cleanly
     def wait_stop
       return unless @stop_regexp && @pid
-      _log "waiting to stop (##{@pid})"
+      _logline "waiting to stop (##{@pid})"
       wait_log @stop_regexp
-      _log 'stopped'
+      _logline 'stopped'
     ensure
       terminate
     end
@@ -84,23 +84,36 @@ module Acceptance
 
     # wait until a log line is seen that matches `regexp`, up to a timeout
     def wait_log(regexp)
-      Timeout::timeout(10) do
-        loop do
-          line = @loglines.shift
-          sleep(10.ms) if line.nil?
-          break if line && line =~ regexp
+      begin
+        _logline "wait_log - '#{regexp}' - starting"
+        Timeout::timeout(10) do
+          loop do
+            line = @loglines.shift
+            if line.nil?
+              sleep(1.ms) 
+            elsif line =~ regexp
+              _logline "match - '#{regexp}'"
+              break
+            else
+              _logline "no match - #{line}"
+            end
+          end
         end
+      rescue Timeout::Error
+        _logline "timed out - '#{regexp}'"
+      ensure
+        
       end
+      _logline "wait_log - '#{regexp}' - finished"
       self
     end
 
     private
-
+ 
     def _read_log(io)
       while line = io.gets
         if VERBOSE
-          $stderr.write line
-          $stderr.flush
+          _log line
         end
         @loglines.push line
       end
@@ -108,7 +121,10 @@ module Acceptance
 
     def _log(message)
       return unless VERBOSE
-      $stderr.write("\t-> #{@name}: #{message}\n")
+      $stderr.write("[#{@pid}] [#{Time.now.to_s}] \t-> #{@name}: #{message}")
+    end
+    def _logline(message)
+      _log "#{message}\n"
     end
   end
 

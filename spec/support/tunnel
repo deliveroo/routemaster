@@ -5,6 +5,11 @@ require 'tunnels'
 $stdout.sync = true
 $stderr.sync = true
 
+Kernel.trap('INT') do
+  $stderr.puts 'tunnel terminated'
+  exit 0
+end
+
 Kernel.trap('TERM') do
   $stderr.puts 'tunnel terminated'
   exit 0
